@@ -1,16 +1,16 @@
 # -*- coding: utf-8 -*-
 """
-SK하이닉스 AISK 심층 대비 인터랙티브 대시보드 빌더 스크립트
-build_aisk_dashboard.py
+SK하이닉스 AISK 심층 대비 인터랙티브 대시보드 빌더 스크립트 v2.0
+- 사용자 직접 제목/내용 실전 수정(In-place Editing)
+- 신규 문항 추가(Modal Add Item)
+- 문항 삭제(Delete)
+- 로컬 스토리지(localStorage) 상시 자동 보존
+- JSON 내보내기/불러오기 및 기본값 복원 기능 탑재
 """
 
 import os
 import json
 import shutil
-import html
-
-def escape(text):
-    return html.escape(text)
 
 def generate_dashboard():
     data_path = r"C:\Work\반도체4_AISK대비\context\data\aisk_topics.json"
@@ -23,120 +23,8 @@ def generate_dashboard():
     with open(data_path, "r", encoding="utf-8") as f:
         topics = json.load(f)
 
-    # 사이드바 아이템 생성
-    nav_items_html = []
-    cards_html = []
-
-    for t in topics:
-        t_id = t["id"]
-        cat = t["category"]
-        cat_label = t["category_label"]
-        num = t["number"]
-        title = t["title"]
-        keywords = t.get("core_keyword", [])
-        speech = t["speech_1m30s"]
-        lecture = t["deep_lecture"]
-        svg = t["svg_diagram"]
-
-        speech_char_count = len(speech)
-        num_str = f"인성-{num:02d}" if cat == "personality" else f"직무-{num:02d}"
-        badge_class = "cat-badge-p" if cat == "personality" else "cat-badge-t"
-
-        # Sidebar nav item
-        keywords_str = " ".join(keywords)
-        nav_items_html.append(f"""
-        <li class="nav-item" data-category="{cat}" data-search="{escape(title)} {escape(keywords_str)} {num_str}">
-          <a href="#{t_id}" class="nav-link" id="link-{t_id}">
-            <span class="nav-num {badge_class}">{num_str}</span>
-            <span class="nav-text">{escape(title)}</span>
-          </a>
-        </li>
-        """)
-
-        # Core keywords pills
-        kw_pills = "".join([f'<span class="kw-pill">#{escape(kw)}</span>' for kw in keywords])
-
-        # Core points in lecture
-        core_pts_html = "".join([f'<li>{escape(pt)}</li>' for pt in lecture.get("core_points", [])])
-
-        # Action principle formatting (개행 처리)
-        action_principle_text = lecture.get("action_principle", "").replace("\n", "<br>")
-
-        # Card HTML
-        cards_html.append(f"""
-        <section class="topic-section" id="{t_id}" data-category="{cat}">
-          <div class="topic-header">
-            <div class="topic-title-wrap">
-              <span class="topic-badge {badge_class}">{num_str}</span>
-              <span class="category-chip">{escape(cat_label)}</span>
-              <div class="kw-container">{kw_pills}</div>
-            </div>
-            <div class="speech-len-tag">실전 호흡: <strong>{speech_char_count}자</strong> (약 1분 30초)</div>
-          </div>
-
-          <h2 class="topic-title">{escape(title)}</h2>
-
-          <!-- 1분 30초 실전 핵심 전달 카드 -->
-          <div class="speech-card">
-            <div class="speech-card-header">
-              <div class="speech-card-title">
-                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 2a3 3 0 0 0-3 3v7a3 3 0 0 0 6 0V5a3 3 0 0 0-3-3Z"></path><path d="M19 10v2a7 7 0 0 1-14 0v-2"></path><line x1="12" y1="19" x2="12" y2="22"></line></svg>
-                <span>1분 30초 실전 핵심 전달 (구어체 최적화 호흡)</span>
-              </div>
-              <button class="btn-copy" onclick="copySpeech('{t_id}')" title="답변 복사">
-                <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="9" y="9" width="13" height="13" rx="2" ry="2"></rect><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"></path></svg>
-                복사
-              </button>
-            </div>
-            <div class="speech-body" id="speech-text-{t_id}">
-              {escape(speech)}
-            </div>
-            <div class="speech-guide-footer">
-              <span class="guide-tip">💡 팁: 첫 10초에 두괄식 핵심 메시지를 각인시키고, 60초간 구체적 데이터·원리를 전개한 후, 마지막 20초에 양산 수율 기여로 완결합니다.</span>
-            </div>
-          </div>
-
-          <!-- 아키텍처 다이어그램 -->
-          <div class="diagram-section">
-            <div class="diagram-title">
-              <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="18" height="18" rx="2" ry="2"></rect><line x1="3" y1="9" x2="21" y2="9"></line><line x1="9" y1="21" x2="9" y2="9"></line></svg>
-              구조화 아키텍처 다이어그램 (Architectural Schematic)
-            </div>
-            <div class="svg-container">
-              {svg}
-            </div>
-          </div>
-
-          <!-- 세부 마스터 강의 노트 -->
-          <div class="lecture-box">
-            <div class="lecture-header">
-              <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M2 3h6a4 4 0 0 1 4 4v14a3 3 0 0 0-3-3H2z"></path><path d="M22 3h-6a4 4 0 0 0-4 4v14a3 3 0 0 1 3-3h7z"></path></svg>
-              세부 마스터 강의 노트 (Technical & Behavioral Deep-Dive)
-            </div>
-
-            <div class="lecture-content">
-              <div class="lecture-item">
-                <h4 class="lecture-sub-title">1. 배경 및 출제 의도 (Background & Core Context)</h4>
-                <p class="lecture-desc">{escape(lecture.get("background", ""))}</p>
-              </div>
-
-              <div class="lecture-item">
-                <h4 class="lecture-sub-title">2. 핵심 행동·물리 원리 (Action & Physical Principles)</h4>
-                <div class="principle-box">
-                  {action_principle_text}
-                </div>
-              </div>
-
-              <div class="lecture-item">
-                <h4 class="lecture-sub-title">3. 마스터 공략 핵심 포인트 (Key Takeaways)</h4>
-                <ul class="core-pts-list">
-                  {core_pts_html}
-                </ul>
-              </div>
-            </div>
-          </div>
-        </section>
-        """)
+    # JSON 직렬화하여 JS 변수로 주입
+    topics_json_escaped = json.dumps(topics, ensure_ascii=False)
 
     full_html = f"""<!DOCTYPE html>
 <html lang="ko">
@@ -146,7 +34,7 @@ def generate_dashboard():
   <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
   <meta http-equiv="Pragma" content="no-cache">
   <meta http-equiv="Expires" content="0">
-  <title>SK하이닉스 AISK 심층 대비 마스터 백과사전 (인성 20 + 직무 20)</title>
+  <title>SK하이닉스 AISK 심층 대비 마스터 백과사전 (커스텀 편집 & 문항 추가 지원)</title>
   
   <!-- Pretendard & JetBrains Mono Fonts -->
   <link rel="preconnect" href="https://fonts.googleapis.com">
@@ -156,8 +44,7 @@ def generate_dashboard():
   <!-- KaTeX for Semiconductor Physics Formulas -->
   <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.16.8/dist/katex.min.css">
   <script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.8/dist/katex.min.js"></script>
-  <script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.8/dist/contrib/auto-render.min.js"
-          onload="renderMathInElement(document.body, {{delimiters: [{{left: '$$', right: '$$', display: true}}, {{left: '$', right: '$', display: false}}]}});"></script>
+  <script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.8/dist/contrib/auto-render.min.js"></script>
 
   <style>
     :root {{
@@ -258,7 +145,7 @@ def generate_dashboard():
     }}
 
     .sidebar-header {{
-      padding: 22px 20px 16px;
+      padding: 20px 20px 14px;
       border-bottom: 1px solid var(--border);
       background: linear-gradient(180deg, rgba(30, 41, 59, 0.6) 0%, rgba(15, 23, 42, 0) 100%);
     }}
@@ -304,11 +191,50 @@ def generate_dashboard():
       line-height: 1.4;
     }}
 
+    /* 사이드바 액션 바 (신규 추가 & 백업) */
+    .sidebar-action-bar {{
+      display: flex;
+      gap: 6px;
+      padding: 10px 16px;
+      background: rgba(15, 23, 42, 0.6);
+      border-bottom: 1px solid var(--border);
+    }}
+
+    .btn-sidebar-action {{
+      flex: 1;
+      padding: 7px 6px;
+      font-size: 0.76rem;
+      font-weight: 700;
+      border-radius: 6px;
+      border: 1px solid var(--border);
+      background: #1e293b;
+      color: var(--text-sub);
+      cursor: pointer;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      gap: 4px;
+      transition: all 0.2s;
+    }}
+    .btn-sidebar-action:hover {{
+      background: #334155;
+      color: #ffffff;
+      border-color: var(--accent-blue);
+    }}
+    .btn-sidebar-action.primary {{
+      background: linear-gradient(135deg, #0284c7, #2563eb);
+      color: #ffffff;
+      border-color: #38bdf8;
+    }}
+    .btn-sidebar-action.primary:hover {{
+      background: linear-gradient(135deg, #0369a1, #1d4ed8);
+    }}
+
     /* 카테고리 필터 칩 */
     .filter-tabs {{
       display: flex;
       gap: 6px;
-      padding: 12px 18px;
+      padding: 10px 16px;
       border-bottom: 1px solid var(--border);
       background: rgba(15, 23, 42, 0.4);
     }}
@@ -316,7 +242,7 @@ def generate_dashboard():
     .filter-chip {{
       flex: 1;
       padding: 6px 4px;
-      font-size: 0.78rem;
+      font-size: 0.77rem;
       font-weight: 700;
       border-radius: 6px;
       border: 1px solid var(--border);
@@ -338,7 +264,7 @@ def generate_dashboard():
     }}
 
     .search-box {{
-      padding: 12px 18px;
+      padding: 10px 16px;
       border-bottom: 1px solid var(--border);
     }}
 
@@ -420,6 +346,11 @@ def generate_dashboard():
       background: rgba(56, 189, 248, 0.12);
       border: 1px solid rgba(56, 189, 248, 0.3);
     }}
+    .cat-badge-c {{
+      color: #10b981;
+      background: rgba(16, 185, 129, 0.12);
+      border: 1px solid rgba(16, 185, 129, 0.3);
+    }}
 
     .nav-text {{
       flex: 1;
@@ -441,7 +372,7 @@ def generate_dashboard():
       align-items: flex-start;
       justify-content: space-between;
       gap: 30px;
-      margin-bottom: 40px;
+      margin-bottom: 34px;
       padding-bottom: 24px;
       border-bottom: 1px solid var(--border);
       flex-wrap: wrap;
@@ -481,6 +412,43 @@ def generate_dashboard():
       font-size: 0.98rem;
       color: var(--text-sub);
       line-height: 1.6;
+      margin-bottom: 14px;
+    }}
+
+    .header-btn-group {{
+      display: flex;
+      gap: 8px;
+      flex-wrap: wrap;
+    }}
+
+    .btn-header {{
+      padding: 7px 14px;
+      border-radius: 8px;
+      font-size: 0.82rem;
+      font-weight: 700;
+      cursor: pointer;
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      border: 1px solid var(--border);
+      background: #1e293b;
+      color: var(--text-sub);
+      transition: all 0.2s;
+    }}
+    .btn-header:hover {{
+      background: #334155;
+      color: #ffffff;
+      border-color: var(--accent-blue);
+    }}
+    .btn-header.primary {{
+      background: linear-gradient(135deg, #0284c7, #2563eb);
+      color: #ffffff;
+      border-color: #38bdf8;
+      box-shadow: 0 4px 12px rgba(2, 132, 199, 0.3);
+    }}
+    .btn-header.primary:hover {{
+      background: linear-gradient(135deg, #0369a1, #1d4ed8);
+      transform: translateY(-1px);
     }}
 
     /* 1분 30초 실전 스톱워치 위젯 */
@@ -574,11 +542,12 @@ def generate_dashboard():
       background-color: var(--bg-card);
       border: 2px solid var(--border);
       border-radius: var(--radius-lg);
-      padding: 34px 38px;
-      margin-bottom: 50px;
+      padding: 32px 36px;
+      margin-bottom: 46px;
       box-shadow: var(--shadow-md);
       scroll-margin-top: 30px;
       transition: all 0.25s ease;
+      position: relative;
     }}
     .topic-section:hover {{
       border-color: rgba(56, 189, 248, 0.6);
@@ -633,6 +602,42 @@ def generate_dashboard():
       border-radius: 4px;
     }}
 
+    /* 카드 액션 버튼 그룹 (수정, 삭제, 복사) */
+    .card-actions {{
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }}
+
+    .btn-card-action {{
+      background: rgba(30, 41, 59, 0.8);
+      border: 1px solid var(--border);
+      color: var(--text-sub);
+      border-radius: 6px;
+      padding: 5px 10px;
+      font-size: 0.78rem;
+      font-weight: 700;
+      cursor: pointer;
+      display: inline-flex;
+      align-items: center;
+      gap: 5px;
+      transition: all 0.2s;
+    }}
+    .btn-card-action:hover {{
+      background: #334155;
+      color: #ffffff;
+      border-color: var(--accent-blue);
+    }}
+    .btn-card-action.edit-btn:hover {{
+      color: var(--accent-blue);
+      border-color: var(--accent-blue);
+    }}
+    .btn-card-action.delete-btn:hover {{
+      color: #f87171;
+      border-color: #ef4444;
+      background: rgba(239, 68, 68, 0.15);
+    }}
+
     .speech-len-tag {{
       font-size: 0.82rem;
       color: var(--text-muted);
@@ -678,25 +683,6 @@ def generate_dashboard():
       padding: 5px 12px;
       border-radius: 6px;
       letter-spacing: 0.02em;
-    }}
-
-    .btn-copy {{
-      background: rgba(15, 23, 42, 0.6);
-      border: 1px solid rgba(56, 189, 248, 0.4);
-      color: var(--accent-blue);
-      border-radius: 6px;
-      padding: 4px 10px;
-      font-size: 0.75rem;
-      font-weight: 700;
-      cursor: pointer;
-      display: inline-flex;
-      align-items: center;
-      gap: 5px;
-      transition: all 0.2s;
-    }}
-    .btn-copy:hover {{
-      background: var(--accent-blue);
-      color: #0f172a;
     }}
 
     .speech-body {{
@@ -817,6 +803,214 @@ def generate_dashboard():
       font-weight: 800;
     }}
 
+    /* ========================================================
+       인라인 편집 모드 폼 스타일 (In-Place Edit Form)
+       ======================================================== */
+    .edit-form-wrap {{
+      background: #1e293b;
+      border: 2px solid var(--accent-blue);
+      border-radius: var(--radius-lg);
+      padding: 30px;
+      margin-bottom: 46px;
+      box-shadow: 0 10px 35px rgba(2, 132, 199, 0.35);
+    }}
+
+    .edit-form-header {{
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      margin-bottom: 20px;
+      padding-bottom: 12px;
+      border-bottom: 1px solid rgba(56, 189, 248, 0.3);
+    }}
+
+    .edit-form-title {{
+      font-size: 1.1rem;
+      font-weight: 800;
+      color: var(--accent-blue);
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }}
+
+    .form-group {{
+      margin-bottom: 18px;
+    }}
+
+    .form-label {{
+      display: block;
+      font-size: 0.86rem;
+      font-weight: 700;
+      color: #e2e8f0;
+      margin-bottom: 7px;
+    }}
+
+    .form-label .char-counter {{
+      font-size: 0.78rem;
+      font-weight: 600;
+      color: var(--accent-emerald);
+      margin-left: 8px;
+    }}
+    .form-label .char-counter.warn {{
+      color: var(--accent-amber);
+    }}
+
+    .form-input, .form-select, .form-textarea {{
+      width: 100%;
+      padding: 10px 14px;
+      background: #0f172a;
+      border: 1.5px solid #334155;
+      border-radius: var(--radius-sm);
+      color: #f8fafc;
+      font-size: 0.92rem;
+      outline: none;
+      transition: all 0.2s;
+    }}
+    .form-input:focus, .form-select:focus, .form-textarea:focus {{
+      border-color: var(--accent-blue);
+      box-shadow: 0 0 0 3px rgba(56, 189, 248, 0.25);
+    }}
+
+    .form-textarea {{
+      min-height: 120px;
+      resize: vertical;
+      line-height: 1.6;
+    }}
+
+    .form-actions {{
+      display: flex;
+      justify-content: flex-end;
+      gap: 10px;
+      margin-top: 24px;
+      padding-top: 16px;
+      border-top: 1px solid #334155;
+    }}
+
+    .btn-submit {{
+      background: linear-gradient(135deg, #0284c7, #2563eb);
+      color: #ffffff;
+      border: 1px solid #38bdf8;
+      border-radius: 8px;
+      padding: 9px 20px;
+      font-size: 0.88rem;
+      font-weight: 700;
+      cursor: pointer;
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      transition: all 0.2s;
+    }}
+    .btn-submit:hover {{
+      background: linear-gradient(135deg, #0369a1, #1d4ed8);
+      transform: translateY(-1px);
+      box-shadow: 0 4px 15px rgba(56, 189, 248, 0.4);
+    }}
+
+    .btn-cancel {{
+      background: #334155;
+      color: var(--text-sub);
+      border: 1px solid #475569;
+      border-radius: 8px;
+      padding: 9px 18px;
+      font-size: 0.88rem;
+      font-weight: 700;
+      cursor: pointer;
+      transition: all 0.2s;
+    }}
+    .btn-cancel:hover {{
+      background: #475569;
+      color: #ffffff;
+    }}
+
+    /* ========================================================
+       신규 문항 추가 모달 (Add Item Modal)
+       ======================================================== */
+    .modal-backdrop {{
+      position: fixed;
+      top: 0;
+      left: 0;
+      right: 0;
+      bottom: 0;
+      background: rgba(0, 0, 0, 0.75);
+      backdrop-filter: blur(6px);
+      z-index: 1000;
+      display: none;
+      align-items: center;
+      justify-content: center;
+      padding: 20px;
+    }}
+    .modal-backdrop.open {{
+      display: flex;
+    }}
+
+    .modal-card {{
+      background: #111827;
+      border: 2px solid var(--accent-blue);
+      border-radius: var(--radius-lg);
+      width: 100%;
+      max-width: 780px;
+      max-height: 90vh;
+      display: flex;
+      flex-direction: column;
+      box-shadow: 0 20px 60px rgba(0, 0, 0, 0.8);
+      animation: modalFadeIn 0.25s ease;
+    }}
+
+    @keyframes modalFadeIn {{
+      from {{ opacity: 0; transform: scale(0.95); }}
+      to {{ opacity: 1; transform: scale(1); }}
+    }}
+
+    .modal-header {{
+      padding: 20px 26px;
+      border-bottom: 1px solid var(--border);
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      background: #0f172a;
+      border-radius: var(--radius-lg) var(--radius-lg) 0 0;
+    }}
+
+    .modal-title {{
+      font-size: 1.25rem;
+      font-weight: 800;
+      color: #ffffff;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }}
+
+    .modal-close-btn {{
+      background: none;
+      border: none;
+      color: var(--text-muted);
+      cursor: pointer;
+      padding: 4px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      border-radius: 6px;
+      transition: all 0.2s;
+    }}
+    .modal-close-btn:hover {{
+      color: #ffffff;
+      background: #334155;
+    }}
+
+    .modal-body {{
+      padding: 24px 26px;
+      overflow-y: auto;
+      flex: 1;
+    }}
+
+    .modal-body::-webkit-scrollbar {{
+      width: 6px;
+    }}
+    .modal-body::-webkit-scrollbar-thumb {{
+      background: #334155;
+      border-radius: 4px;
+    }}
+
     /* 복사 토스트 */
     .toast {{
       position: fixed;
@@ -832,7 +1026,7 @@ def generate_dashboard():
       transform: translateY(100px);
       opacity: 0;
       transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
-      z-index: 1000;
+      z-index: 2000;
     }}
     .toast.show {{
       transform: translateY(0);
@@ -880,14 +1074,26 @@ def generate_dashboard():
           접기
         </button>
       </div>
-      <p class="sidebar-desc">SK하이닉스 심층 대비 마스터 40문항</p>
+      <p class="sidebar-desc">SK하이닉스 심층 대비 마스터 백과사전</p>
+    </div>
+
+    <!-- 사이드바 상단 빠른 액션 바 -->
+    <div class="sidebar-action-bar">
+      <button class="btn-sidebar-action primary" onclick="openAddModal()">
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="12" y1="5" x2="12" y2="19"></line><line x1="5" y1="12" x2="19" y2="12"></line></svg>
+        신규 항목 추가
+      </button>
+      <button class="btn-sidebar-action" onclick="exportDataJSON()" title="수정된 데이터 JSON 백업 다운로드">
+        <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path><polyline points="7 10 12 15 17 10"></polyline><line x1="12" y1="15" x2="12" y2="3"></line></svg>
+        백업
+      </button>
     </div>
 
     <!-- 카테고리 필터 탭 -->
     <div class="filter-tabs">
-      <button class="filter-chip active" data-filter="all">전체 (40)</button>
-      <button class="filter-chip" data-filter="personality">인성·협업 (20)</button>
-      <button class="filter-chip" data-filter="tech">직무·소자 (20)</button>
+      <button class="filter-chip active" data-filter="all" id="tabAll">전체 (40)</button>
+      <button class="filter-chip" data-filter="personality" id="tabPersonality">인성·협업 (20)</button>
+      <button class="filter-chip" data-filter="tech" id="tabTech">직무·소자 (20)</button>
     </div>
 
     <!-- 실시간 검색창 -->
@@ -897,7 +1103,7 @@ def generate_dashboard():
 
     <!-- 목차 리스트 -->
     <ul class="nav-list" id="navList">
-      {"".join(nav_items_html)}
+      <!-- JavaScript로 동적 렌더링 -->
     </ul>
   </aside>
 
@@ -911,9 +1117,24 @@ def generate_dashboard():
         </div>
         <h1 class="main-title">SK하이닉스 AISK 심층 대비 마스터</h1>
         <p class="main-desc">
-          인성·협업·조직 가치 20문항과 소자·공정 실전 핵심 20문항으로 구성된 총 40개 마스터 강의 컬렉션입니다.<br>
-          각 문항마다 <strong>1분 30초 실전 핵심 전달</strong>(380~450자), <strong>구조화 아키텍처 다이어그램</strong>, <strong>세부 마스터 강의 노트</strong>를 탑재하여 완벽한 실전 전달력을 구현합니다.
+          인성·협업 가치와 소자·공정 실전 핵심 문항을 마스터하는 인터랙티브 학습 시스템입니다.<br>
+          각 카드에서 <strong>[✏️ 수정]</strong>을 눌러 직접 제목과 내용을 편집할 수 있으며, <strong>[➕ 신규 항목 추가]</strong>로 나만의 문항을 무제한 등록하고 영구 보존할 수 있습니다.
         </p>
+
+        <div class="header-btn-group">
+          <button class="btn-header primary" onclick="openAddModal()">
+            <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="12" y1="5" x2="12" y2="19"></line><line x1="5" y1="12" x2="19" y2="12"></line></svg>
+            신규 항목 추가하기
+          </button>
+          <button class="btn-header" onclick="exportDataJSON()">
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path><polyline points="7 10 12 15 17 10"></polyline><line x1="12" y1="15" x2="12" y2="3"></line></svg>
+            JSON 데이터 백업
+          </button>
+          <button class="btn-header" onclick="resetToDefault()">
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="1 4 1 10 7 10"></polyline><path d="M3.51 15a9 9 0 1 0 2.13-9.36L1 10"></path></svg>
+            기본값 복원
+          </button>
+        </div>
       </div>
 
       <!-- 1분 30초 실전 스톱워치 위젯 -->
@@ -936,50 +1157,570 @@ def generate_dashboard():
 
     <!-- 문항 카드 컨테이너 -->
     <div id="topicContainer">
-      {"".join(cards_html)}
+      <!-- JavaScript로 동적 렌더링 -->
     </div>
   </main>
 
-  <div class="toast" id="toast">1분 30초 실전 답변이 클립보드에 복사되었습니다!</div>
+  <!-- 신규 문항 추가 모달 (Modal) -->
+  <div class="modal-backdrop" id="addModalBackdrop">
+    <div class="modal-card">
+      <div class="modal-header">
+        <div class="modal-title">
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="12" y1="5" x2="12" y2="19"></line><line x1="5" y1="12" x2="19" y2="12"></line></svg>
+          신규 항목 추가
+        </div>
+        <button class="modal-close-btn" onclick="closeAddModal()">
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="18" y1="6" x2="6" y2="18"></line><line x1="6" y1="6" x2="18" y2="18"></line></svg>
+        </button>
+      </div>
+      <div class="modal-body">
+        <form id="addForm" onsubmit="submitNewTopic(event)">
+          <div class="form-group">
+            <label class="form-label">분류 카테고리</label>
+            <select class="form-select" id="newCategory" required>
+              <option value="personality">인성·협업·조직 가치</option>
+              <option value="tech">반도체 소자·공정 실전 핵심</option>
+            </select>
+          </div>
+
+          <div class="form-group">
+            <label class="form-label">문항 제목</label>
+            <input type="text" class="form-input" id="newTitle" placeholder="예: HBM4 16단 적층 시 발생하는 열적 휨(Warpage) 제어 방안" required>
+          </div>
+
+          <div class="form-group">
+            <label class="form-label">핵심 키워드 (쉼표로 구분)</label>
+            <input type="text" class="form-input" id="newKeywords" placeholder="예: TSV 본딩, CTE 불일치, 하이브리드 본딩">
+          </div>
+
+          <div class="form-group">
+            <label class="form-label">
+              1분 30초 실전 핵심 전달 (구어체)
+              <span class="char-counter" id="newSpeechCounter">0자 (권장 380~450자)</span>
+            </label>
+            <textarea class="form-textarea" id="newSpeech" style="min-height: 140px;" placeholder="실전에서 1분 30초 동안 청자에게 전달할 구어체 내용을 입력하십시오." required oninput="updateSpeechCounter('newSpeech', 'newSpeechCounter')"></textarea>
+          </div>
+
+          <div class="form-group">
+            <label class="form-label">세부 강의 노트 1: 배경 및 출제 의도</label>
+            <textarea class="form-textarea" id="newBg" style="min-height: 80px;" placeholder="해당 질문이 갖는 공학적/조직적 배경 및 평가 주안점"></textarea>
+          </div>
+
+          <div class="form-group">
+            <label class="form-label">세부 강의 노트 2: 핵심 행동·물리 원리</label>
+            <textarea class="form-textarea" id="newPrinciple" style="min-height: 90px;" placeholder="단계별 실행 프로토콜 또는 물리 화학적 작동 메커니즘"></textarea>
+          </div>
+
+          <div class="form-group">
+            <label class="form-label">세부 강의 노트 3: 마스터 공략 핵심 포인트 (줄바꿈으로 구분)</label>
+            <textarea class="form-textarea" id="newPoints" style="min-height: 80px;" placeholder="포인트 1&#10;포인트 2&#10;포인트 3"></textarea>
+          </div>
+
+          <div class="form-actions">
+            <button type="button" class="btn-cancel" onclick="closeAddModal()">취소</button>
+            <button type="submit" class="btn-submit">
+              <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="20 6 9 17 4 12"></polyline></svg>
+              등록 완료
+            </button>
+          </div>
+        </form>
+      </div>
+    </div>
+  </div>
+
+  <div class="toast" id="toast">알림</div>
 
   <script>
-    // 1. 사이드바 접기 / 펼치기
-    const sidebarCollapseBtn = document.getElementById('sidebarCollapseBtn');
-    const sidebarFloatOpenBtn = document.getElementById('sidebarFloatOpenBtn');
+    // 원천 기본 데이터 (JSON)
+    const DEFAULT_TOPICS = {topics_json_escaped};
 
-    if (sidebarCollapseBtn) {{
-      sidebarCollapseBtn.addEventListener('click', () => {{
-        document.body.classList.add('sidebar-collapsed');
-        localStorage.setItem('aisk_sidebar_collapsed', 'true');
+    const STORAGE_KEY = 'aisk_master_topics_custom_v1';
+    let currentTopics = [];
+
+    // 1. 초기 데이터 로드 (localStorage 우선)
+    function loadTopics() {{
+      const saved = localStorage.getItem(STORAGE_KEY);
+      if (saved) {{
+        try {{
+          currentTopics = JSON.parse(saved);
+        }} catch (e) {{
+          console.error('로컬스토리지 파싱 실패, 기본값 사용', e);
+          currentTopics = JSON.parse(JSON.stringify(DEFAULT_TOPICS));
+        }}
+      }} else {{
+        currentTopics = JSON.parse(JSON.stringify(DEFAULT_TOPICS));
+      }}
+    }}
+
+    function saveTopicsToStorage() {{
+      localStorage.setItem(STORAGE_KEY, JSON.stringify(currentTopics));
+    }}
+
+    // 2. 전체 대시보드 렌더링
+    function renderDashboard() {{
+      renderSidebar();
+      renderCards();
+      updateCounters();
+      applyFilterAndSearch();
+      renderMath();
+    }}
+
+    // 카운터 업데이트
+    function updateCounters() {{
+      const totalCount = currentTopics.length;
+      const pCount = currentTopics.filter(t => t.category === 'personality').length;
+      const tCount = currentTopics.filter(t => t.category === 'tech').length;
+
+      document.getElementById('tabAll').textContent = `전체 (${{totalCount}})`;
+      document.getElementById('tabPersonality').textContent = `인성·협업 (${{pCount}})`;
+      document.getElementById('tabTech').textContent = `직무·소자 (${{tCount}})`;
+    }}
+
+    // 사이드바 렌더링
+    function renderSidebar() {{
+      const navList = document.getElementById('navList');
+      let html = '';
+
+      currentTopics.forEach((t, index) => {{
+        const cat = t.category;
+        const num = t.number || (index + 1);
+        const title = escapeHtml(t.title);
+        const keywordsStr = (t.core_keyword || []).join(' ');
+        
+        let numStr = '';
+        let badgeClass = '';
+        if (cat === 'personality') {{
+          numStr = `인성-${{String(num).padStart(2, '0')}}`;
+          badgeClass = 'cat-badge-p';
+        }} else {{
+          numStr = `직무-${{String(num).padStart(2, '0')}}`;
+          badgeClass = 'cat-badge-t';
+        }}
+
+        html += `
+          <li class="nav-item" data-category="${{cat}}" data-search="${{title}} ${{escapeHtml(keywordsStr)}} ${{numStr}}">
+            <a href="#${{t.id}}" class="nav-link" id="link-${{t.id}}">
+              <span class="nav-num ${{badgeClass}}">${{numStr}}</span>
+              <span class="nav-text">${{title}}</span>
+            </a>
+          </li>
+        `;
       }});
+
+      navList.innerHTML = html;
     }}
 
-    if (sidebarFloatOpenBtn) {{
-      sidebarFloatOpenBtn.addEventListener('click', () => {{
-        document.body.classList.remove('sidebar-collapsed');
-        localStorage.setItem('aisk_sidebar_collapsed', 'false');
+    // 메인 카드 렌더링
+    function renderCards() {{
+      const container = document.getElementById('topicContainer');
+      let html = '';
+
+      currentTopics.forEach((t, index) => {{
+        const cat = t.category;
+        const catLabel = t.category_label || (cat === 'personality' ? '인성·협업·조직 가치' : '반도체 소자·공정 실전 핵심');
+        const num = t.number || (index + 1);
+        const title = escapeHtml(t.title);
+        const speech = t.speech_1m30s || '';
+        const speechCharCount = speech.length;
+        const lecture = t.deep_lecture || {{}};
+        const keywords = t.core_keyword || [];
+        const svg = t.svg_diagram || getDefaultSvg(keywords, title);
+
+        let numStr = '';
+        let badgeClass = '';
+        if (cat === 'personality') {{
+          numStr = `인성-${{String(num).padStart(2, '0')}}`;
+          badgeClass = 'cat-badge-p';
+        }} else {{
+          numStr = `직무-${{String(num).padStart(2, '0')}}`;
+          badgeClass = 'cat-badge-t';
+        }}
+
+        const kwPills = keywords.map(kw => `<span class="kw-pill">#${{escapeHtml(kw)}}</span>`).join('');
+        const corePtsHtml = (lecture.core_points || []).map(pt => `<li>${{escapeHtml(pt)}}</li>`).join('');
+        const actionPrincipleHtml = (lecture.action_principle || '').replace(/\\n/g, '<br>');
+
+        html += `
+          <section class="topic-section" id="${{t.id}}" data-category="${{cat}}">
+            <div id="view-${{t.id}}">
+              <div class="topic-header">
+                <div class="topic-title-wrap">
+                  <span class="topic-badge ${{badgeClass}}">${{numStr}}</span>
+                  <span class="category-chip">${{escapeHtml(catLabel)}}</span>
+                  <div class="kw-container">${{kwPills}}</div>
+                </div>
+
+                <div class="card-actions">
+                  <div class="speech-len-tag">실전 호흡: <strong>${{speechCharCount}}자</strong></div>
+                  <button class="btn-card-action edit-btn" onclick="startEdit('${{t.id}}')" title="제목 및 본문 수정">
+                    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M17 3a2.828 2.828 0 1 1 4 4L7.5 20.5 2 22l1.5-5.5L17 3z"></path></svg>
+                    수정
+                  </button>
+                  <button class="btn-card-action delete-btn" onclick="deleteTopic('${{t.id}}')" title="이 문항 삭제">
+                    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="3 6 5 6 21 6"></polyline><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path></svg>
+                    삭제
+                  </button>
+                </div>
+              </div>
+
+              <h2 class="topic-title">${{title}}</h2>
+
+              <!-- 1분 30초 실전 핵심 전달 카드 -->
+              <div class="speech-card">
+                <div class="speech-card-header">
+                  <div class="speech-card-title">
+                    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 2a3 3 0 0 0-3 3v7a3 3 0 0 0 6 0V5a3 3 0 0 0-3-3Z"></path><path d="M19 10v2a7 7 0 0 1-14 0v-2"></path><line x1="12" y1="19" x2="12" y2="22"></line></svg>
+                    <span>1분 30초 실전 핵심 전달 (구어체 최적화 호흡)</span>
+                  </div>
+                  <button class="btn-card-action" onclick="copySpeech('${{t.id}}')" title="답변 복사">
+                    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="9" y="9" width="13" height="13" rx="2" ry="2"></rect><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"></path></svg>
+                    복사
+                  </button>
+                </div>
+                <div class="speech-body" id="speech-text-${{t.id}}">
+                  ${{escapeHtml(speech)}}
+                </div>
+                <div class="speech-guide-footer">
+                  <span class="guide-tip">💡 팁: 첫 10초에 두괄식 핵심 메시지를 각인시키고, 60초간 구체적 데이터·원리를 전개한 후, 마지막 20초에 양산 수율 기여로 완결합니다.</span>
+                </div>
+              </div>
+
+              <!-- 아키텍처 다이어그램 -->
+              <div class="diagram-section">
+                <div class="diagram-title">
+                  <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="18" height="18" rx="2" ry="2"></rect><line x1="3" y1="9" x2="21" y2="9"></line><line x1="9" y1="21" x2="9" y2="9"></line></svg>
+                  구조화 아키텍처 다이어그램 (Architectural Schematic)
+                </div>
+                <div class="svg-container">
+                  ${{svg}}
+                </div>
+              </div>
+
+              <!-- 세부 마스터 강의 노트 -->
+              <div class="lecture-box">
+                <div class="lecture-header">
+                  <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M2 3h6a4 4 0 0 1 4 4v14a3 3 0 0 0-3-3H2z"></path><path d="M22 3h-6a4 4 0 0 0-4 4v14a3 3 0 0 1 3-3h7z"></path></svg>
+                  세부 마스터 강의 노트 (Technical & Behavioral Deep-Dive)
+                </div>
+
+                <div class="lecture-content">
+                  <div class="lecture-item">
+                    <h4 class="lecture-sub-title">1. 배경 및 출제 의도 (Background & Core Context)</h4>
+                    <p class="lecture-desc">${{escapeHtml(lecture.background || '')}}</p>
+                  </div>
+
+                  <div class="lecture-item">
+                    <h4 class="lecture-sub-title">2. 핵심 행동·물리 원리 (Action & Physical Principles)</h4>
+                    <div class="principle-box">
+                      ${{actionPrincipleHtml}}
+                    </div>
+                  </div>
+
+                  <div class="lecture-item">
+                    <h4 class="lecture-sub-title">3. 마스터 공략 핵심 포인트 (Key Takeaways)</h4>
+                    <ul class="core-pts-list">
+                      ${{corePtsHtml}}
+                    </ul>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            <!-- 인라인 편집 폼 컨테이너 (숨김 상태) -->
+            <div id="edit-form-wrap-${{t.id}}" style="display: none;"></div>
+          </section>
+        `;
       }});
+
+      container.innerHTML = html;
+      setupObserver();
     }}
 
-    if (localStorage.getItem('aisk_sidebar_collapsed') === 'true') {{
-      document.body.classList.add('sidebar-collapsed');
+    // 기본 SVG 다이어그램 생성기 (신규 항목용)
+    function getDefaultSvg(keywords, title) {{
+      const kw1 = escapeHtml(keywords[0] || '1. 핵심 가설/원인');
+      const kw2 = escapeHtml(keywords[1] || '2. 공학적 솔루션');
+      const kw3 = escapeHtml(keywords[2] || '3. 양산 수율 달성');
+
+      return `<svg viewBox="0 0 800 240" xmlns="http://www.w3.org/2000/svg">
+  <rect width="800" height="240" fill="#0f172a" rx="12"/>
+  <rect x="40" y="45" width="220" height="150" fill="#1e293b" stroke="#38bdf8" stroke-width="2" rx="8"/>
+  <text x="150" y="80" fill="#38bdf8" font-size="15" font-weight="bold" text-anchor="middle">Step 1</text>
+  <text x="150" y="125" fill="#cbd5e1" font-size="13" text-anchor="middle">${{kw1}}</text>
+
+  <path d="M 275 120 L 315 120" stroke="#f59e0b" stroke-width="3"/>
+
+  <rect x="330" y="45" width="230" height="150" fill="#1e293b" stroke="#f59e0b" stroke-width="2" rx="8"/>
+  <text x="445" y="80" fill="#f59e0b" font-size="15" font-weight="bold" text-anchor="middle">Step 2</text>
+  <text x="445" y="125" fill="#cbd5e1" font-size="13" text-anchor="middle">${{kw2}}</text>
+
+  <path d="M 575 120 L 615 120" stroke="#10b981" stroke-width="3"/>
+
+  <rect x="630" y="45" width="130" height="150" fill="#1e293b" stroke="#10b981" stroke-width="2" rx="8"/>
+  <text x="695" y="80" fill="#10b981" font-size="15" font-weight="bold" text-anchor="middle">Step 3</text>
+  <text x="695" y="125" fill="#cbd5e1" font-size="13" text-anchor="middle">${{kw3}}</text>
+</svg>`;
     }}
 
-    // 2. 카테고리 필터링
+    // ========================================================
+    // 3. 인라인 편집 기능 (In-place Edit)
+    // ========================================================
+    function startEdit(id) {{
+      const topic = currentTopics.find(t => t.id === id);
+      if (!topic) return;
+
+      const viewEl = document.getElementById(`view-${{id}}`);
+      const editWrap = document.getElementById(`edit-form-wrap-${{id}}`);
+
+      viewEl.style.display = 'none';
+      editWrap.style.display = 'block';
+
+      const keywordsStr = (topic.core_keyword || []).join(', ');
+      const pointsStr = ((topic.deep_lecture || {{}}).core_points || []).join('\\n');
+
+      editWrap.innerHTML = `
+        <div class="edit-form-wrap">
+          <div class="edit-form-header">
+            <div class="edit-form-title">
+              <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M17 3a2.828 2.828 0 1 1 4 4L7.5 20.5 2 22l1.5-5.5L17 3z"></path></svg>
+              문항 편집 모드
+            </div>
+            <span style="font-size: 0.8rem; color: #94a3b8;">수정 후 저장 시 로컬에 즉시 영구 저장됩니다.</span>
+          </div>
+
+          <div class="form-group">
+            <label class="form-label">분류 카테고리</label>
+            <select class="form-select" id="edit-cat-${{id}}">
+              <option value="personality" ${{topic.category === 'personality' ? 'selected' : ''}}>인성·협업·조직 가치</option>
+              <option value="tech" ${{topic.category === 'tech' ? 'selected' : ''}}>반도체 소자·공정 실전 핵심</option>
+            </select>
+          </div>
+
+          <div class="form-group">
+            <label class="form-label">문항 제목</label>
+            <input type="text" class="form-input" id="edit-title-${{id}}" value="${{escapeHtml(topic.title)}}" required>
+          </div>
+
+          <div class="form-group">
+            <label class="form-label">핵심 키워드 (쉼표 구분)</label>
+            <input type="text" class="form-input" id="edit-kw-${{id}}" value="${{escapeHtml(keywordsStr)}}">
+          </div>
+
+          <div class="form-group">
+            <label class="form-label">
+              1분 30초 실전 핵심 전달 (구어체)
+              <span class="char-counter" id="edit-counter-${{id}}">${{topic.speech_1m30s.length}}자 (권장 380~450자)</span>
+            </label>
+            <textarea class="form-textarea" id="edit-speech-${{id}}" style="min-height: 140px;" oninput="updateSpeechCounter('edit-speech-${{id}}', 'edit-counter-${{id}}')">${{escapeHtml(topic.speech_1m30s)}}</textarea>
+          </div>
+
+          <div class="form-group">
+            <label class="form-label">세부 강의 노트 1: 배경 및 출제 의도</label>
+            <textarea class="form-textarea" id="edit-bg-${{id}}" style="min-height: 80px;">${{escapeHtml((topic.deep_lecture || {{}}).background || '')}}</textarea>
+          </div>
+
+          <div class="form-group">
+            <label class="form-label">세부 강의 노트 2: 핵심 행동·물리 원리</label>
+            <textarea class="form-textarea" id="edit-principle-${{id}}" style="min-height: 90px;">${{escapeHtml((topic.deep_lecture || {{}}).action_principle || '')}}</textarea>
+          </div>
+
+          <div class="form-group">
+            <label class="form-label">세부 강의 노트 3: 마스터 공략 핵심 포인트 (줄바꿈 구분)</label>
+            <textarea class="form-textarea" id="edit-points-${{id}}" style="min-height: 80px;">${{escapeHtml(pointsStr)}}</textarea>
+          </div>
+
+          <div class="form-actions">
+            <button class="btn-cancel" onclick="cancelEdit('${{id}}')">취소</button>
+            <button class="btn-submit" onclick="saveEdit('${{id}}')">
+              <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="20 6 9 17 4 12"></polyline></svg>
+              저장 완료
+            </button>
+          </div>
+        </div>
+      `;
+    }}
+
+    function cancelEdit(id) {{
+      const viewEl = document.getElementById(`view-${{id}}`);
+      const editWrap = document.getElementById(`edit-form-wrap-${{id}}`);
+      if (viewEl && editWrap) {{
+        editWrap.style.display = 'none';
+        editWrap.innerHTML = '';
+        viewEl.style.display = 'block';
+      }}
+    }}
+
+    function saveEdit(id) {{
+      const topic = currentTopics.find(t => t.id === id);
+      if (!topic) return;
+
+      const newCat = document.getElementById(`edit-cat-${{id}}`).value;
+      const newTitle = document.getElementById(`edit-title-${{id}}`).value.trim();
+      const newKw = document.getElementById(`edit-kw-${{id}}`).value.split(',').map(s => s.trim()).filter(Boolean);
+      const newSpeech = document.getElementById(`edit-speech-${{id}}`).value.trim();
+      const newBg = document.getElementById(`edit-bg-${{id}}`).value.trim();
+      const newPrinciple = document.getElementById(`edit-principle-${{id}}`).value.trim();
+      const newPoints = document.getElementById(`edit-points-${{id}}`).value.split('\\n').map(s => s.trim()).filter(Boolean);
+
+      if (!newTitle || !newSpeech) {{
+        alert('제목과 1분 30초 실전 답변은 필수입니다.');
+        return;
+      }}
+
+      topic.category = newCat;
+      topic.category_label = (newCat === 'personality' ? '인성·협업·조직 가치' : '반도체 소자·공정 실전 핵심');
+      topic.title = newTitle;
+      topic.core_keyword = newKw;
+      topic.speech_1m30s = newSpeech;
+      topic.deep_lecture = topic.deep_lecture || {{}};
+      topic.deep_lecture.background = newBg;
+      topic.deep_lecture.action_principle = newPrinciple;
+      topic.deep_lecture.core_points = newPoints;
+
+      saveTopicsToStorage();
+      renderDashboard();
+      showToast('💾 문항 수정 내용이 성공적으로 저장되었습니다!');
+
+      // 해당 카드로 부드럽게 스크롤
+      const targetCard = document.getElementById(id);
+      if (targetCard) {{
+        targetCard.scrollIntoView({{ behavior: 'smooth' }});
+      }}
+    }}
+
+    // ========================================================
+    // 4. 문항 삭제 기능 (Delete)
+    // ========================================================
+    function deleteTopic(id) {{
+      const topic = currentTopics.find(t => t.id === id);
+      if (!topic) return;
+
+      if (!confirm(`정말 "${{topic.title}}" 문항을 삭제하시겠습니까?\\n(삭제 후에도 필요 시 기본값 복원 버튼으로 되돌릴 수 있습니다)`)) {{
+        return;
+      }}
+
+      currentTopics = currentTopics.filter(t => t.id !== id);
+      saveTopicsToStorage();
+      renderDashboard();
+      showToast('🗑️ 문항이 삭제되었습니다.');
+    }}
+
+    // ========================================================
+    // 5. 신규 문항 추가 모달 (Add Item Modal)
+    // ========================================================
+    function openAddModal() {{
+      document.getElementById('addModalBackdrop').classList.add('open');
+      document.getElementById('newTitle').focus();
+    }}
+
+    function closeAddModal() {{
+      document.getElementById('addModalBackdrop').classList.remove('open');
+      document.getElementById('addForm').reset();
+      updateSpeechCounter('newSpeech', 'newSpeechCounter');
+    }}
+
+    function submitNewTopic(e) {{
+      e.preventDefault();
+
+      const cat = document.getElementById('newCategory').value;
+      const title = document.getElementById('newTitle').value.trim();
+      const kw = document.getElementById('newKeywords').value.split(',').map(s => s.trim()).filter(Boolean);
+      const speech = document.getElementById('newSpeech').value.trim();
+      const bg = document.getElementById('newBg').value.trim();
+      const principle = document.getElementById('newPrinciple').value.trim();
+      const points = document.getElementById('newPoints').value.split('\\n').map(s => s.trim()).filter(Boolean);
+
+      if (!title || !speech) {{
+        alert('제목과 1분 30초 실전 답변을 입력해주십시오.');
+        return;
+      }}
+
+      const newId = (cat === 'personality' ? 'p_custom_' : 't_custom_') + Date.now();
+      const catCount = currentTopics.filter(t => t.category === cat).length + 1;
+
+      const newTopic = {{
+        id: newId,
+        category: cat,
+        category_label: (cat === 'personality' ? '인성·협업·조직 가치' : '반도체 소자·공정 실전 핵심'),
+        number: catCount,
+        title: title,
+        core_keyword: kw.length ? kw : ['핵심역량', '원인규명', '성과창출'],
+        speech_1m30s: speech,
+        deep_lecture: {{
+          background: bg || '출제 배경 및 맥락 정의',
+          action_principle: principle || '1. 원인 파악 및 실행\\n2. 정량적 검증',
+          core_points: points.length ? points : ['핵심 전달력 유지', '데이터 연계']
+        }},
+        svg_diagram: getDefaultSvg(kw, title)
+      }};
+
+      currentTopics.push(newTopic);
+      saveTopicsToStorage();
+      closeAddModal();
+      renderDashboard();
+      showToast('🎉 신규 문항이 성공적으로 등록되었습니다!');
+
+      // 신규 등록 카드로 스크롤 이동
+      setTimeout(() => {{
+        const newEl = document.getElementById(newId);
+        if (newEl) {{
+          newEl.scrollIntoView({{ behavior: 'smooth' }});
+        }}
+      }}, 150);
+    }}
+
+    // ========================================================
+    // 6. 데이터 백업 / 복원 기능
+    // ========================================================
+    function exportDataJSON() {{
+      const dataStr = "data:text/json;charset=utf-8," + encodeURIComponent(JSON.stringify(currentTopics, null, 2));
+      const downloadAnchor = document.createElement('a');
+      downloadAnchor.setAttribute("href", dataStr);
+      downloadAnchor.setAttribute("download", `aisk_topics_backup_${{new Date().toISOString().slice(0, 10)}}.json`);
+      document.body.appendChild(downloadAnchor);
+      downloadAnchor.click();
+      downloadAnchor.remove();
+      showToast('📥 현재 편집된 40+ 문항 데이터가 JSON 파일로 다운로드되었습니다.');
+    }}
+
+    function resetToDefault() {{
+      if (confirm('기본 40개 문항 데이터로 복원하시겠습니까?\\n(사용자가 수정한 내용 및 새로 추가한 문항이 모두 초기화됩니다)')) {{
+        localStorage.removeItem(STORAGE_KEY);
+        currentTopics = JSON.parse(JSON.stringify(DEFAULT_TOPICS));
+        renderDashboard();
+        showToast('🔄 기본 40개 문항 데이터로 복원 완료되었습니다.');
+      }}
+    }}
+
+    // ========================================================
+    // 7. 실시간 글자수 계산기
+    // ========================================================
+    function updateSpeechCounter(textareaId, counterId) {{
+      const el = document.getElementById(textareaId);
+      const counter = document.getElementById(counterId);
+      if (!el || !counter) return;
+
+      const len = el.value.length;
+      counter.textContent = `${{len}}자 (권장 380~450자)`;
+      if (len >= 380 && len <= 450) {{
+        counter.classList.remove('warn');
+      }} else {{
+        counter.classList.add('warn');
+      }}
+    }}
+
+    // ========================================================
+    // 8. 필터 및 검색
+    // ========================================================
     const filterChips = document.querySelectorAll('.filter-chip');
-    const navItems = document.querySelectorAll('.nav-item');
-    const topicSections = document.querySelectorAll('.topic-section');
-
     filterChips.forEach(chip => {{
       chip.addEventListener('click', () => {{
         filterChips.forEach(c => c.classList.remove('active'));
         chip.classList.add('active');
-        const filter = chip.getAttribute('data-filter');
         applyFilterAndSearch();
       }});
     }});
 
-    // 3. 실시간 검색 필터링
     const searchInput = document.getElementById('searchInput');
     searchInput.addEventListener('input', () => {{
       applyFilterAndSearch();
@@ -990,18 +1731,17 @@ def generate_dashboard():
       const filter = activeFilterChip ? activeFilterChip.getAttribute('data-filter') : 'all';
       const query = searchInput.value.toLowerCase().trim();
 
+      const navItems = document.querySelectorAll('.nav-item');
+      const topicSections = document.querySelectorAll('.topic-section');
+
       navItems.forEach(item => {{
         const itemCat = item.getAttribute('data-category');
         const searchData = item.getAttribute('data-search').toLowerCase();
-        
+
         const catMatch = (filter === 'all' || itemCat === filter);
         const searchMatch = (query === '' || searchData.includes(query));
 
-        if (catMatch && searchMatch) {{
-          item.style.display = 'block';
-        }} else {{
-          item.style.display = 'none';
-        }}
+        item.style.display = (catMatch && searchMatch) ? 'block' : 'none';
       }});
 
       topicSections.forEach(section => {{
@@ -1011,15 +1751,13 @@ def generate_dashboard():
         const catMatch = (filter === 'all' || secCat === filter);
         const searchMatch = (query === '' || secText.includes(query));
 
-        if (catMatch && searchMatch) {{
-          section.style.display = 'block';
-        }} else {{
-          section.style.display = 'none';
-        }}
+        section.style.display = (catMatch && searchMatch) ? 'block' : 'none';
       }});
     }}
 
-    // 4. 1분 30초 실전 타이머
+    // ========================================================
+    // 9. 1분 30초 실전 타이머
+    // ========================================================
     const TOTAL_SECONDS = 90;
     let remainingSeconds = TOTAL_SECONDS;
     let timerInterval = null;
@@ -1076,7 +1814,9 @@ def generate_dashboard():
       updateTimerUI();
     }});
 
-    // 5. 복사 기능 및 토스트 알림
+    // ========================================================
+    // 10. 복사 기능 & 토스트
+    // ========================================================
     function copySpeech(id) {{
       const el = document.getElementById(`speech-text-${{id}}`);
       if (!el) return;
@@ -1097,26 +1837,80 @@ def generate_dashboard():
       }}, 2600);
     }}
 
-    // 6. 스크롤 활성 링크 감지 (IntersectionObserver)
-    const observer = new IntersectionObserver((entries) => {{
-      entries.forEach(entry => {{
-        if (entry.isIntersecting) {{
-          const id = entry.target.id;
-          document.querySelectorAll('.nav-link').forEach(link => {{
-            link.classList.remove('active');
-          }});
-          const activeLink = document.getElementById(`link-${{id}}`);
-          if (activeLink) {{
-            activeLink.classList.add('active');
-          }}
-        }}
-      }});
-    }}, {{
-      rootMargin: '-20% 0px -70% 0px'
-    }});
+    // ========================================================
+    // 11. 사이드바 접기/열기 & 스크롤 감지
+    // ========================================================
+    const sidebarCollapseBtn = document.getElementById('sidebarCollapseBtn');
+    const sidebarFloatOpenBtn = document.getElementById('sidebarFloatOpenBtn');
 
-    topicSections.forEach(sec => {{
-      observer.observe(sec);
+    if (sidebarCollapseBtn) {{
+      sidebarCollapseBtn.addEventListener('click', () => {{
+        document.body.classList.add('sidebar-collapsed');
+        localStorage.setItem('aisk_sidebar_collapsed', 'true');
+      }});
+    }}
+
+    if (sidebarFloatOpenBtn) {{
+      sidebarFloatOpenBtn.addEventListener('click', () => {{
+        document.body.classList.remove('sidebar-collapsed');
+        localStorage.setItem('aisk_sidebar_collapsed', 'false');
+      }});
+    }}
+
+    if (localStorage.getItem('aisk_sidebar_collapsed') === 'true') {{
+      document.body.classList.add('sidebar-collapsed');
+    }}
+
+    let observer = null;
+    function setupObserver() {{
+      if (observer) observer.disconnect();
+      observer = new IntersectionObserver((entries) => {{
+        entries.forEach(entry => {{
+          if (entry.isIntersecting) {{
+            const id = entry.target.id;
+            document.querySelectorAll('.nav-link').forEach(link => {{
+              link.classList.remove('active');
+            }});
+            const activeLink = document.getElementById(`link-${{id}}`);
+            if (activeLink) {{
+              activeLink.classList.add('active');
+            }}
+          }}
+        }});
+      }}, {{
+        rootMargin: '-20% 0px -70% 0px'
+      }});
+
+      document.querySelectorAll('.topic-section').forEach(sec => {{
+        observer.observe(sec);
+      }});
+    }}
+
+    function renderMath() {{
+      if (window.renderMathInElement) {{
+        renderMathInElement(document.body, {{
+          delimiters: [
+            {{left: '$$', right: '$$', display: true}},
+            {{left: '$', right: '$', display: false}}
+          ]
+        }});
+      }}
+    }}
+
+    function escapeHtml(text) {{
+      if (!text) return '';
+      return String(text)
+        .replace(/&/g, '&amp;')
+        .replace(/</g, '&lt;')
+        .replace(/>/g, '&gt;')
+        .replace(/"/g, '&quot;')
+        .replace(/'/g, '&#039;');
+    }}
+
+    // 실행 시작
+    document.addEventListener('DOMContentLoaded', () => {{
+      loadTopics();
+      renderDashboard();
     }});
   </script>
 </body>
@@ -1125,7 +1919,7 @@ def generate_dashboard():
 
     with open(result_html_path, "w", encoding="utf-8") as f:
         f.write(full_html)
-    print(f"[성공] 대시보드 생성 완료: {result_html_path}")
+    print(f"[성공] 대시보드 v2.0 생성 완료: {result_html_path}")
 
     shutil.copyfile(result_html_path, root_html_path)
     print(f"[성공] 루트 배포 완료: {root_html_path}")
