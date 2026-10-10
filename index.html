@@ -512,7 +512,7 @@
     /* 질문 카드 스타일 */
     .topic-section {
       background-color: var(--bg-card);
-      border: 2px solid var(--border);
+      border: 1cm solid var(--border);
       border-radius: var(--radius-lg);
       padding: 32px 36px;
       margin-bottom: 46px;
@@ -1173,20 +1173,7 @@
             <textarea class="form-textarea" id="newSpeech" style="min-height: 140px;" placeholder="실전에서 1분 30초 동안 청자에게 전달할 구어체 내용을 입력하십시오." required oninput="updateSpeechCounter('newSpeech', 'newSpeechCounter')"></textarea>
           </div>
 
-          <div class="form-group">
-            <label class="form-label">세부 강의 노트 1: 배경 및 출제 의도</label>
-            <textarea class="form-textarea" id="newBg" style="min-height: 80px;" placeholder="해당 질문이 갖는 공학적/조직적 배경 및 평가 주안점"></textarea>
-          </div>
 
-          <div class="form-group">
-            <label class="form-label">세부 강의 노트 2: 핵심 행동·물리 원리</label>
-            <textarea class="form-textarea" id="newPrinciple" style="min-height: 90px;" placeholder="단계별 실행 프로토콜 또는 물리 화학적 작동 메커니즘"></textarea>
-          </div>
-
-          <div class="form-group">
-            <label class="form-label">세부 강의 노트 3: 마스터 공략 핵심 포인트 (줄바꿈으로 구분)</label>
-            <textarea class="form-textarea" id="newPoints" style="min-height: 80px;" placeholder="포인트 1&#10;포인트 2&#10;포인트 3"></textarea>
-          </div>
 
           <div class="form-actions">
             <button type="button" class="btn-cancel" onclick="closeAddModal()">취소</button>
@@ -1357,45 +1344,7 @@
                 </div>
               </div>
 
-              <!-- 아키텍처 다이어그램 -->
-              <div class="diagram-section">
-                <div class="diagram-title">
-                  <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="18" height="18" rx="2" ry="2"></rect><line x1="3" y1="9" x2="21" y2="9"></line><line x1="9" y1="21" x2="9" y2="9"></line></svg>
-                  구조화 아키텍처 다이어그램 (Architectural Schematic)
-                </div>
-                <div class="svg-container">
-                  ${svg}
-                </div>
-              </div>
 
-              <!-- 세부 마스터 강의 노트 -->
-              <div class="lecture-box">
-                <div class="lecture-header">
-                  <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M2 3h6a4 4 0 0 1 4 4v14a3 3 0 0 0-3-3H2z"></path><path d="M22 3h-6a4 4 0 0 0-4 4v14a3 3 0 0 1 3-3h7z"></path></svg>
-                  세부 마스터 강의 노트 (Technical & Behavioral Deep-Dive)
-                </div>
-
-                <div class="lecture-content">
-                  <div class="lecture-item">
-                    <h4 class="lecture-sub-title">1. 배경 및 출제 의도 (Background & Core Context)</h4>
-                    <p class="lecture-desc">${escapeHtml(lecture.background || '')}</p>
-                  </div>
-
-                  <div class="lecture-item">
-                    <h4 class="lecture-sub-title">2. 핵심 행동·물리 원리 (Action & Physical Principles)</h4>
-                    <div class="principle-box">
-                      ${actionPrincipleHtml}
-                    </div>
-                  </div>
-
-                  <div class="lecture-item">
-                    <h4 class="lecture-sub-title">3. 마스터 공략 핵심 포인트 (Key Takeaways)</h4>
-                    <ul class="core-pts-list">
-                      ${corePtsHtml}
-                    </ul>
-                  </div>
-                </div>
-              </div>
             </div>
 
             <!-- 인라인 편집 폼 컨테이너 (숨김 상태) -->
@@ -1486,20 +1435,7 @@
             <textarea class="form-textarea" id="edit-speech-${id}" style="min-height: 140px;" oninput="updateSpeechCounter('edit-speech-${id}', 'edit-counter-${id}')">${escapeHtml(topic.speech_1m30s)}</textarea>
           </div>
 
-          <div class="form-group">
-            <label class="form-label">세부 강의 노트 1: 배경 및 출제 의도</label>
-            <textarea class="form-textarea" id="edit-bg-${id}" style="min-height: 80px;">${escapeHtml((topic.deep_lecture || {}).background || '')}</textarea>
-          </div>
 
-          <div class="form-group">
-            <label class="form-label">세부 강의 노트 2: 핵심 행동·물리 원리</label>
-            <textarea class="form-textarea" id="edit-principle-${id}" style="min-height: 90px;">${escapeHtml((topic.deep_lecture || {}).action_principle || '')}</textarea>
-          </div>
-
-          <div class="form-group">
-            <label class="form-label">세부 강의 노트 3: 마스터 공략 핵심 포인트 (줄바꿈 구분)</label>
-            <textarea class="form-textarea" id="edit-points-${id}" style="min-height: 80px;">${escapeHtml(pointsStr)}</textarea>
-          </div>
 
           <div class="form-actions">
             <button class="btn-cancel" onclick="cancelEdit('${id}')">취소</button>
@@ -1530,9 +1466,12 @@
       const newTitle = document.getElementById(`edit-title-${id}`).value.trim();
       const newKw = document.getElementById(`edit-kw-${id}`).value.split(',').map(s => s.trim()).filter(Boolean);
       const newSpeech = document.getElementById(`edit-speech-${id}`).value.trim();
-      const newBg = document.getElementById(`edit-bg-${id}`).value.trim();
-      const newPrinciple = document.getElementById(`edit-principle-${id}`).value.trim();
-      const newPoints = document.getElementById(`edit-points-${id}`).value.split('\n').map(s => s.trim()).filter(Boolean);
+      const bgEl = document.getElementById(`edit-bg-${id}`);
+      const newBg = bgEl ? bgEl.value.trim() : (topic.deep_lecture?.background || '');
+      const principleEl = document.getElementById(`edit-principle-${id}`);
+      const newPrinciple = principleEl ? principleEl.value.trim() : (topic.deep_lecture?.action_principle || '');
+      const pointsEl = document.getElementById(`edit-points-${id}`);
+      const newPoints = pointsEl ? pointsEl.value.split('\n').map(s => s.trim()).filter(Boolean) : (topic.deep_lecture?.core_points || []);
 
       if (!newTitle || !newSpeech) {
         alert('제목과 1분 30초 실전 답변은 필수입니다.');
@@ -1598,9 +1537,12 @@
       const title = document.getElementById('newTitle').value.trim();
       const kw = document.getElementById('newKeywords').value.split(',').map(s => s.trim()).filter(Boolean);
       const speech = document.getElementById('newSpeech').value.trim();
-      const bg = document.getElementById('newBg').value.trim();
-      const principle = document.getElementById('newPrinciple').value.trim();
-      const points = document.getElementById('newPoints').value.split('\n').map(s => s.trim()).filter(Boolean);
+      const bgEl = document.getElementById('newBg');
+      const bg = bgEl ? bgEl.value.trim() : '';
+      const principleEl = document.getElementById('newPrinciple');
+      const principle = principleEl ? principleEl.value.trim() : '';
+      const pointsEl = document.getElementById('newPoints');
+      const points = pointsEl ? pointsEl.value.split('\n').map(s => s.trim()).filter(Boolean) : [];
 
       if (!title || !speech) {
         alert('제목과 1분 30초 실전 답변을 입력해주십시오.');
