@@ -1475,6 +1475,21 @@
       "패턴 팽윤(Swelling)"
     ],
     "speech_1m30s": "Positive PR과 Negative PR의 핵심 차이는 빛을 받은 노광부의 화학적 결합 변화와 그에 따른 현상액(Developer) 용해도 차이에 있습니다. Positive PR은 노광된 영역의 고분자 결합이 끊어지거나 화학 증폭형 산(Acid)에 의해 가용성 물질로 변하여, 현상 시 노광된 부분이 씻겨 나가고 마스크와 동일한 양각 패턴이 남습니다. 반면 Negative PR은 노광된 영역이 광가교 반응을 일으켜 단단한 고분자 그물망 구조를 형성함으로써 불용성이 되어, 빛을 받지 않은 비노광 영역이 씻겨 나가고 음각 패턴이 형성됩니다. 공정 선택의 관점에서, 미세 패턴 구현에는 Positive PR이 절대적으로 유리합니다. Negative PR은 현상 시 용매를 흡수하여 패턴이 부풀어 오르는 팽윤(Swelling) 현상이 발생해 미세 선폭에서 패턴 쓰러짐이 발생하는 반면, Positive PR은 팽윤이 없어 해상도(Resolution)와 종횡비(Aspect Ratio) 제어가 훨씬 우수하기 때문입니다. 다만 Negative PR은 잔존 막질의 접착력과 화학적/기계적 에치 내성이 뛰어나, 두꺼운 절연막 패턴이나 범프 형성 등 특수 공정에 선별적으로 적용됩니다."
+  },
+  {
+    "id": "t_07",
+    "category": "tech",
+    "category_label": "반도체 소자·공정 실전 핵심",
+    "number": 7,
+    "title": "DRAM의 기본 동작 원리 (1T-1C 셀 구조 및 Write / Read / Refresh 메커니즘)",
+    "core_keyword": [
+      "1T-1C 셀 구조",
+      "커패시터 전하 충·방전",
+      "전하 공유(Charge Sharing)",
+      "센스 앰프(BLSA) 증폭",
+      "리프레시(tRET)"
+    ],
+    "speech_1m30s": "DRAM은 1개의 트랜지스터와 커패시터(1T-1C)로 구성되어 전하 충·방전으로 데이터를 저장하는 휘발성 메모리입니다. 기본 동작은 3단계입니다. 첫째, 쓰기(Write)는 워드라인을 턴온하고 비트라인 전압으로 커패시터에 전하를 채우거나 비웁니다. 둘째, 읽기(Read)는 비트라인을 프리차지한 후 워드라인을 열어 전하 공유(Charge Sharing)를 유도합니다. 이때 발생하는 미세 전위차를 센스 앰프(BLSA)가 감지해 '0'과 '1'로 증폭 판독하며, 소실된 전하를 즉시 채우는 재저장(Restore)을 병행합니다. 셋째, 커패시터 전하는 자연 방전되므로 데이터 보존 시간(tRET) 내에 주기적으로 재충전하는 리프레시(Refresh)가 필수적입니다. 미세화 한계 속에서 충분한 커패시턴스(Cs) 확보와 트랜지스터 누설 억제가 DRAM 양산 수율의 핵심입니다."
   }
 ];
 
@@ -1487,6 +1502,16 @@
       if (saved) {
         try {
           currentTopics = JSON.parse(saved);
+          let updated = false;
+          DEFAULT_TOPICS.forEach(dt => {
+            if (!currentTopics.some(ct => ct.id === dt.id)) {
+              currentTopics.push(JSON.parse(JSON.stringify(dt)));
+              updated = true;
+            }
+          });
+          if (updated) {
+            saveTopicsToStorage();
+          }
         } catch (e) {
           console.error('로컬스토리지 파싱 실패, 기본값 사용', e);
           currentTopics = JSON.parse(JSON.stringify(DEFAULT_TOPICS));
