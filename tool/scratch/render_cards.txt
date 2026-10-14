@@ -1,0 +1,59 @@
+function renderCards() {
+      const container = document.getElementById('topicContainer');
+      if (currentTopics.length === 0) {
+        container.innerHTML = `
+          <div style="text-align: center; padding: 70px 24px; color: var(--text-muted); background: var(--bg-card); border-radius: var(--radius-lg); border: 2px dashed var(--border); margin-top: 20px;">
+            <svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" style="margin-bottom: 16px; opacity: 0.6;"><circle cx="12" cy="12" r="10"></circle><line x1="12" y1="8" x2="12" y2="12"></line><line x1="12" y1="16" x2="12.01" y2="16"></line></svg>
+            <h3 style="font-size: 1.25rem; color: var(--text-main); margin-bottom: 8px;">등록된 문항이 없습니다</h3>
+            <p style="font-size: 0.92rem; color: var(--text-sub); margin-bottom: 24px;">인성 및 직무 문항이 모두 초기화되었습니다.<br>상단의 '+ 신규 문항 추가' 버튼을 눌러 새로운 문항을 작성해보세요.</p>
+            <button class="btn-primary" onclick="openAddModal()" style="display: inline-flex; align-items: center; gap: 8px; margin: 0 auto; cursor: pointer;">
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="12" y1="5" x2="12" y2="19"></line><line x1="5" y1="12" x2="19" y2="12"></line></svg>
+              신규 문항 추가하기
+            </button>
+          </div>
+        `;
+        return;
+      }
+      let html = '';
+
+      currentTopics.forEach((t, index) => {
+        const cat = t.category;
+        const catLabel = t.category_label || (cat === 'personality' ? '인성·협업·조직 가치' : '반도체 소자·공정 실전 핵심');
+        const num = t.number || (index + 1);
+        const title = escapeHtml(t.title);
+        const speech = t.speech_1m30s || '';
+        const speechCharCount = speech.length;
+        const lecture = t.deep_lecture || {};
+        const keywords = t.core_keyword || [];
+        const svg = t.svg_diagram || getDefaultSvg(keywords, title);
+
+        let numStr = '';
+        let badgeClass = '';
+        if (cat === 'personality') {
+          numStr = `인성-${String(num).padStart(2, '0')}`;
+          badgeClass = 'cat-badge-p';
+        } else {
+          numStr = `직무-${String(num).padStart(2, '0')}`;
+          badgeClass = 'cat-badge-t';
+        }
+
+        const kwPills = keywords.map(kw => `<span class="kw-pill">#${escapeHtml(kw)}</span>`).join('');
+        const isPersonality = (cat === 'personality');
+        const cardHeaderTitle = isPersonality 
+          ? '1분 실전 핵심 전달 (구어체 호흡 · 약 220~320자)' 
+          : '3분 심층 기술 마스터 전달 (원리·수식·양산 심화 · 약 800~1500자)';
+        const cardLenGuide = isPersonality ? '1분 권장: 220~320자' : '3분 권장: 800~1500자';
+        const guideTip = isPersonality
+          ? '💡 팁: 첫 10초에 두괄식 핵심 메시지를 각인시키고, 40초간 구체적 행동/근거를 전개한 후, 마지막 10초에 조직 가치 기여로 완결합니다.'
+          : '💡 팁: 첫 30초에 물리적 정의 및 아키텍처를 제시하고, 2분간 공학적 메커니즘·수식·트레이드오프를 심층 전개한 후, 마지막 30초에 SK하이닉스 양산 수율/품질 개선 기여로 완결합니다.';
+
+        const lenColor = getLenColor(speechCharCount, cat);
+
+        html += `
+          <section class="topic-section" id="${t.id}" data-category="${cat}">
+            <div id="view-${t.id}">
+              <div class="topic-header">
+                <div class="topic-title-wrap">
+                  <span class="topic-badge ${badgeClass}">${numStr}</span>
+                  <span class="category-chip">${escapeHtml(catLabel)}</span>
+                  <div class="kw-container editable-field" contenteditable="true" data-field="keywords" data-id="${t.id}" title="클릭하여 키워드 바로 수정">${kwPills}</div>
