@@ -2047,9 +2047,6 @@
           ? '1분 실전 핵심 전달 (구어체 호흡 · 약 220~320자)' 
           : '3분 심층 기술 마스터 전달 (원리·수식·양산 심화 · 약 800~1500자)';
         const cardLenGuide = isPersonality ? '1분 권장: 220~320자' : '3분 권장: 800~1500자';
-        const guideTip = isPersonality
-          ? '💡 팁: 첫 10초에 두괄식 핵심 메시지를 각인시키고, 40초간 구체적 행동/근거를 전개한 후, 마지막 10초에 조직 가치 기여로 완결합니다.'
-          : '💡 팁: 첫 30초에 물리적 정의 및 아키텍처를 제시하고, 2분간 공학적 메커니즘·수식·트레이드오프를 심층 전개한 후, 마지막 30초에 SK하이닉스 양산 수율/품질 개선 기여로 완결합니다.';
 
         const lenColor = getLenColor(speechCharCount, cat);
 
@@ -2090,9 +2087,6 @@
                   </button>
                 </div>
                 <div class="speech-body editable-field" contenteditable="true" data-field="speech_1m30s" data-id="${t.id}" id="speech-text-${t.id}" title="클릭하여 바로 수정 (자동 저장)">${escapeHtml(speech)}</div>
-                <div class="speech-guide-footer">
-                  <span class="guide-tip">${guideTip}</span>
-                </div>
               </div>
 
 

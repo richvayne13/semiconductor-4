@@ -1380,9 +1380,6 @@ def generate_dashboard():
                 <div class="speech-body" id="speech-text-${{t.id}}">
                   ${{escapeHtml(speech)}}
                 </div>
-                <div class="speech-guide-footer">
-                  <span class="guide-tip">💡 팁: 첫 10초에 두괄식 핵심 메시지를 각인시키고, 60초간 구체적 데이터·원리를 전개한 후, 마지막 20초에 양산 수율 기여로 완결합니다.</span>
-                </div>
               </div>
 
               <!-- 아키텍처 다이어그램 -->
