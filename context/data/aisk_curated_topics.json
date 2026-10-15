@@ -4,7 +4,7 @@
     "category": "personality",
     "category_label": "인성·협업·조직 가치",
     "number": 1,
-    "title": "1. 직무에 지원한 이유와 본인이 가장 적합하다고 생각하는 이유",
+    "title": "직무에 지원한 이유와 본인이 가장 적합하다고 생각하는 이유",
     "core_keyword": [
       "데이터 기반 원인 규명",
       "현장 설비 메커니즘",
@@ -44,7 +44,7 @@
     "category": "personality",
     "category_label": "인성·협업·조직 가치",
     "number": 4,
-    "title": "2. 팀워크나 프로젝트에서 방향 전환(Pivot)을 과감하게 한 경험",
+    "title": "팀워크나 프로젝트에서 방향 전환(Pivot)을 과감하게 한 경험",
     "core_keyword": [
       "데이터 기반 결단",
       "아키텍처 단순화",
@@ -58,7 +58,7 @@
     "category": "personality",
     "category_label": "인성·협업·조직 가치",
     "number": 5,
-    "title": "3. 동료에게 피드백 후 관계가 경색되었을 때의 대응 방안과 진전이 없을 시 해결책",
+    "title": "동료에게 피드백 후 관계가 경색되었을 때의 대응 방안과 진전이 없을 시 해결책",
     "core_keyword": [
       "감정 쿨다운",
       "전달 태도 성찰",
@@ -241,7 +241,7 @@
     "category": "tech",
     "category_label": "반도체 소자·공정 실전 핵심",
     "number": 2,
-    "title": "4. 컴퓨팅 시스템에서 메모리의 핵심 역할과 중요성 (Memory Wall & HBM 혁신)",
+    "title": "컴퓨팅 시스템에서 메모리의 핵심 역할과 중요성 (Memory Wall & HBM 혁신)",
     "core_keyword": [
       "폰 노이만 병목",
       "메모리 월(Memory Wall)",
@@ -256,7 +256,7 @@
     "category": "tech",
     "category_label": "반도체 소자·공정 실전 핵심",
     "number": 3,
-    "title": "5. 박막 응력(Thin Film Stress)의 정의와 양산에서 반드시 제어해야 하는 이유",
+    "title": "박막 응력(Thin Film Stress)의 정의와 양산에서 반드시 제어해야 하는 이유",
     "core_keyword": [
       "인장(Tensile) vs 압축(Compressive)",
       "진성 응력 & 열응력",
@@ -271,7 +271,7 @@
     "category": "tech",
     "category_label": "반도체 소자·공정 실전 핵심",
     "number": 4,
-    "title": "6. 극자외선(EUV) 노광 장비가 굴절 렌즈 대신 반사 거울로만 구성된 이유",
+    "title": "극자외선(EUV) 노광 장비가 굴절 렌즈 대신 반사 거울로만 구성된 이유",
     "core_keyword": [
       "13.5nm 강한 흡수율",
       "굴절률 n≈1 (진공 유사)",
@@ -286,7 +286,7 @@
     "category": "tech",
     "category_label": "반도체 소자·공정 실전 핵심",
     "number": 5,
-    "title": "7. 금속 배선 공정에서 Al(알루미늄)과 Cu(구리)의 특성 차이 및 다마신 공정 도입 배경",
+    "title": "금속 배선 공정에서 Al(알루미늄)과 Cu(구리)의 특성 차이 및 다마신 공정 도입 배경",
     "core_keyword": [
       "비저항 (1.7 vs 2.7 μΩ·cm)",
       "일렉트로마이그레이션(EM)",
