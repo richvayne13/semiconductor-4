@@ -6,7 +6,7 @@
   <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
   <meta http-equiv="Pragma" content="no-cache">
   <meta http-equiv="Expires" content="0">
-  <meta name="build-time" content="2026-10-15T23:25:00+09:00">
+  <meta name="build-time" content="2026-10-16T10:45:00+09:00">
   <title>SK하이닉스 AISK 심층 대비 마스터 백과사전 (커스텀 편집 & 문항 추가 지원)</title>
   
   <!-- Pretendard & JetBrains Mono Fonts -->
@@ -1825,7 +1825,7 @@
       "MR-MUF 방열 혁신",
       "SK하이닉스 리더십"
     ],
-    "speech_1m30s": "현대 컴퓨팅 시스템은 연산 장치인 CPU 및 GPU, 그리고 대용량 저장 장치인 SSD 사이에서 속도와 용량의 불균형을 완충하는 고속 캐싱 및 데이터 버퍼의 핵심 역할을 DRAM 메모리가 수행하는 폰 노이만 구조를 기반으로 동작합니다.\n\n그러나 최근 인공지능과 거대언어모델(LLM)의 폭발적인 연산량 증가로 인해 '메모리 월(Memory Wall)' 문제가 시스템 성능의 치명적 병목으로 대두되었습니다. GPU의 연산 처리 능력은 수천 테라플롭스 단위로 기하급수적으로 발전한 반면, 기존 DDR DRAM의 데이터 전송 대역폭은 64-bit 평면 배선 채널과 PCB 전송선로의 기생 RC 지연 및 핀 수 한계로 인해 연산 장치가 요구하는 데이터 공급 속도를 따라가지 못하고 연산 유닛이 대기 상태에 머무는 병목 현상이 발생한 것입니다.\n\n이 메모리 월을 물리적으로 돌파하기 위해 탄생한 핵심 혁신이 바로 HBM(High Bandwidth Memory)입니다. HBM은 평면적인 배선 구조를 벗어나 여러 개의 DRAM 다이(Die)를 수직으로 적층하고, 수천 개의 실리콘 관통 전극(TSV)을 형성하여 신호 전송 거리를 수십 마이크로미터로 단축했습니다. 버스 폭을 기존 64-bit 대비 16배에 달하는 1024-bit로 대폭 확장하여, 초당 1테라바이트(TB/s) 이상의 압도적인 데이터 대역폭을 달성했습니다.\n\n특히 고성능 AI 프로세서와 고단 적층 HBM이 결합된 환경에서는 단위 면적당 발열 제어가 제품의 신뢰성과 직결됩니다. SK하이닉스는 기존 NCF 필름 방식의 한계를 넘어 칩 사이에 액상 에폭시 몰딩 컴파운드를 주입해 단번에 굳히는 독보적인 MR-MUF(Mass Reflow Molded Underfill) 기술을 선제 도입함으로써, 열 저항을 40% 이상 낮추고 보이드(Void) 불량을 제어해 글로벌 AI 메모리 시장 1위의 수율 리더십을 공고히 하고 있습니다.\n\n결국 AI 시대의 경쟁력은 연산 장치 자체보다 데이터를 얼마나 빠르고 안정적으로 공급하느냐에 달려 있으며, SK하이닉스의 첨단 메모리 기술이 그 중심에 있습니다."
+    "speech_1m30s": "메모리는 폰노이만구조에서 연산처리장치와 보조기억장치 간에 Latency (지연시간) 차이를 줄이면서 계측적메모리구조에서 고속캐싱 및 데이터 버퍼의 역할을 하는데요\n\nCPU는 보조기억장치에 직접 접근해 명령어를 실행할 수 없고, 메모리의 주소를 참조해서 명령어를 인출하고 해독하고 실행하는 사이클을 수행해야 합니다. \nCPU 동작주파수는 GHz로 1사이클에 나노sec가 소요되는 반면 nand ssd는 접근 지연 시간이 마이크로sec입니다. 이 latency의 차이를 해결하기 위해 계층적 메모리구조에서 메모리가 역할을 하게 됩니다.\nCPU내부에는 접근속도가 빠른 SRAM기반의 L1/L2/L3캐시가 배치되고 바로 하위계층에는 DRAM이 데이터를 공급하면서 계층적메모리구조가 구성이됩니다.\n\n그러나 최근 AI로 인한 GPU의 연산량 증가로 인해 '메모리 월(Memory Wall)' 문제가 시스템의 BOTTLENECK으로 대두되었습니다. GPU의 연산 처리 능력은 기하급수적으로 발전한 반면, 기존 DDR DRAM의 data전송 대역폭은 64-bit 여서 메모리월이 발생한 것입니다. 이 메모리 월을 물리적으로 돌파하기 위해 탄생한 핵심 혁신이 바로 HBM(High Bandwidth Memory)입니다. HBM은 여러 개의 DRAM 다이(Die)를 수직으로 적층하고, 수천 개의 실리콘 관통 전극(TSV)을 형성하여 신호 전송 거리를 수십 마이크로미터로 단축했습니다. 버스 폭을 기존 64-bit 대비 16배에 달하는 1024-bit로 대폭 확장하여, 초당 1테라바이트(TB/s) 이상의 압도적인 데이터 대역폭을 달성했습니다.\n\n특히 고성능 AI 프로세서와 고단 적층 HBM이 결합된 환경에서는 단위 면적당 발열 제어가 제품의 신뢰성과 직결됩니다. SK하이닉스는 기존 NCF 필름 방식의 한계를 넘어 칩 사이에 액상 에폭시 몰딩 컴파운드를 주입해 단번에 굳히는 독보적인 MR-MUF(Mass Reflow Molded Underfill) 기술을 선제 도입함으로써, 열 저항을 40% 이상 낮추고 보이드(Void) 불량을 제어해 글로벌 AI 메모리 시장 1위의 수율 리더십을 공고히 하고 있습니다.\n\n결국 AI 시대의 경쟁력은 연산 장치 자체보다 데이터를 얼마나 빠르고 안정적으로 공급하느냐에 달려 있으며, SK하이닉스의 첨단 메모리 기술이 그 중심에 있습니다."
   },
   {
     "id": "t_03",
@@ -1904,10 +1904,10 @@
   }
 ];
 
-    const STORAGE_KEY = 'aisk_master_topics_custom_v9';
+    const STORAGE_KEY = 'aisk_master_topics_custom_v10';
     let currentTopics = [];
 
-    // 1. 초기 데이터 로드 (localStorage 우선)
+    // 1. 초기 데이터 로드 (localStorage 우선 및 구버전 마이그레이션)
     function loadTopics() {
       const saved = localStorage.getItem(STORAGE_KEY);
       if (saved) {
@@ -1928,7 +1928,20 @@
           currentTopics = JSON.parse(JSON.stringify(DEFAULT_TOPICS));
         }
       } else {
+        // 이전 버전(v9 등)에서 사용자가 직접 추가한 커스텀 문항이 있다면 안전하게 보존
+        const oldSaved = localStorage.getItem('aisk_master_topics_custom_v9');
         currentTopics = JSON.parse(JSON.stringify(DEFAULT_TOPICS));
+        if (oldSaved) {
+          try {
+            const oldTopics = JSON.parse(oldSaved);
+            oldTopics.forEach(ot => {
+              if (ot.category === 'custom' && !currentTopics.some(ct => ct.id === ot.id)) {
+                currentTopics.push(ot);
+              }
+            });
+          } catch (e) {}
+        }
+        saveTopicsToStorage();
       }
     }
 
