@@ -2821,6 +2821,9 @@
   }
 ];
 
+    const STORAGE_KEY = 'aisk_master_topics_custom_v16_wopedimp';
+    let currentTopics = [];
+
     // 1. 초기 데이터 로드 (localStorage 우선 및 구버전 마이그레이션)
     function loadTopics() {
       const saved = localStorage.getItem(STORAGE_KEY);
@@ -3331,9 +3334,11 @@
     });
 
     const searchInput = document.getElementById('searchInput');
-    searchInput.addEventListener('input', () => {
-      applyFilterAndSearch();
-    });
+    if (searchInput) {
+      searchInput.addEventListener('input', () => {
+        applyFilterAndSearch();
+      });
+    }
 
     let currentProcessFilter = 'ALL';
 
@@ -3363,7 +3368,7 @@
     function applyFilterAndSearch() {
       const activeFilterChip = document.querySelector('.filter-chip.active');
       const filter = activeFilterChip ? activeFilterChip.getAttribute('data-filter') : 'all';
-      const query = searchInput.value.toLowerCase().trim();
+      const query = searchInput ? searchInput.value.toLowerCase().trim() : '';
 
       const navItems = document.querySelectorAll('.nav-item');
       const topicSections = document.querySelectorAll('.topic-section');
@@ -3592,11 +3597,17 @@
         .replace(/'/g, '&#039;');
     }
 
-    // 실행 시작
-    document.addEventListener('DOMContentLoaded', () => {
+    // 실행 시작 (DOM 준비 상태 완벽 대응)
+    function initDashboard() {
       loadTopics();
       renderDashboard();
-    });
+    }
+
+    if (document.readyState === 'loading') {
+      document.addEventListener('DOMContentLoaded', initDashboard);
+    } else {
+      initDashboard();
+    }
   </script>
 <script>
 
