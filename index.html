@@ -3800,6 +3800,7 @@
     }
 
     function renderDashboard() {
+      restoreLearnFilterUI();
       renderSidebar();
       renderCards();
       updateCounters();
@@ -4288,13 +4289,17 @@
     }
 
     // ========================================================
-    // 8. 필터 및 검색
+    // 8. 필터 및 검색 (새로고침 시에도 마지막 필터 상태 유지)
     // ========================================================
+    window.isRestoringState = true;
+
     const filterChips = document.querySelectorAll('.filter-chip');
     filterChips.forEach(chip => {
       chip.addEventListener('click', () => {
         filterChips.forEach(c => c.classList.remove('active'));
         chip.classList.add('active');
+        const cat = chip.getAttribute('data-filter') || 'all';
+        localStorage.setItem('aisk_ui_learn_filter_cat', cat);
         applyFilterAndSearch();
       });
     });
@@ -4306,13 +4311,36 @@
       });
     }
 
-    let currentProcessFilter = 'ALL';
+    let currentProcessFilter = localStorage.getItem('aisk_ui_learn_filter_proc') || 'ALL';
+
+    function restoreLearnFilterUI() {
+      const savedCat = localStorage.getItem('aisk_ui_learn_filter_cat') || 'all';
+      const savedProc = localStorage.getItem('aisk_ui_learn_filter_proc') || 'ALL';
+      currentProcessFilter = savedProc;
+
+      filterChips.forEach(c => {
+        if ((c.getAttribute('data-filter') || 'all') === savedCat) {
+          c.classList.add('active');
+        } else {
+          c.classList.remove('active');
+        }
+      });
+
+      document.querySelectorAll('.proc-chip[data-proc]').forEach(btn => {
+        if (btn.getAttribute('data-proc') === savedProc) {
+          btn.classList.add('active');
+        } else {
+          btn.classList.remove('active');
+        }
+      });
+    }
 
     function selectProcessFilter(proc) {
       currentProcessFilter = proc;
+      localStorage.setItem('aisk_ui_learn_filter_proc', proc);
 
       // 직무·소자 칩 활성화 상태 동기화 (사이드바 및 메인 상단 모두)
-      document.querySelectorAll('.proc-chip').forEach(btn => {
+      document.querySelectorAll('.proc-chip[data-proc]').forEach(btn => {
         if (btn.getAttribute('data-proc') === proc) {
           btn.classList.add('active');
         } else {
@@ -4326,6 +4354,7 @@
         document.querySelectorAll('.filter-chip').forEach(c => c.classList.remove('active'));
         const tabTech = document.getElementById('tabTech');
         if (tabTech) tabTech.classList.add('active');
+        localStorage.setItem('aisk_ui_learn_filter_cat', 'tech');
       }
 
       applyFilterAndSearch();
@@ -4521,6 +4550,8 @@
     function setupObserver() {
       if (observer) observer.disconnect();
       observer = new IntersectionObserver((entries) => {
+        if (window.isRestoringState) return;
+        if (typeof currentViewMode !== 'undefined' && currentViewMode === 'interview') return;
         entries.forEach(entry => {
           if (entry.isIntersecting) {
             const id = entry.target.id;
@@ -4530,6 +4561,12 @@
             const activeLink = document.getElementById(`link-${id}`);
             if (activeLink) {
               activeLink.classList.add('active');
+            }
+            if (id) {
+              localStorage.setItem('aisk_ui_learn_topic_id', id);
+              if (history.replaceState) {
+                history.replaceState(null, '', '#' + id);
+              }
             }
           }
         });
@@ -4976,9 +5013,10 @@
       showToast('ℹ️ 아직 재생할 녹음 음성이 없습니다. 먼저 [답변 녹음 시작]을 눌러 말씀해주세요.');
     }
 
-    // 1. 모드 전환 함수
-    function toggleViewMode(mode) {
+    // 1. 모드 전환 함수 (새로고침 시에도 마지막 모드 및 보던 문항 유지)
+    function toggleViewMode(mode, isRestore = false) {
       currentViewMode = mode;
+      localStorage.setItem('aisk_ui_view_mode', mode);
       const body = document.body;
       const btnLearnMain = document.getElementById('btnModeLearnMain');
       const btnIntMain = document.getElementById('btnModeInterviewMain');
@@ -4987,7 +5025,9 @@
       const mobBtn = document.getElementById('mobModeBtn');
 
       if (mode === 'interview') {
-        ensureMicStream();
+        if (!isRestore) {
+          ensureMicStream();
+        }
         body.classList.add('interview-mode');
         if (btnLearnMain) btnLearnMain.classList.remove('active');
         if (btnIntMain) btnIntMain.classList.add('active');
@@ -4995,13 +5035,26 @@
         if (btnIntSide) btnIntSide.classList.add('active');
         if (mobBtn) mobBtn.textContent = '📖 학습';
 
-        // 현재 문항이 없으면 랜덤 또는 첫 번째 문항 로드
+        // 현재 문항이 없으면 저장된 문항(면접 또는 학습에서 보던 문항) 우선 복원
         if (!interviewCurrentTopicId) {
-          pickRandomInterviewTopic();
-        } else {
-          loadInterviewTopic(interviewCurrentTopicId);
+          const savedIntId = localStorage.getItem('aisk_ui_int_topic_id');
+          const savedLearnId = localStorage.getItem('aisk_ui_learn_topic_id');
+          const candidateId = (savedIntId && currentTopics.some(t => t.id === savedIntId))
+            ? savedIntId
+            : ((savedLearnId && currentTopics.some(t => t.id === savedLearnId)) ? savedLearnId : null);
+          if (candidateId) {
+            interviewCurrentTopicId = candidateId;
+          }
         }
-        showToast('🎙️ 실전 면접 모드로 전환되었습니다. 랜덤 출제나 녹음으로 연습해보세요!');
+
+        if (!interviewCurrentTopicId) {
+          pickRandomInterviewTopic(!isRestore);
+        } else {
+          loadInterviewTopic(interviewCurrentTopicId, false, isRestore);
+        }
+        if (!isRestore) {
+          showToast('🎙️ 실전 면접 모드로 전환되었습니다. 랜덤 출제나 녹음으로 연습해보세요!');
+        }
       } else {
         stopSpeakingQuestion();
         if (isRecording) {
@@ -5013,13 +5066,16 @@
         if (btnLearnSide) btnLearnSide.classList.add('active');
         if (btnIntSide) btnIntSide.classList.remove('active');
         if (mobBtn) mobBtn.textContent = '🎙️ 면접';
-        showToast('📖 학습 백과사전 모드로 전환되었습니다.');
+        if (!isRestore) {
+          showToast('📖 학습 백과사전 모드로 전환되었습니다.');
+        }
       }
     }
 
     // 2. 면접 카테고리 선택 (전체 / 인성 / 직무)
-    function selectInterviewCategory(cat) {
+    function selectInterviewCategory(cat, skipPickRandom = false) {
       interviewCategory = cat;
+      localStorage.setItem('aisk_ui_int_cat', cat);
       document.querySelectorAll('.interview-cat-btn').forEach(btn => btn.classList.remove('active'));
 
       if (cat === 'all') {
@@ -5039,12 +5095,15 @@
         if (procChips) procChips.style.display = 'flex';
       }
 
-      pickRandomInterviewTopic();
+      if (!skipPickRandom) {
+        pickRandomInterviewTopic();
+      }
     }
 
     // 3. 직무 내 공정 서브필터 선택 (WOPEDIMP + 공통 + 소자)
-    function selectInterviewProcess(proc) {
+    function selectInterviewProcess(proc, skipPickRandom = false) {
       interviewProcess = proc;
+      localStorage.setItem('aisk_ui_int_proc', proc);
       document.querySelectorAll('#interviewProcChips .proc-chip').forEach(btn => {
         if (btn.getAttribute('data-intproc') === proc) {
           btn.classList.add('active');
@@ -5052,7 +5111,9 @@
           btn.classList.remove('active');
         }
       });
-      pickRandomInterviewTopic();
+      if (!skipPickRandom) {
+        pickRandomInterviewTopic();
+      }
     }
 
     // 4. 현재 조건에 맞는 문항 풀(Pool) 추출
@@ -5082,22 +5143,30 @@
     let questionUtterance = null;
 
     // 질문 음성 및 자동 녹음 토글
-    function toggleAutoVoiceAndRecord() {
-      autoVoiceAndRecordEnabled = !autoVoiceAndRecordEnabled;
+    function updateAutoVoiceToggleUI() {
       const btn = document.getElementById('btnAutoVoiceToggle');
       const text = document.getElementById('btnAutoVoiceText');
       if (btn && text) {
         if (autoVoiceAndRecordEnabled) {
-          ensureMicStream();
           btn.classList.add('active');
           text.innerHTML = '🔊 자동 질문&녹음: <strong>ON</strong>';
-          showToast('🔊 문항 이동 시 질문 음성 재생 후 자동 녹음이 켜졌습니다.');
         } else {
           btn.classList.remove('active');
           text.innerHTML = '🔈 자동 질문&녹음: <strong>OFF</strong>';
-          stopSpeakingQuestion();
-          showToast('🔈 질문 음성 및 자동 녹음이 꺼졌습니다.');
         }
+      }
+    }
+
+    function toggleAutoVoiceAndRecord() {
+      autoVoiceAndRecordEnabled = !autoVoiceAndRecordEnabled;
+      localStorage.setItem('aisk_ui_int_auto_voice', autoVoiceAndRecordEnabled ? 'true' : 'false');
+      updateAutoVoiceToggleUI();
+      if (autoVoiceAndRecordEnabled) {
+        ensureMicStream();
+        showToast('🔊 문항 이동 시 질문 음성 재생 후 자동 녹음이 켜졌습니다.');
+      } else {
+        stopSpeakingQuestion();
+        showToast('🔈 질문 음성 및 자동 녹음이 꺼졌습니다.');
       }
     }
 
@@ -5227,8 +5296,8 @@
     }
 
     // 5. 랜덤 문항 출제
-    function pickRandomInterviewTopic() {
-      ensureMicStream();
+    function pickRandomInterviewTopic(autoVoice = true) {
+      if (autoVoice) ensureMicStream();
       const pool = getFilteredInterviewPool();
       if (pool.length === 0) {
         showToast('해당 조건의 문항이 없습니다.');
@@ -5242,9 +5311,11 @@
       const randomIndex = Math.floor(Math.random() * candidates.length);
       const chosen = candidates[randomIndex];
       
-      // 자동 질문 음성 및 후속 녹음 트리거 (autoVoice = true)
-      loadInterviewTopic(chosen.id, true);
-      showToast(`🎲 랜덤 출제: [${chosen.title.slice(0, 22)}...]`);
+      // 자동 질문 음성 및 후속 녹음 트리거
+      loadInterviewTopic(chosen.id, autoVoice);
+      if (autoVoice) {
+        showToast(`🎲 랜덤 출제: [${chosen.title.slice(0, 22)}...]`);
+      }
     }
 
     // 6. 이전/다음 문항 이동
@@ -5265,11 +5336,16 @@
     }
 
     // 7. 면접 문항 상세 로드 & UI 바인딩
-    function loadInterviewTopic(id, autoVoice = false) {
+    function loadInterviewTopic(id, autoVoice = false, preserveToggles = false) {
       const topic = currentTopics.find(t => t.id === id);
       if (!topic) return;
 
       interviewCurrentTopicId = id;
+      localStorage.setItem('aisk_ui_int_topic_id', id);
+      localStorage.setItem('aisk_ui_learn_topic_id', id);
+      if (history.replaceState) {
+        history.replaceState(null, '', '#' + id);
+      }
 
       // 기존 음성 및 녹음 즉시 중지
       stopSpeakingQuestion();
@@ -5329,9 +5405,16 @@
         const kws = topic.core_keyword || [];
         kwListEl.innerHTML = kws.map(k => `<span class="kw-pill">#${escapeHtml(k)}</span>`).join('');
       }
-      // 힌트 박스는 기본 접힘
+      // 힌트 박스 상태 (새로고침 복원 시에는 이전 열림 상태 유지)
       const hintBox = document.getElementById('intHintBox');
-      if (hintBox) hintBox.classList.remove('show');
+      if (hintBox) {
+        if (preserveToggles && localStorage.getItem('aisk_ui_int_hint_open') === 'true') {
+          hintBox.classList.add('show');
+        } else {
+          hintBox.classList.remove('show');
+          localStorage.setItem('aisk_ui_int_hint_open', 'false');
+        }
+      }
 
       // 글자 수 권장 분량 안내
       const lenNotice = document.getElementById('intLenGuideNotice');
@@ -5366,6 +5449,7 @@
       const hintBox = document.getElementById('intHintBox');
       if (hintBox) {
         hintBox.classList.toggle('show');
+        localStorage.setItem('aisk_ui_int_hint_open', hintBox.classList.contains('show') ? 'true' : 'false');
       }
     }
 
@@ -6092,8 +6176,10 @@
       if (!content) return;
 
       content.classList.toggle('open');
+      const isOpen = content.classList.contains('open');
+      localStorage.setItem('aisk_ui_int_model_open', isOpen ? 'true' : 'false');
       if (icon) {
-        icon.style.transform = content.classList.contains('open') ? 'rotate(180deg)' : 'rotate(0deg)';
+        icon.style.transform = isOpen ? 'rotate(180deg)' : 'rotate(0deg)';
       }
     }
 
@@ -6106,7 +6192,7 @@
       });
     }
 
-    // 12. 사이드바 클릭 인터셉트 (면접 모드일 때 면접 뷰 질문 로드)
+    // 12. 사이드바 클릭 인터셉트 (학습/면접 모두 클릭한 문항 ID 즉시 저장)
     document.addEventListener('click', (e) => {
       const navLink = e.target.closest('.nav-link');
       if (!navLink) return;
@@ -6114,6 +6200,8 @@
       const href = navLink.getAttribute('href');
       if (href && href.startsWith('#')) {
         const targetId = href.substring(1);
+        localStorage.setItem('aisk_ui_learn_topic_id', targetId);
+        localStorage.setItem('aisk_ui_int_topic_id', targetId);
         if (currentViewMode === 'interview') {
           e.preventDefault();
           loadInterviewTopic(targetId, true);
@@ -6124,6 +6212,129 @@
         }
       }
     });
+
+    // 13. 스크롤 위치 실시간 저장 및 새로고침 시 마지막 화면/문항 완벽 복원
+    if ('scrollRestoration' in history) {
+      history.scrollRestoration = 'manual';
+    }
+
+    let scrollSaveTimer = null;
+    window.addEventListener('scroll', () => {
+      if (window.isRestoringState) return;
+      clearTimeout(scrollSaveTimer);
+      scrollSaveTimer = setTimeout(() => {
+        if (currentViewMode === 'interview') {
+          localStorage.setItem('aisk_ui_int_scroll_y', String(window.scrollY));
+        } else {
+          localStorage.setItem('aisk_ui_learn_scroll_y', String(window.scrollY));
+        }
+      }, 120);
+    }, { passive: true });
+
+    function restoreLastViewedState() {
+      window.isRestoringState = true;
+
+      // 1) 자동 질문&녹음 토글 상태 복원
+      const savedAutoVoice = localStorage.getItem('aisk_ui_int_auto_voice');
+      if (savedAutoVoice !== null) {
+        autoVoiceAndRecordEnabled = (savedAutoVoice === 'true');
+        updateAutoVoiceToggleUI();
+      }
+
+      // 2) 면접 카테고리 및 공정 필터 복원 (랜덤 출제 트리거 없이 UI만 복원)
+      const savedIntCat = localStorage.getItem('aisk_ui_int_cat') || 'all';
+      const savedIntProc = localStorage.getItem('aisk_ui_int_proc') || 'ALL';
+      selectInterviewCategory(savedIntCat, true);
+      selectInterviewProcess(savedIntProc, true);
+
+      // 3) 면접 모범답안 펼침 상태 복원
+      if (localStorage.getItem('aisk_ui_int_model_open') === 'true') {
+        const modelContent = document.getElementById('modelBodyContent');
+        const modelIcon = document.getElementById('modelToggleIcon');
+        if (modelContent) modelContent.classList.add('open');
+        if (modelIcon) modelIcon.style.transform = 'rotate(180deg)';
+      }
+
+      // 4) 마지막으로 보던 문항 ID 확인
+      const hashId = window.location.hash ? window.location.hash.substring(1) : '';
+      const savedIntTopicId = localStorage.getItem('aisk_ui_int_topic_id');
+      const savedLearnTopicId = localStorage.getItem('aisk_ui_learn_topic_id');
+      const savedMode = localStorage.getItem('aisk_ui_view_mode') || 'learn';
+
+      if (savedMode === 'interview') {
+        let targetId = savedIntTopicId || hashId || savedLearnTopicId;
+        if (!targetId || !currentTopics.some(t => t.id === targetId)) {
+          const pool = getFilteredInterviewPool();
+          targetId = (pool.length > 0) ? pool[0].id : (currentTopics[0] ? currentTopics[0].id : null);
+        }
+        if (targetId) {
+          interviewCurrentTopicId = targetId;
+        }
+        toggleViewMode('interview', true);
+
+        const savedIntScrollY = parseInt(localStorage.getItem('aisk_ui_int_scroll_y') || '0', 10);
+        if (!isNaN(savedIntScrollY) && savedIntScrollY > 0) {
+          requestAnimationFrame(() => {
+            window.scrollTo(0, savedIntScrollY);
+          });
+        }
+      } else {
+        // 학습 모드 복원
+        if (savedIntTopicId && currentTopics.some(t => t.id === savedIntTopicId)) {
+          interviewCurrentTopicId = savedIntTopicId;
+        }
+        const targetLearnId = (savedLearnTopicId && currentTopics.some(t => t.id === savedLearnTopicId))
+          ? savedLearnTopicId
+          : ((hashId && currentTopics.some(t => t.id === hashId)) ? hashId : null);
+
+        if (targetLearnId) {
+          const secEl = document.getElementById(targetLearnId);
+          // 만약 필터 때문에 숨겨져 있다면 전체 탭으로 열어서 보이도록 보장
+          if (secEl && secEl.style.display === 'none') {
+            localStorage.setItem('aisk_ui_learn_filter_cat', 'all');
+            localStorage.setItem('aisk_ui_learn_filter_proc', 'ALL');
+            restoreLearnFilterUI();
+            applyFilterAndSearch();
+          }
+
+          document.querySelectorAll('.nav-link').forEach(link => link.classList.remove('active'));
+          const activeLink = document.getElementById(`link-${targetLearnId}`);
+          if (activeLink) {
+            activeLink.classList.add('active');
+            setTimeout(() => {
+              activeLink.scrollIntoView({ behavior: 'auto', block: 'nearest' });
+            }, 50);
+          }
+        }
+
+        const savedLearnScrollY = localStorage.getItem('aisk_ui_learn_scroll_y');
+        const applyLearnScroll = () => {
+          if (savedLearnScrollY !== null) {
+            const y = parseInt(savedLearnScrollY, 10);
+            if (!isNaN(y)) {
+              window.scrollTo(0, y);
+              return;
+            }
+          }
+          if (targetLearnId) {
+            const secEl = document.getElementById(targetLearnId);
+            if (secEl) secEl.scrollIntoView({ behavior: 'auto', block: 'start' });
+          }
+        };
+        requestAnimationFrame(applyLearnScroll);
+        setTimeout(applyLearnScroll, 120);
+      }
+
+      setTimeout(() => {
+        window.isRestoringState = false;
+      }, 450);
+    }
+
+    if (document.readyState === 'loading') {
+      document.addEventListener('DOMContentLoaded', restoreLastViewedState);
+    } else {
+      restoreLastViewedState();
+    }
 
   </script>
 </body>
