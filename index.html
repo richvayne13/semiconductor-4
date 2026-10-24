@@ -2030,13 +2030,24 @@
       font-size: 1.02rem;
       line-height: 1.85;
       color: #f1f5f9;
-      white-space: pre-wrap;
+      white-space: normal;
       word-break: keep-all;
       display: none;
     }
     .model-body-content.open {
       display: block;
       animation: fadeInView 0.2s ease;
+    }
+    .interview-model-box .speech-body.editable-field {
+      background: #1e293b;
+      padding: 14px 16px;
+      margin-left: 0;
+      border-radius: 8px;
+      border: 1px solid var(--border);
+      font-size: 0.98rem;
+      line-height: 1.85;
+      white-space: pre-wrap;
+      min-height: 90px;
     }
 
   
@@ -2421,22 +2432,27 @@
         </div>
       </div>
 
-      <!-- 📖 모범답안 (맨 아래 배치) -->
+      <!-- 📖 모범답안 (맨 아래 배치 · 직접 수정 가능) -->
       <div class="interview-model-box">
         <div class="model-header-row" onclick="toggleModelAnswer()">
           <div class="model-title-text">
             <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M2 3h6a4 4 0 0 1 4 4v14a3 3 0 0 0-3-3H2z"></path><path d="M22 3h-6a4 4 0 0 0-4 4v14a3 3 0 0 1 3-3h7z"></path></svg>
-            <span>📖 모범답안 확인하기 (노란색 볼드 음영 반영)</span>
+            <span>📖 모범답안 확인 및 직접 수정 (클릭하여 바로 수정 · Ctrl+B 노란색 볼드 음영)</span>
           </div>
           <span id="modelToggleIcon" style="font-size: 1.1rem; color: var(--text-muted); transition: transform 0.2s;">▼</span>
         </div>
 
         <div class="model-body-content" id="modelBodyContent">
-          <!-- 모범답안 텍스트 및 서식 렌더링 -->
+          <div style="display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:8px; margin-bottom:14px; padding:8px 12px; background:rgba(56,189,248,0.08); border:1px solid rgba(56,189,248,0.28); border-radius:8px;">
+            <span class="speech-click-hint">✏️ 모범대본 본문을 클릭하면 바로 수정·자동 저장됩니다 (드래그 후 <strong>Ctrl+B</strong>: 노란색 음영 볼드 강조 · 학습 모드와 실시간 연동)</span>
+            <span class="save-status-badge" id="int-model-save-status">클릭하여 바로 수정</span>
+          </div>
+
+          <!-- 모범답안 텍스트 및 직접 수정 에디터 렌더링 -->
           <div id="modelAnswerText"></div>
           
           <div style="margin-top: 14px; display: flex; justify-content: flex-end;">
-            <button class="btn-card-action" onclick="copyModelAnswer()" title="모범답안 복사">
+            <button class="btn-card-action" onclick="copyModelAnswer()" title="모범답안 전체 복사">
               <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="9" y="9" width="13" height="13" rx="2" ry="2"></rect><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"></path></svg>
               <span>모범답안 복사</span>
             </button>
@@ -4014,30 +4030,37 @@
     }
 
     // ========================================================
-    // 3. 인라인 직접 클릭 편집(Direct Click-to-Edit) 이벤트 핸들러
+    // 3. 인라인 직접 클릭 편집(Direct Click-to-Edit) 이벤트 핸들러 (학습 모드 & 실전 면접 모범대본 공통)
     // ========================================================
     let autoSaveTimer = null;
     const topicContainer = document.getElementById('topicContainer');
 
-    // 입력 중 실시간 처리 (글자수 계산 & 디바운스 자동 저장)
-    topicContainer.addEventListener('input', (e) => {
-      const target = e.target.closest('.editable-field');
+    // 입력 중 실시간 처리 (글자수 계산 & 디바운스 자동 저장 - 문서 전체 .editable-field 위임)
+    document.addEventListener('input', (e) => {
+      const target = e.target && e.target.closest ? e.target.closest('.editable-field') : null;
       if (!target) return;
 
       const id = target.getAttribute('data-id');
       const field = target.getAttribute('data-field');
       const text = target.innerText;
 
-      // 1) 발화 글자수 실시간 업데이트 (태그 제외 순수 텍스트 기준 판정)
+      // 1) 발화 글자수 실시간 업데이트 (학습 모드 & 실전 면접 모범답안 동시 반영)
       if (field === 'speech_1m30s' || field === 'speech_alt') {
         const tagId = (field === 'speech_alt') ? `len-alt-tag-${id}` : `len-tag-${id}`;
+        const intTagId = (field === 'speech_alt') ? `int-len-alt-tag-${id}` : `int-len-tag-${id}`;
         const lenTag = document.getElementById(tagId);
+        const intLenTag = document.getElementById(intTagId);
         const topic = currentTopics.find(t => t.id === id);
         const cat = topic ? topic.category : 'personality';
         const cleanLen = target.innerText.length;
+        const color = getLenColor(cleanLen, cat);
         if (lenTag) {
           lenTag.textContent = `${cleanLen}자`;
-          lenTag.style.color = getLenColor(cleanLen, cat);
+          lenTag.style.color = color;
+        }
+        if (intLenTag) {
+          intLenTag.textContent = `${cleanLen}자`;
+          intLenTag.style.color = color;
         }
       }
 
@@ -4049,10 +4072,14 @@
         }
       }
 
-      // 3) 상태 배지 업데이트
+      // 3) 상태 배지 업데이트 (학습 모드 & 실전 면접 모범답안 배지)
       const statusEl = document.getElementById(`save-status-${id}`);
       if (statusEl) {
         statusEl.innerHTML = '<span style="color: #38bdf8;">수정 중...</span>';
+      }
+      const intStatusEl = document.getElementById('int-model-save-status');
+      if (intStatusEl) {
+        intStatusEl.innerHTML = '<span style="color: #38bdf8;">수정 중...</span>';
       }
 
       // 4) 400ms 디바운스 자동 저장
@@ -4063,8 +4090,8 @@
     });
 
     // 포커스를 벗어날 때 즉시 저장
-    topicContainer.addEventListener('focusout', (e) => {
-      const target = e.target.closest('.editable-field');
+    document.addEventListener('focusout', (e) => {
+      const target = e.target && e.target.closest ? e.target.closest('.editable-field') : null;
       if (!target) return;
 
       const id = target.getAttribute('data-id');
@@ -4072,7 +4099,7 @@
       saveFieldDirect(id, field, target);
     });
 
-    // 필드 데이터 실제 저장 로직
+    // 필드 데이터 실제 저장 로직 (학습 모드 <-> 실전 면접 모범대본 양방향 동기화)
     function saveFieldDirect(id, field, element) {
       const topic = currentTopics.find(t => t.id === id);
       if (!topic) return;
@@ -4081,10 +4108,30 @@
 
       if (field === 'title') {
         topic.title = rawText.trim();
+        if (typeof interviewCurrentTopicId !== 'undefined' && interviewCurrentTopicId === id) {
+          const intQTitle = document.getElementById('intQTitle');
+          if (intQTitle) intQTitle.textContent = topic.title;
+        }
       } else if (field === 'speech_1m30s') {
         topic.speech_1m30s = getCleanSpeechHtml(element);
+        const learnEl = document.getElementById(`speech-text-${id}`);
+        const intEl = document.getElementById(`int-speech-text-${id}`);
+        if (learnEl && learnEl !== element) {
+          learnEl.innerHTML = formatSpeechHtml(topic.speech_1m30s);
+        }
+        if (intEl && intEl !== element) {
+          intEl.innerHTML = formatSpeechHtml(topic.speech_1m30s);
+        }
       } else if (field === 'speech_alt') {
         topic.speech_alt = getCleanSpeechHtml(element);
+        const learnAltEl = document.getElementById(`speech-alt-text-${id}`);
+        const intAltEl = document.getElementById(`int-speech-alt-text-${id}`);
+        if (learnAltEl && learnAltEl !== element) {
+          learnAltEl.innerHTML = formatSpeechHtml(topic.speech_alt);
+        }
+        if (intAltEl && intAltEl !== element) {
+          intAltEl.innerHTML = formatSpeechHtml(topic.speech_alt);
+        }
       } else if (field === 'keywords') {
         topic.core_keyword = rawText.split(/[,#\n\s]+/).map(s => s.trim()).filter(Boolean);
       }
@@ -4097,6 +4144,16 @@
         setTimeout(() => {
           if (statusEl) {
             statusEl.textContent = '클릭하여 바로 수정';
+          }
+        }, 1800);
+      }
+
+      const intStatusEl = document.getElementById('int-model-save-status');
+      if (intStatusEl) {
+        intStatusEl.innerHTML = '<span style="color: #10b981;">✓ 자동 저장됨</span>';
+        setTimeout(() => {
+          if (intStatusEl) {
+            intStatusEl.textContent = '클릭하여 바로 수정';
           }
         }, 1800);
       }
@@ -5973,34 +6030,55 @@
       showToast('기록 및 녹음 파일이 삭제되었습니다.');
     }
 
-    // 11. 하단 모범답안 렌더링 & 토글
+    // 11. 하단 모범답안 렌더링 & 직접 수정 에디터 바인딩
     function renderInterviewModelAnswer(topic) {
       const container = document.getElementById('modelAnswerText');
       if (!container) return;
 
       const isPersonality = (topic.category === 'personality');
+      const cat = topic.category || 'personality';
+      const speech1 = topic.speech_1m30s || '';
+      const speech2 = topic.speech_alt || '';
+      const cleanLen1 = speech1.replace(/<[^>]+>/g, '').length;
+      const cleanLen2 = speech2.replace(/<[^>]+>/g, '').length;
+      const color1 = getLenColor(cleanLen1, cat);
+      const color2 = getLenColor(cleanLen2, cat);
+
       let html = '';
 
       if (isPersonality) {
         html += `
-          <div style="margin-bottom: 16px;">
-            <div style="font-size:0.88rem; font-weight:800; color:var(--accent-blue); margin-bottom:8px;">[답변 1] 1분 30초~2분 실전 핵심 모범답안</div>
-            <div class="speech-body" style="background:#1e293b; padding:12px 14px; border-radius:8px; border:1px solid var(--border); font-size:0.98rem; line-height:1.8;">${formatSpeechHtml(topic.speech_1m30s)}</div>
+          <div style="margin-bottom: 18px;">
+            <div style="display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:8px; margin-bottom:8px;">
+              <div style="font-size:0.88rem; font-weight:800; color:var(--accent-blue);">[답변 1] 1분 30초~2분 실전 핵심 모범답안</div>
+              <div style="display:flex; align-items:center; gap:10px;">
+                <span style="font-size:0.8rem; color:var(--text-muted);">분량: <strong id="int-len-tag-${topic.id}" style="color:${color1};">${cleanLen1}자</strong></span>
+                <button class="btn-card-action" onclick="copySpeech('${topic.id}', 1)" title="답변 1 복사" style="padding:3px 8px; font-size:0.74rem;">답변 1 복사</button>
+              </div>
+            </div>
+            <div class="speech-body editable-field" contenteditable="true" data-field="speech_1m30s" data-id="${topic.id}" id="int-speech-text-${topic.id}" title="클릭하여 모범대본 답변 1 바로 수정 (Ctrl+B 볼드 노란색 음영 · 자동 저장)">${formatSpeechHtml(speech1)}</div>
+          </div>
+          <div>
+            <div style="display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:8px; margin-bottom:8px;">
+              <div style="font-size:0.88rem; font-weight:800; color:var(--accent-emerald);">[답변 2] 1분 30초~2분 실전 대안 관점 모범답안</div>
+              <div style="display:flex; align-items:center; gap:10px;">
+                <span style="font-size:0.8rem; color:var(--text-muted);">분량: <strong id="int-len-alt-tag-${topic.id}" style="color:${color2};">${cleanLen2}자</strong></span>
+                <button class="btn-card-action" onclick="copySpeech('${topic.id}', 2)" title="답변 2 복사" style="padding:3px 8px; font-size:0.74rem;">답변 2 복사</button>
+              </div>
+            </div>
+            <div class="speech-body editable-field" contenteditable="true" data-field="speech_alt" data-id="${topic.id}" id="int-speech-alt-text-${topic.id}" title="클릭하여 모범대본 답변 2 바로 수정 (Ctrl+B 볼드 노란색 음영 · 자동 저장)">${formatSpeechHtml(speech2)}</div>
           </div>
         `;
-        if (topic.speech_alt) {
-          html += `
-            <div>
-              <div style="font-size:0.88rem; font-weight:800; color:var(--accent-emerald); margin-bottom:8px;">[답변 2] 1분 30초~2분 실전 대안 관점 모범답안</div>
-              <div class="speech-body" style="background:#1e293b; padding:12px 14px; border-radius:8px; border:1px solid var(--border); font-size:0.98rem; line-height:1.8;">${formatSpeechHtml(topic.speech_alt)}</div>
-            </div>
-          `;
-        }
       } else {
         html += `
           <div>
-            <div style="font-size:0.88rem; font-weight:800; color:var(--primary-light); margin-bottom:8px;">[3분 심층 마스터 모범답안] 원리·수식·양산 심화 해설</div>
-            <div class="speech-body" style="background:#1e293b; padding:12px 14px; border-radius:8px; border:1px solid var(--border); font-size:0.98rem; line-height:1.8;">${formatSpeechHtml(topic.speech_1m30s)}</div>
+            <div style="display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:8px; margin-bottom:8px;">
+              <div style="font-size:0.88rem; font-weight:800; color:var(--primary-light);">[3분 심층 마스터 모범답안] 원리·수식·양산 심화 해설</div>
+              <div style="display:flex; align-items:center; gap:10px;">
+                <span style="font-size:0.8rem; color:var(--text-muted);">분량: <strong id="int-len-tag-${topic.id}" style="color:${color1};">${cleanLen1}자</strong></span>
+              </div>
+            </div>
+            <div class="speech-body editable-field" contenteditable="true" data-field="speech_1m30s" data-id="${topic.id}" id="int-speech-text-${topic.id}" title="클릭하여 3분 심층 모범대본 바로 수정 (Ctrl+B 볼드 노란색 음영 · 자동 저장)">${formatSpeechHtml(speech1)}</div>
           </div>
         `;
       }
