@@ -5007,15 +5007,22 @@
     const AUDIO_IDB_NAME = 'AISK_InterviewAudioDB_v2';
     const AUDIO_IDB_STORE = 'audio_records';
 
-    // 마이크 스트림 확보 (중복 getUserMedia 호출 방지 및 살아있는 트랙 검증)
-    async function ensureMicStream() {
-      if (mediaStream && mediaStream.active) {
+    // 마이크 스트림 확보 (중복 getUserMedia 호출 방지 및 살아있는 트랙 검증 + 강제 재연결 지원)
+    async function ensureMicStream(forceFresh = false) {
+      if (forceFresh && mediaStream) {
+        try {
+          mediaStream.getTracks().forEach(t => t.stop());
+        } catch (e) {}
+        mediaStream = null;
+        micStreamPromise = null;
+      }
+      if (!forceFresh && mediaStream && mediaStream.active) {
         const tracks = mediaStream.getAudioTracks();
-        if (tracks.length > 0 && tracks[0].readyState === 'live') {
+        if (tracks.length > 0 && tracks[0].readyState === 'live' && tracks[0].enabled) {
           return mediaStream;
         }
       }
-      if (micStreamPromise) {
+      if (!forceFresh && micStreamPromise) {
         return micStreamPromise;
       }
       if (!navigator.mediaDevices || !navigator.mediaDevices.getUserMedia) {
@@ -5760,6 +5767,9 @@
     async function startRecording() {
       if (isRecording) return;
       stopSpeakingQuestion();
+      if (typeof isRecordingModelAudio !== 'undefined' && isRecordingModelAudio) {
+        await stopModelAudioRecording();
+      }
 
       const btn = document.getElementById('btnRecordToggle');
       const btnText = document.getElementById('btnRecordText');
@@ -6482,34 +6492,46 @@
       return (topic && topic.category === 'personality') ? 'speech_1m30s' : 'speech_alt';
     }
 
-    function updateModelScriptDOMAndStorage(topicId, newText) {
+    function updateModelScriptDOMAndStorage(topicId, newText, shouldPersist = true) {
       const topic = currentTopics.find(t => t.id === topicId);
       if (!topic) return;
       const field = getModelScriptFieldForTopic(topic);
       topic[field] = newText;
-      saveTopicsToStorage();
+      if (shouldPersist) {
+        saveTopicsToStorage();
+      }
 
       const cleanLen = newText.replace(/<[^>]+>/g, '').length;
       const color = getLenColor(cleanLen, 'personality');
 
-      if (field === 'speech_alt') {
-        const learnEl = document.getElementById(`speech-alt-text-${topicId}`);
-        const intEl = document.getElementById(`int-speech-alt-text-${topicId}`);
-        if (learnEl && document.activeElement !== learnEl) learnEl.innerHTML = formatSpeechHtml(newText);
-        if (intEl && document.activeElement !== intEl) intEl.innerHTML = formatSpeechHtml(newText);
-        const lenTag = document.getElementById(`len-alt-tag-${topicId}`);
-        const intLenTag = document.getElementById(`int-len-alt-tag-${topicId}`);
-        if (lenTag) { lenTag.textContent = `${cleanLen}자`; lenTag.style.color = color; }
-        if (intLenTag) { intLenTag.textContent = `${cleanLen}자`; intLenTag.style.color = color; }
-      } else {
-        const learnEl = document.getElementById(`speech-text-${topicId}`);
-        const intEl = document.getElementById(`int-speech-text-${topicId}`);
-        if (learnEl && document.activeElement !== learnEl) learnEl.innerHTML = formatSpeechHtml(newText);
-        if (intEl && document.activeElement !== intEl) intEl.innerHTML = formatSpeechHtml(newText);
-        const lenTag = document.getElementById(`len-tag-${topicId}`);
-        const intLenTag = document.getElementById(`int-len-tag-${topicId}`);
-        if (lenTag) { lenTag.textContent = `${cleanLen}자`; lenTag.style.color = color; }
-        if (intLenTag) { intLenTag.textContent = `${cleanLen}자`; intLenTag.style.color = color; }
+      const learnId = (field === 'speech_alt') ? `speech-alt-text-${topicId}` : `speech-text-${topicId}`;
+      const intId = (field === 'speech_alt') ? `int-speech-alt-text-${topicId}` : `int-speech-text-${topicId}`;
+      const learnLenId = (field === 'speech_alt') ? `len-alt-tag-${topicId}` : `len-tag-${topicId}`;
+      const intLenId = (field === 'speech_alt') ? `int-len-alt-tag-${topicId}` : `int-len-tag-${topicId}`;
+
+      const learnEl = document.getElementById(learnId);
+      const intEl = document.getElementById(intId);
+      if (learnEl) {
+        if (!newText) learnEl.innerHTML = '';
+        else learnEl.textContent = newText;
+      }
+      if (intEl) {
+        if (!newText) intEl.innerHTML = '';
+        else intEl.textContent = newText;
+      }
+
+      const lenTag = document.getElementById(learnLenId);
+      const intLenTag = document.getElementById(intLenId);
+      if (lenTag) { lenTag.textContent = `${cleanLen}자`; lenTag.style.color = color; }
+      if (intLenTag) { intLenTag.textContent = `${cleanLen}자`; intLenTag.style.color = color; }
+
+      if (isRecordingModelAudio && activeModelAudioTopicId === topicId) {
+        ['learn', 'int'].forEach(prefix => {
+          const badge = document.getElementById(`badge-${prefix}-model-audio-${topicId}`);
+          if (badge) {
+            badge.innerHTML = `<span style="color:#ef4444; font-weight:700;">🔴 실시간 음성 녹음 & 대본 자동 작성 중... (현재 ${cleanLen}자 인식됨)</span>`;
+          }
+        });
       }
     }
 
@@ -6527,8 +6549,8 @@
             txt.textContent = '🎙️ 내 목소리로 모범답안 녹음 (음성+대본)';
           }
         }
-        if (badge && recording) {
-          badge.innerHTML = '<span style="color:#ef4444; font-weight:700;">🔴 녹음 중: 말씀하시는 내용이 대본과 음성 파일로 동시에 기록됩니다...</span>';
+        if (badge && recording && !badge.innerText.includes('인식됨')) {
+          badge.innerHTML = '<span style="color:#ef4444; font-weight:700;">🔴 실시간 음성 녹음 & 대본 자동 작성 중입니다. 편하게 말씀해보세요...</span>';
         }
       });
     }
@@ -6540,22 +6562,38 @@
         if (prevId === topicId) return;
       }
 
-      // 다른 녹음이나 TTS가 진행 중이면 중지
+      // 1) 기존 질문 TTS 및 상단 면접 녹음기를 즉시 정리 (비동기 대기 없이 즉시 중단하여 사용자 제스처 유지)
       stopSpeakingQuestion();
-      if (isRecording) {
-        await stopRecording(true);
+      const hadActiveRecognition = Boolean(recognition || modelRecognition);
+      if (recognition) {
+        try {
+          recognition.onend = null;
+          recognition.onerror = null;
+          recognition.onresult = null;
+          recognition.abort();
+        } catch (e) {}
+        recognition = null;
       }
-
-      const stream = await ensureMicStream();
-      if (!stream) {
-        showToast('⚠️ 마이크 권한을 허용해주세요.');
-        return;
+      if (isRecording) {
+        stopRecording(true);
+      }
+      if (modelRecognition) {
+        try {
+          modelRecognition.onend = null;
+          modelRecognition.onerror = null;
+          modelRecognition.onresult = null;
+          modelRecognition.abort();
+        } catch (e) {}
+        modelRecognition = null;
       }
 
       const topic = currentTopics.find(t => t.id === topicId);
       if (!topic) return;
       const field = getModelScriptFieldForTopic(topic);
-      const existingRaw = (topic[field] || '').replace(/<[^>]+>/g, '').trim();
+      const learnEl = document.getElementById(field === 'speech_alt' ? `speech-alt-text-${topicId}` : `speech-text-${topicId}`);
+      const intEl = document.getElementById(field === 'speech_alt' ? `int-speech-alt-text-${topicId}` : `int-speech-text-${topicId}`);
+      const domText = (intEl && intEl.innerText.trim()) ? intEl.innerText.trim() : ((learnEl && learnEl.innerText.trim()) ? learnEl.innerText.trim() : '');
+      const existingRaw = domText || (topic[field] || '').replace(/<[^>]+>/g, '').trim();
       modelFinalTranscript = existingRaw ? (existingRaw + ' ') : '';
 
       activeModelAudioTopicId = topicId;
@@ -6564,74 +6602,127 @@
       modelRecSeconds = 0;
       modelRecStartTimeMs = Date.now();
 
-      // 1) MediaRecorder 시작 (내 목소리 오디오 캡처 - 면접 녹음과 동일한 검증된 방식)
-      if (stream && window.MediaRecorder) {
-        try {
-          if (modelMediaRecorder && modelMediaRecorder.state !== 'inactive') {
-            try { modelMediaRecorder.stop(); } catch (e) {}
-          }
-          modelMediaRecorder = new MediaRecorder(stream);
-          modelMediaRecorder.ondataavailable = (e) => {
-            if (e.data && e.data.size > 0) {
-              modelAudioChunks.push(e.data);
-            }
-          };
-          modelMediaRecorder.start();
-        } catch (err) {
-          console.error('Model MediaRecorder start error:', err);
-          isRecordingModelAudio = false;
-          activeModelAudioTopicId = null;
-          showToast('⚠️ 오디오 녹음을 시작할 수 없습니다.');
-          return;
-        }
-      }
-
-      // 2) Web Speech API (STT 실시간 대본 자동 받아쓰기) 시작
-      const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
-      if (SpeechRecognition) {
-        try {
-          modelRecognition = new SpeechRecognition();
-          modelRecognition.lang = 'ko-KR';
-          modelRecognition.continuous = true;
-          modelRecognition.interimResults = true;
-
-          modelRecognition.onresult = (event) => {
-            let interim = '';
-            for (let i = event.resultIndex; i < event.results.length; ++i) {
-              if (event.results[i].isFinal) {
-                modelFinalTranscript += event.results[i][0].transcript.trim() + ' ';
-              } else {
-                interim += event.results[i][0].transcript;
-              }
-            }
-            const combined = (modelFinalTranscript + interim).trim();
-            updateModelScriptDOMAndStorage(topicId, combined);
-          };
-
-          modelRecognition.onerror = (e) => {
-            console.warn('Model STT error:', e.error);
-          };
-
-          modelRecognition.onend = () => {
-            if (isRecordingModelAudio && activeModelAudioTopicId === topicId) {
-              try { modelRecognition.start(); } catch (err) {}
-            }
-          };
-
-          modelRecognition.start();
-        } catch (err) {
-          console.warn('Model SpeechRecognition start error:', err);
-        }
-      }
-
       updateModelRecButtonsUI(topicId, true, 0);
       clearInterval(modelRecTimerInterval);
       modelRecTimerInterval = setInterval(() => {
         modelRecSeconds = Math.max(1, Math.round((Date.now() - modelRecStartTimeMs) / 1000));
         updateModelRecButtonsUI(topicId, true, modelRecSeconds);
-      }, 500);
+      }, 250);
 
-      showToast('🎙️ 모범답안 녹음 시작! 말씀하시면 내 목소리(음성)와 대본이 동시에 기록됩니다.');
+      // 2) 마이크 스트림 확보 및 MediaRecorder 시작 (실패 시 새 스트림으로 자동 재시도)
+      let stream = await ensureMicStream(false);
+      if (!stream) {
+        stream = await ensureMicStream(true);
+      }
+      if (stream && window.MediaRecorder) {
+        const tryStartRecorder = (targetStream) => {
+          if (modelMediaRecorder && modelMediaRecorder.state !== 'inactive') {
+            try { modelMediaRecorder.stop(); } catch (e) {}
+          }
+          const rec = new MediaRecorder(targetStream);
+          rec.ondataavailable = (e) => {
+            if (e.data && e.data.size > 0) {
+              modelAudioChunks.push(e.data);
+            }
+          };
+          rec.start();
+          modelMediaRecorder = rec;
+        };
+
+        try {
+          tryStartRecorder(stream);
+        } catch (err1) {
+          console.warn('First MediaRecorder start attempt failed, retrying with fresh mic stream:', err1);
+          const freshStream = await ensureMicStream(true);
+          if (freshStream) {
+            try {
+              tryStartRecorder(freshStream);
+            } catch (err2) {
+              console.warn('Second MediaRecorder start attempt failed:', err2);
+              modelMediaRecorder = null;
+            }
+          }
+        }
+      }
+
+      // 3) Web Speech API (STT 실시간 대본 자동 받아쓰기) 시작
+      const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
+      if (SpeechRecognition) {
+        const startModelStt = () => {
+          if (!isRecordingModelAudio || activeModelAudioTopicId !== topicId) return;
+          try {
+            if (modelRecognition) {
+              try {
+                modelRecognition.onend = null;
+                modelRecognition.onerror = null;
+                modelRecognition.onresult = null;
+                modelRecognition.abort();
+              } catch (e) {}
+            }
+            const rec = new SpeechRecognition();
+            modelRecognition = rec;
+            rec.lang = 'ko-KR';
+            rec.continuous = true;
+            rec.interimResults = true;
+
+            rec.onresult = (event) => {
+              if (!isRecordingModelAudio || activeModelAudioTopicId !== topicId) return;
+              let interim = '';
+              let hasFinal = false;
+              for (let i = event.resultIndex; i < event.results.length; ++i) {
+                if (event.results[i].isFinal) {
+                  modelFinalTranscript += event.results[i][0].transcript + ' ';
+                  hasFinal = true;
+                } else {
+                  interim += event.results[i][0].transcript;
+                }
+              }
+              const combined = (modelFinalTranscript + interim).trim();
+              updateModelScriptDOMAndStorage(topicId, combined, hasFinal);
+            };
+
+            rec.onerror = (e) => {
+              console.warn('Model STT error:', e.error);
+              if (e.error === 'not-allowed' || e.error === 'service-not-allowed') {
+                showToast('⚠️ 마이크 및 음성인식 권한을 허용해주세요.');
+              }
+            };
+
+            rec.onend = () => {
+              if (isRecordingModelAudio && activeModelAudioTopicId === topicId) {
+                setTimeout(() => {
+                  if (isRecordingModelAudio && activeModelAudioTopicId === topicId) {
+                    try {
+                      rec.start();
+                    } catch (err) {
+                      startModelStt();
+                    }
+                  }
+                }, 150);
+              }
+            };
+
+            rec.start();
+          } catch (err) {
+            console.warn('Model SpeechRecognition start error, retrying:', err);
+            setTimeout(() => {
+              if (isRecordingModelAudio && activeModelAudioTopicId === topicId) {
+                startModelStt();
+              }
+            }, 200);
+          }
+        };
+
+        if (hadActiveRecognition) {
+          setTimeout(startModelStt, 120);
+        } else {
+          startModelStt();
+        }
+      } else {
+        showToast('⚠️ 현재 브라우저에서 실시간 음성인식(STT)을 지원하지 않습니다. 크롬/엣지 브라우저를 권장합니다.');
+      }
+
+      showToast('🎙️ 모범답안 녹음 시작! 말씀하시면 내 목소리(음성)와 대본이 실시간으로 기록됩니다.');
     }
 
     async function stopModelAudioRecording() {
@@ -6639,15 +6730,21 @@
       const topicId = activeModelAudioTopicId;
       const finalSec = Math.max(1, modelRecSeconds || Math.round((Date.now() - modelRecStartTimeMs) / 1000));
 
-      isRecordingModelAudio = false;
-      activeModelAudioTopicId = null;
       clearInterval(modelRecTimerInterval);
       modelRecTimerInterval = null;
 
+      // 마지막 발화 문장이 onresult로 들어올 수 있도록 stop() 호출 후 잠시 대기
       if (modelRecognition) {
-        try { modelRecognition.stop(); } catch (e) {}
-        modelRecognition = null;
+        try {
+          modelRecognition.onend = null;
+          modelRecognition.stop();
+        } catch (e) {}
       }
+      await new Promise(r => setTimeout(r, 220));
+
+      isRecordingModelAudio = false;
+      activeModelAudioTopicId = null;
+      modelRecognition = null;
 
       updateModelRecButtonsUI(topicId, false, 0);
 
@@ -6662,10 +6759,18 @@
           modelMediaRecorder = null;
           modelAudioChunks = [];
 
-          // 대본에 글자가 하나도 안 적혀 있으면 녹음 안 한 것으로 간주하고 자동 삭제
+          // DOM 및 데이터에서 최종 대본 텍스트 확인 후 저장
           const topic = currentTopics.find(t => t.id === topicId);
           const field = getModelScriptFieldForTopic(topic);
-          const currentText = topic ? (topic[field] || '').replace(/<[^>]+>/g, '').trim() : '';
+          const learnEl = document.getElementById(field === 'speech_alt' ? `speech-alt-text-${topicId}` : `speech-text-${topicId}`);
+          const intEl = document.getElementById(field === 'speech_alt' ? `int-speech-alt-text-${topicId}` : `int-speech-text-${topicId}`);
+          const domText = (intEl && intEl.innerText.trim()) ? intEl.innerText.trim() : ((learnEl && learnEl.innerText.trim()) ? learnEl.innerText.trim() : '');
+          const currentText = domText || (topic ? (topic[field] || '').replace(/<[^>]+>/g, '').trim() : '');
+
+          if (topic && currentText) {
+            topic[field] = currentText;
+            saveTopicsToStorage();
+          }
 
           if (!currentText) {
             const recId = getModelAudioRecordId(topicId);
