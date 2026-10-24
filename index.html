@@ -6,7 +6,7 @@
   <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
   <meta http-equiv="Pragma" content="no-cache">
   <meta http-equiv="Expires" content="0">
-  <meta name="build-time" content="2026-10-24T19:55:00+09:00">
+  <meta name="build-time" content="2026-10-24T20:07:00+09:00">
   <title>SK하이닉스 AISK 심층 대비 마스터 백과사전 (커스텀 편집 & 문항 추가 지원)</title>
   
   <!-- Pretendard & JetBrains Mono Fonts -->
@@ -4605,36 +4605,104 @@
     let interviewCategory = 'all'; // 'all' | 'personality' | 'tech'
     let interviewProcess = 'ALL'; // 'ALL', 'COM', 'W', 'O', 'P', 'E', 'D', 'I', 'M', 'PKG', 'DEV'
     
-    // 녹음 / STT / 오디오 파일 저장(IndexedDB) 관련 상태
+    // 녹음 / STT / 오디오 파일 저장(IndexedDB + 메모리 캐시) 관련 상태
     let isRecording = false;
     let recognition = null;
     let recTimerInterval = null;
     let recSeconds = 0;
+    let recStartTimeMs = 0;
     let mediaStream = null;
+    let micStreamPromise = null;
     let mediaRecorder = null;
+    let activeStopPromise = null;
     let currentAudioChunks = [];
     let currentAudioBlob = null;
+    let currentAudioDataUrl = null;
     let currentAudioUrl = null;
-    const historyAudioUrls = new Map();
+    // 세션 내 즉시 재생을 위한 메모리 캐시: recId -> { blob, dataUrl, objectUrl, mimeType }
+    const memoryAudioMap = new Map();
     const INTERVIEW_RECORDS_KEY_PREFIX = 'aisk_interview_history_';
-    const AUDIO_IDB_NAME = 'AISK_InterviewAudioDB_v1';
+    const AUDIO_IDB_NAME = 'AISK_InterviewAudioDB_v2';
     const AUDIO_IDB_STORE = 'audio_records';
 
-    // 마이크 스트림 사전 확보 (사용자 클릭 시점에 권한/스트림 활성화하여 TTS 종료 직후 딜레이 없이 녹음)
+    // 마이크 스트림 확보 (중복 getUserMedia 호출 방지 및 살아있는 트랙 검증)
     async function ensureMicStream() {
-      try {
-        if (!navigator.mediaDevices || !navigator.mediaDevices.getUserMedia) return null;
-        if (!mediaStream || !mediaStream.active) {
-          mediaStream = await navigator.mediaDevices.getUserMedia({ audio: true });
+      if (mediaStream && mediaStream.active) {
+        const tracks = mediaStream.getAudioTracks();
+        if (tracks.length > 0 && tracks[0].readyState === 'live') {
+          return mediaStream;
         }
-        return mediaStream;
+      }
+      if (micStreamPromise) {
+        return micStreamPromise;
+      }
+      if (!navigator.mediaDevices || !navigator.mediaDevices.getUserMedia) {
+        return null;
+      }
+      micStreamPromise = navigator.mediaDevices.getUserMedia({ audio: true })
+        .then((stream) => {
+          mediaStream = stream;
+          micStreamPromise = null;
+          return stream;
+        })
+        .catch((err) => {
+          console.warn('getUserMedia failed:', err);
+          micStreamPromise = null;
+          return null;
+        });
+      return micStreamPromise;
+    }
+
+    // Blob -> Base64 DataURL 변환 (IndexedDB 호환성 및 영구 재생 보장)
+    function blobToDataUrl(blob) {
+      return new Promise((resolve) => {
+        if (!blob || blob.size === 0) {
+          resolve(null);
+          return;
+        }
+        const reader = new FileReader();
+        reader.onloadend = () => resolve(reader.result || null);
+        reader.onerror = () => resolve(null);
+        reader.readAsDataURL(blob);
+      });
+    }
+
+    // DataURL -> Blob 복원
+    function dataUrlToBlob(dataUrl) {
+      try {
+        if (!dataUrl || typeof dataUrl !== 'string' || !dataUrl.startsWith('data:')) return null;
+        const parts = dataUrl.split(',');
+        const mimeMatch = parts[0].match(/:(.*?);/);
+        const mime = mimeMatch ? mimeMatch[1] : 'audio/webm';
+        const bstr = atob(parts[1]);
+        let n = bstr.length;
+        const u8arr = new Uint8Array(n);
+        while (n--) {
+          u8arr[n] = bstr.charCodeAt(n);
+        }
+        return new Blob([u8arr], { type: mime });
       } catch (e) {
-        console.warn('ensureMicStream error:', e);
         return null;
       }
     }
 
-    // IndexedDB 열기 (녹음 오디오 Blob 영구 저장소)
+    // Chrome WebM 오디오 0:00 (Infinity duration) 버그 자동 보정
+    function attachWebmDurationFix(audioEl) {
+      if (!audioEl || audioEl._durationFixedAttached) return;
+      audioEl._durationFixedAttached = true;
+      audioEl.addEventListener('loadedmetadata', () => {
+        if (audioEl.duration === Infinity || isNaN(audioEl.duration)) {
+          audioEl.currentTime = 1e101;
+          const fixTime = () => {
+            audioEl.removeEventListener('timeupdate', fixTime);
+            audioEl.currentTime = 0;
+          };
+          audioEl.addEventListener('timeupdate', fixTime);
+        }
+      });
+    }
+
+    // IndexedDB 열기 (녹음 오디오 영구 저장소)
     function openInterviewAudioDB() {
       return new Promise((resolve) => {
         if (!('indexedDB' in window)) {
@@ -4654,18 +4722,30 @@
       });
     }
 
-    async function saveAudioBlobToDB(recId, topicId, blob, mimeType) {
+    async function saveAudioBlobToDB(recId, topicId, blob, dataUrl, mimeType) {
       try {
+        const finalDataUrl = dataUrl || (await blobToDataUrl(blob));
+        const finalBlob = blob || dataUrlToBlob(finalDataUrl);
+        if (finalBlob && finalBlob.size > 0) {
+          const prev = memoryAudioMap.get(recId);
+          if (prev && prev.objectUrl) URL.revokeObjectURL(prev.objectUrl);
+          memoryAudioMap.set(recId, {
+            blob: finalBlob,
+            dataUrl: finalDataUrl,
+            objectUrl: URL.createObjectURL(finalBlob),
+            mimeType: mimeType || finalBlob.type || 'audio/webm'
+          });
+        }
         const db = await openInterviewAudioDB();
-        if (!db) return false;
+        if (!db || !finalDataUrl) return false;
         return await new Promise((resolve) => {
           const tx = db.transaction(AUDIO_IDB_STORE, 'readwrite');
           const store = tx.objectStore(AUDIO_IDB_STORE);
           store.put({
             id: recId,
             topicId: topicId,
-            blob: blob,
-            mimeType: mimeType || blob.type || 'audio/webm',
+            dataUrl: finalDataUrl,
+            mimeType: mimeType || (finalBlob ? finalBlob.type : 'audio/webm'),
             savedAt: Date.now()
           });
           tx.oncomplete = () => resolve(true);
@@ -4677,17 +4757,35 @@
       }
     }
 
-    async function getAudioBlobFromDB(recId) {
+    async function getAudioEntryForRecord(recId) {
+      if (memoryAudioMap.has(recId)) {
+        return memoryAudioMap.get(recId);
+      }
       try {
         const db = await openInterviewAudioDB();
         if (!db) return null;
-        return await new Promise((resolve) => {
+        const row = await new Promise((resolve) => {
           const tx = db.transaction(AUDIO_IDB_STORE, 'readonly');
           const store = tx.objectStore(AUDIO_IDB_STORE);
           const req = store.get(recId);
           req.onsuccess = () => resolve(req.result || null);
           req.onerror = () => resolve(null);
         });
+        if (!row) return null;
+        let blob = row.blob || null;
+        const dataUrl = row.dataUrl || null;
+        if ((!blob || blob.size === 0) && dataUrl) {
+          blob = dataUrlToBlob(dataUrl);
+        }
+        if (!blob || blob.size === 0) return null;
+        const entry = {
+          blob: blob,
+          dataUrl: dataUrl,
+          objectUrl: URL.createObjectURL(blob),
+          mimeType: row.mimeType || blob.type || 'audio/webm'
+        };
+        memoryAudioMap.set(recId, entry);
+        return entry;
       } catch (e) {
         return null;
       }
@@ -4695,9 +4793,10 @@
 
     async function deleteAudioBlobFromDB(recId) {
       try {
-        if (historyAudioUrls.has(recId)) {
-          URL.revokeObjectURL(historyAudioUrls.get(recId));
-          historyAudioUrls.delete(recId);
+        if (memoryAudioMap.has(recId)) {
+          const entry = memoryAudioMap.get(recId);
+          if (entry && entry.objectUrl) URL.revokeObjectURL(entry.objectUrl);
+          memoryAudioMap.delete(recId);
         }
         const db = await openInterviewAudioDB();
         if (!db) return;
@@ -4713,6 +4812,7 @@
     function clearCurrentAudioPreview() {
       currentAudioChunks = [];
       currentAudioBlob = null;
+      currentAudioDataUrl = null;
       if (currentAudioUrl) {
         URL.revokeObjectURL(currentAudioUrl);
         currentAudioUrl = null;
@@ -4731,12 +4831,13 @@
       if (playText) playText.textContent = '▶️ 내 녹음 재생';
     }
 
-    function updateCurrentAudioPreview(blob) {
+    async function updateCurrentAudioPreview(blob) {
       if (!blob || blob.size === 0) {
         clearCurrentAudioPreview();
         return;
       }
       currentAudioBlob = blob;
+      currentAudioDataUrl = await blobToDataUrl(blob);
       if (currentAudioUrl) {
         URL.revokeObjectURL(currentAudioUrl);
       }
@@ -4746,7 +4847,9 @@
       const playBtn = document.getElementById('btnPlayCurrentRecord');
       const playText = document.getElementById('btnPlayCurrentText');
       if (player) {
+        attachWebmDurationFix(player);
         player.src = currentAudioUrl;
+        player.load();
         player.onplay = () => {
           if (playBtn) playBtn.classList.add('playing');
           if (playText) playText.textContent = '⏸️ 녹음 일시정지';
@@ -4767,20 +4870,31 @@
     async function playCurrentRecordedAudio() {
       stopSpeakingQuestion();
 
-      // 녹음 중이라면 먼저 녹음을 종료하고 오디오 파일 생성 후 즉시 재생
+      // 녹음 중이라면 먼저 녹음을 종료하고 오디오 파일 생성 완료까지 대기
       if (isRecording) {
         await stopRecording(true);
+      } else if (activeStopPromise) {
+        await activeStopPromise;
       }
 
       const player = document.getElementById('currentAudioPreviewPlayer');
-      if (currentAudioUrl && player) {
+      if ((currentAudioUrl || currentAudioDataUrl) && player) {
         const wrap = document.getElementById('currentAudioPreviewWrap');
         if (wrap) wrap.classList.add('show');
+        if (!player.getAttribute('src')) {
+          player.src = currentAudioUrl || currentAudioDataUrl;
+          player.load();
+        }
         if (!player.paused) {
           player.pause();
         } else {
+          player.currentTime = 0;
           player.play().catch(err => {
-            console.warn('Audio play error:', err);
+            console.warn('Audio play fallback to DataURL:', err);
+            if (currentAudioDataUrl) {
+              player.src = currentAudioDataUrl;
+              player.play().catch(() => {});
+            }
           });
         }
         return;
@@ -5198,9 +5312,8 @@
       }
     }
 
-    // 8. 녹음 및 Web Speech API (STT 실시간 음성인식)
+    // 8. 녹음 및 Web Speech API (STT 실시간 음성인식 + MediaRecorder 음성 파일 캡처)
     function toggleRecording() {
-      ensureMicStream();
       // 만약 질문 음성을 재생 중인 상태에서 버튼을 누르면, 질문을 멈추고 바로 녹음 시작
       if (isSpeakingQuestion) {
         stopSpeakingQuestion();
@@ -5215,40 +5328,8 @@
       }
     }
 
-    async function startAudioMediaRecorder() {
-      try {
-        const stream = await ensureMicStream();
-        if (!stream || !isRecording) return;
-
-        currentAudioChunks = [];
-        let options = {};
-        if (window.MediaRecorder) {
-          const preferredTypes = [
-            'audio/webm;codecs=opus',
-            'audio/webm',
-            'audio/mp4',
-            'audio/ogg;codecs=opus'
-          ];
-          for (const t of preferredTypes) {
-            if (MediaRecorder.isTypeSupported && MediaRecorder.isTypeSupported(t)) {
-              options = { mimeType: t };
-              break;
-            }
-          }
-          mediaRecorder = new MediaRecorder(stream, options);
-          mediaRecorder.ondataavailable = (e) => {
-            if (e.data && e.data.size > 0) {
-              currentAudioChunks.push(e.data);
-            }
-          };
-          mediaRecorder.start(200);
-        }
-      } catch (err) {
-        console.warn('MediaRecorder start failed:', err);
-      }
-    }
-
-    function startRecording() {
+    async function startRecording() {
+      if (isRecording) return;
       stopSpeakingQuestion();
 
       const btn = document.getElementById('btnRecordToggle');
@@ -5262,11 +5343,54 @@
         clearCurrentAudioPreview();
       }
 
-      // 브라우저 SpeechRecognition 확인
-      const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
+      // 1) 마이크 스트림을 먼저 확보한 뒤 MediaRecorder 시작 (battery-3 검증 방식과 동일)
+      const stream = await ensureMicStream();
+      currentAudioChunks = [];
 
+      if (stream && window.MediaRecorder) {
+        try {
+          if (mediaRecorder && mediaRecorder.state !== 'inactive') {
+            try { mediaRecorder.stop(); } catch (e) {}
+          }
+          mediaRecorder = new MediaRecorder(stream);
+          mediaRecorder.ondataavailable = (e) => {
+            if (e.data && e.data.size > 0) {
+              currentAudioChunks.push(e.data);
+            }
+          };
+          mediaRecorder.start();
+        } catch (err) {
+          console.warn('MediaRecorder start error:', err);
+          mediaRecorder = null;
+        }
+      }
+
+      isRecording = true;
+      if (btn) {
+        btn.classList.remove('waiting-voice');
+        btn.classList.add('recording');
+      }
+      if (btnText) btnText.textContent = '⏹️ 답변 완료 (녹음 종료)';
+      if (statusNotice) statusNotice.textContent = '🎙️ 음성 파일 녹음 및 자동 대사 인식 중입니다. 편안하게 답변을 말해보세요...';
+      if (recDot) recDot.style.background = '#ef4444';
+
+      // 2) 타이머 시작
+      recSeconds = 0;
+      recStartTimeMs = Date.now();
+      updateTimerDisplay(0);
+      clearInterval(recTimerInterval);
+      recTimerInterval = setInterval(() => {
+        recSeconds = Math.max(1, Math.floor((Date.now() - recStartTimeMs) / 1000));
+        updateTimerDisplay(recSeconds);
+      }, 250);
+
+      // 3) 브라우저 SpeechRecognition (STT) 시작
+      const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
       if (SpeechRecognition) {
         try {
+          if (recognition) {
+            try { recognition.stop(); } catch (e) {}
+          }
           recognition = new SpeechRecognition();
           recognition.lang = 'ko-KR';
           recognition.continuous = true;
@@ -5299,7 +5423,6 @@
           };
 
           recognition.onend = () => {
-            // 녹음 중 상태인데 브라우저가 자동 중단했을 경우 재시작
             if (isRecording) {
               try { recognition.start(); } catch (e) {}
             }
@@ -5309,33 +5432,13 @@
         } catch (e) {
           console.warn('Recognition start failed:', e);
         }
-      } else {
-        showToast('ℹ️ 현재 브라우저는 실시간 STT 음성인식을 지원하지 않아 음성 녹음 및 타이머만 동작합니다. (Chrome 권장)');
       }
-
-      isRecording = true;
-      // 실제 마이크 오디오 파일 녹음(MediaRecorder) 동시 시작
-      startAudioMediaRecorder();
-
-      if (btn) {
-        btn.classList.remove('waiting-voice');
-        btn.classList.add('recording');
-      }
-      if (btnText) btnText.textContent = '⏹️ 답변 완료 (녹음 종료)';
-      if (statusNotice) statusNotice.textContent = '🎙️ 음성 파일 녹음 및 자동 대사 인식 중입니다. 편안하게 답변을 말해보세요...';
-      if (recDot) recDot.style.background = '#ef4444';
-
-      // 타이머 시작
-      recSeconds = 0;
-      updateTimerDisplay(recSeconds);
-      clearInterval(recTimerInterval);
-      recTimerInterval = setInterval(() => {
-        recSeconds++;
-        updateTimerDisplay(recSeconds);
-      }, 1000);
     }
 
     function stopRecording(silent = false) {
+      if (!isRecording && activeStopPromise) {
+        return activeStopPromise;
+      }
       isRecording = false;
       const btn = document.getElementById('btnRecordToggle');
       const btnText = document.getElementById('btnRecordText');
@@ -5358,27 +5461,27 @@
       }
 
       // MediaRecorder 종료 및 오디오 Blob 생성 Promise
+      const recorderToStop = mediaRecorder;
+      mediaRecorder = null;
+
       const finalizeAudioPromise = new Promise((resolve) => {
-        if (mediaRecorder && mediaRecorder.state !== 'inactive') {
-          const mimeType = mediaRecorder.mimeType || 'audio/webm';
-          mediaRecorder.onstop = () => {
+        if (recorderToStop && recorderToStop.state !== 'inactive') {
+          const mimeType = recorderToStop.mimeType || 'audio/webm';
+          recorderToStop.onstop = () => {
             const blob = currentAudioChunks.length > 0 ? new Blob(currentAudioChunks, { type: mimeType }) : null;
-            mediaRecorder = null;
             resolve(blob);
           };
           try {
-            mediaRecorder.stop();
+            recorderToStop.stop();
           } catch (e) {
-            mediaRecorder = null;
             resolve(null);
           }
         } else {
-          mediaRecorder = null;
           resolve(currentAudioBlob);
         }
       });
 
-      return finalizeAudioPromise.then((blob) => {
+      activeStopPromise = finalizeAudioPromise.then(async (blob) => {
         // 녹음을 시작했더라도 글자가 안 적혀있으면 녹음 안 한 것으로 간주하고 음성 및 상태를 자동으로 지움
         const hasText = transcriptArea && transcriptArea.value.trim().length > 0;
         if (!hasText) {
@@ -5392,18 +5495,22 @@
           if (!silent) {
             showToast('ℹ️ 작성된 글자가 없어 녹음 안 한 것으로 간주하여 자동 초기화되었습니다.');
           }
+          activeStopPromise = null;
           return null;
         } else {
           if (blob && blob.size > 0) {
-            updateCurrentAudioPreview(blob);
+            await updateCurrentAudioPreview(blob);
           }
           if (statusNotice) {
             statusNotice.textContent = '답변 녹음이 종료되었습니다. [▶️ 내 녹음 재생]으로 들어보거나 [이번 답변 기록 저장]을 누르세요.';
           }
           if (recDot) recDot.style.background = '#64748b';
+          activeStopPromise = null;
           return currentAudioBlob;
         }
       });
+
+      return activeStopPromise;
     }
 
     function resetRecordingTimer() {
@@ -5500,12 +5607,14 @@
     }
     cleanupEmptyInterviewRecords();
 
-    // 9. 답변 기록 저장 (문항별 다회차 누적 + 녹음된 음성 파일 IndexedDB 영구 저장)
+    // 9. 답변 기록 저장 (문항별 다회차 누적 + 녹음된 음성 파일 IndexedDB/메모리 영구 저장)
     async function saveCurrentInterviewRecord() {
       const area = document.getElementById('intTranscriptArea');
       if (!area || !area.value.trim()) {
         if (isRecording) {
           await stopRecording(true);
+        } else if (activeStopPromise) {
+          await activeStopPromise;
         }
         if (area) area.value = '';
         clearCurrentAudioPreview();
@@ -5523,16 +5632,19 @@
 
       const recordedDurationSec = recSeconds;
 
-      // 녹음 중 상태에서 바로 저장을 누른 경우, 녹음을 종료하고 오디오 Blob이 생성될 때까지 대기
+      // 녹음 중이거나 방금 종료 버튼을 눌러 Blob 생성 중이면 완료될 때까지 대기
       if (isRecording) {
         await stopRecording(true);
+      } else if (activeStopPromise) {
+        await activeStopPromise;
       }
 
       const text = area.value.trim();
       if (!text) return;
 
       const audioBlobToSave = currentAudioBlob;
-      const hasAudioBlob = Boolean(audioBlobToSave && audioBlobToSave.size > 0);
+      const audioDataUrlToSave = currentAudioDataUrl;
+      const hasAudioBlob = Boolean((audioBlobToSave && audioBlobToSave.size > 0) || audioDataUrlToSave);
 
       const storageKey = INTERVIEW_RECORDS_KEY_PREFIX + interviewCurrentTopicId;
       let history = [];
@@ -5554,12 +5666,12 @@
         text: text,
         charCount: text.length,
         hasAudio: hasAudioBlob,
-        audioMimeType: hasAudioBlob ? (audioBlobToSave.type || 'audio/webm') : ''
+        audioMimeType: (audioBlobToSave && audioBlobToSave.type) ? audioBlobToSave.type : 'audio/webm'
       };
 
-      // 녹음된 오디오 파일이 있으면 IndexedDB에 영구 저장
+      // 녹음된 오디오 파일이 있으면 메모리 캐시 + IndexedDB에 영구 저장
       if (hasAudioBlob) {
-        await saveAudioBlobToDB(newRecord.id, interviewCurrentTopicId, audioBlobToSave, newRecord.audioMimeType);
+        await saveAudioBlobToDB(newRecord.id, interviewCurrentTopicId, audioBlobToSave, audioDataUrlToSave, newRecord.audioMimeType);
       }
 
       history.unshift(newRecord); // 최신 기록을 맨 위에 배치
@@ -5582,40 +5694,41 @@
       }
     }
 
-    // 히스토리 카드별 [▶️ 녹음 재생] 버튼 동작 (녹음된 파일 재생 또는 이전 텍스트 기록 TTS 음성 재생)
+    // 히스토리 카드별 [▶️ 녹음 재생] 버튼 동작
     let activeSpeakingRecordId = null;
     async function playInterviewRecordAudio(recId) {
       const btnEl = document.getElementById(`btn-play-audio-${recId}`);
       const playerEl = document.getElementById(`audio-player-${recId}`);
       const rowEl = document.getElementById(`audio-row-${recId}`);
 
-      // 1) 만약 실제 녹음된 오디오 파일이 있는 경우 오디오 플레이어로 재생/일시정지
-      if (playerEl && playerEl.src) {
+      // 1) 메모리 캐시 또는 IndexedDB에서 오디오 엔트리 확보
+      const entry = await getAudioEntryForRecord(recId);
+      if (entry && (entry.objectUrl || entry.dataUrl) && playerEl) {
         if (rowEl) rowEl.style.display = 'flex';
+        attachWebmDurationFix(playerEl);
+        if (!playerEl.getAttribute('src')) {
+          playerEl.src = entry.objectUrl || entry.dataUrl;
+          playerEl.load();
+        }
         if (!playerEl.paused) {
           playerEl.pause();
         } else {
-          // 다른 오디오 플레이어들 정지
           document.querySelectorAll('.history-audio-row audio').forEach(a => {
             if (a !== playerEl) a.pause();
           });
-          playerEl.play().catch(e => console.warn(e));
+          playerEl.currentTime = 0;
+          playerEl.play().catch(err => {
+            console.warn('ObjectURL play failed, falling back to DataURL:', err);
+            if (entry.dataUrl) {
+              playerEl.src = entry.dataUrl;
+              playerEl.play().catch(() => {});
+            }
+          });
         }
         return;
       }
 
-      // 2) IndexedDB에서 한 번 더 조회
-      const audioRecord = await getAudioBlobFromDB(recId);
-      if (audioRecord && audioRecord.blob && audioRecord.blob.size > 0 && playerEl) {
-        const url = URL.createObjectURL(audioRecord.blob);
-        historyAudioUrls.set(recId, url);
-        playerEl.src = url;
-        if (rowEl) rowEl.style.display = 'flex';
-        playerEl.play().catch(e => console.warn(e));
-        return;
-      }
-
-      // 3) 오디오 기능 추가 이전에 저장된 텍스트 기록인 경우 TTS 음성으로 읽어주기
+      // 2) 오디오 파일이 없는 기록인 경우 TTS 음성으로 읽어주기
       const textEl = document.getElementById(`text-${recId}`);
       const text = textEl ? textEl.innerText.trim() : '';
       if (!text) return;
@@ -5626,7 +5739,7 @@
           activeSpeakingRecordId = null;
           if (btnEl) {
             btnEl.classList.remove('playing');
-            btnEl.innerHTML = '▶️ 답변 재생';
+            btnEl.innerHTML = '▶️ 녹음 재생';
           }
           return;
         }
@@ -5642,29 +5755,29 @@
           activeSpeakingRecordId = null;
           if (btnEl) {
             btnEl.classList.remove('playing');
-            btnEl.innerHTML = '▶️ 답변 재생';
+            btnEl.innerHTML = '▶️ 녹음 재생';
           }
         };
         utter.onerror = () => {
           activeSpeakingRecordId = null;
           if (btnEl) {
             btnEl.classList.remove('playing');
-            btnEl.innerHTML = '▶️ 답변 재생';
+            btnEl.innerHTML = '▶️ 녹음 재생';
           }
         };
         window.speechSynthesis.speak(utter);
-        showToast('🔊 이 기록은 음성 파일 저장 기능 추가 전 기록이어서 TTS 음성으로 재생합니다.');
+        showToast('🔊 저장된 답변 텍스트를 음성(TTS)으로 재생합니다.');
       }
     }
 
     // 녹음된 음성 파일 다운로드 함수
     async function downloadInterviewRecordAudio(recId, topicId, tryNumber) {
-      const record = await getAudioBlobFromDB(recId);
-      if (!record || !record.blob) {
+      const entry = await getAudioEntryForRecord(recId);
+      if (!entry || (!entry.blob && !entry.dataUrl)) {
         showToast('⚠️ 저장된 녹음 파일을 찾을 수 없습니다.');
         return;
       }
-      const mime = record.mimeType || record.blob.type || 'audio/webm';
+      const mime = entry.mimeType || (entry.blob ? entry.blob.type : 'audio/webm');
       let ext = 'webm';
       if (mime.includes('mp4') || mime.includes('m4a')) ext = 'm4a';
       else if (mime.includes('ogg')) ext = 'ogg';
@@ -5675,14 +5788,13 @@
         ? (topic.category === 'personality' ? `인성-${String(topic.number || 1).padStart(2, '0')}` : `${topic.process || '직무'}-${String(topic.number || 1).padStart(2, '0')}`)
         : topicId;
 
-      const url = URL.createObjectURL(record.blob);
+      const hrefUrl = entry.objectUrl || entry.dataUrl;
       const a = document.createElement('a');
-      a.href = url;
+      a.href = hrefUrl;
       a.download = `AISK_면접녹음_${badgeText}_${tryNumber}회차.${ext}`;
       document.body.appendChild(a);
       a.click();
       a.remove();
-      setTimeout(() => URL.revokeObjectURL(url), 3000);
       showToast('💾 녹음된 음성 파일 다운로드를 시작합니다.');
     }
 
@@ -5740,6 +5852,9 @@
 
       let html = '';
       history.forEach(rec => {
+        const memEntry = memoryAudioMap.get(rec.id);
+        const initialSrc = memEntry ? (memEntry.objectUrl || memEntry.dataUrl || '') : '';
+        const showAudioRow = Boolean(initialSrc || rec.hasAudio);
         html += `
           <div class="history-card-item" id="${rec.id}">
             <div class="history-card-meta">
@@ -5747,14 +5862,14 @@
                 <span class="history-try-badge">제 ${rec.tryNumber}회차</span>
                 <span>⏱️ ${rec.durationFormatted}</span>
                 <span>📝 ${rec.charCount}자</span>
-                <span id="audio-badge-${rec.id}" style="display:${rec.hasAudio ? 'inline-flex' : 'none'}; align-items:center; gap:3px; color:#38bdf8; font-weight:700;">🎙️ 음성 녹음됨</span>
+                <span id="audio-badge-${rec.id}" style="display:${showAudioRow ? 'inline-flex' : 'none'}; align-items:center; gap:3px; color:#38bdf8; font-weight:700;">🎙️ 음성 녹음됨</span>
                 <span style="opacity:0.6;">· ${rec.date}</span>
               </div>
               <div style="display:flex; gap:6px; flex-wrap:wrap; align-items:center;">
                 <button class="btn-card-action btn-history-play" id="btn-play-audio-${rec.id}" onclick="playInterviewRecordAudio('${rec.id}')" title="녹음된 답변 바로 재생">
                   ▶️ 녹음 재생
                 </button>
-                <button class="btn-card-action" id="btn-dl-audio-${rec.id}" onclick="downloadInterviewRecordAudio('${rec.id}', '${topicId}', ${rec.tryNumber})" title="녹음된 음성 파일 다운로드" style="display:${rec.hasAudio ? 'inline-flex' : 'none'}; color:#38bdf8; border-color:rgba(56,189,248,0.4);">
+                <button class="btn-card-action" id="btn-dl-audio-${rec.id}" onclick="downloadInterviewRecordAudio('${rec.id}', '${topicId}', ${rec.tryNumber})" title="녹음된 음성 파일 다운로드" style="display:${showAudioRow ? 'inline-flex' : 'none'}; color:#38bdf8; border-color:rgba(56,189,248,0.4);">
                   <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path><polyline points="7 10 12 15 17 10"></polyline><line x1="12" y1="15" x2="12" y2="3"></line></svg>
                   파일 저장
                 </button>
@@ -5768,9 +5883,9 @@
                 </button>
               </div>
             </div>
-            <div class="history-audio-row" id="audio-row-${rec.id}" style="display:none;">
-              <span class="history-audio-label">🔊 녹음 오디오 바</span>
-              <audio id="audio-player-${rec.id}" controls preload="metadata"></audio>
+            <div class="history-audio-row" id="audio-row-${rec.id}" style="display:${showAudioRow ? 'flex' : 'none'};">
+              <span class="history-audio-label">🔊 녹음 다시 듣기</span>
+              <audio id="audio-player-${rec.id}" controls ${initialSrc ? `src="${initialSrc}"` : ''}></audio>
             </div>
             <div class="history-card-text" id="text-${rec.id}">${escapeHtml(rec.text)}</div>
           </div>
@@ -5779,46 +5894,47 @@
 
       listEl.innerHTML = html;
 
-      // IndexedDB에서 각 기록의 오디오 Blob을 비동기로 불러와 오디오 플레이어 연결
+      // 각 기록의 오디오 플레이어 바인딩 및 IndexedDB 복원
       history.forEach(async (rec) => {
-        const audioRecord = await getAudioBlobFromDB(rec.id);
+        const entry = await getAudioEntryForRecord(rec.id);
         const btnEl = document.getElementById(`btn-play-audio-${rec.id}`);
-        if (audioRecord && audioRecord.blob && audioRecord.blob.size > 0) {
-          if (historyAudioUrls.has(rec.id)) {
-            URL.revokeObjectURL(historyAudioUrls.get(rec.id));
-          }
-          const url = URL.createObjectURL(audioRecord.blob);
-          historyAudioUrls.set(rec.id, url);
+        const rowEl = document.getElementById(`audio-row-${rec.id}`);
+        const playerEl = document.getElementById(`audio-player-${rec.id}`);
+        const dlBtnEl = document.getElementById(`btn-dl-audio-${rec.id}`);
+        const badgeIconEl = document.getElementById(`audio-badge-${rec.id}`);
 
-          const rowEl = document.getElementById(`audio-row-${rec.id}`);
-          const playerEl = document.getElementById(`audio-player-${rec.id}`);
-          const dlBtnEl = document.getElementById(`btn-dl-audio-${rec.id}`);
-          const badgeIconEl = document.getElementById(`audio-badge-${rec.id}`);
-
-          if (playerEl) {
-            playerEl.src = url;
-            playerEl.onplay = () => {
-              if (btnEl) {
-                btnEl.classList.add('playing');
-                btnEl.innerHTML = '⏸️ 일시정지';
-              }
-            };
-            playerEl.onpause = () => {
-              if (btnEl) {
-                btnEl.classList.remove('playing');
-                btnEl.innerHTML = '▶️ 녹음 재생';
-              }
-            };
-            playerEl.onended = () => {
-              if (btnEl) {
-                btnEl.classList.remove('playing');
-                btnEl.innerHTML = '▶️ 녹음 재생';
-              }
-            };
+        if (entry && (entry.objectUrl || entry.dataUrl) && playerEl) {
+          attachWebmDurationFix(playerEl);
+          const targetSrc = entry.objectUrl || entry.dataUrl;
+          if (playerEl.getAttribute('src') !== targetSrc) {
+            playerEl.src = targetSrc;
+            playerEl.load();
           }
+          playerEl.onplay = () => {
+            if (btnEl) {
+              btnEl.classList.add('playing');
+              btnEl.innerHTML = '⏸️ 일시정지';
+            }
+          };
+          playerEl.onpause = () => {
+            if (btnEl) {
+              btnEl.classList.remove('playing');
+              btnEl.innerHTML = '▶️ 녹음 재생';
+            }
+          };
+          playerEl.onended = () => {
+            if (btnEl) {
+              btnEl.classList.remove('playing');
+              btnEl.innerHTML = '▶️ 녹음 재생';
+            }
+          };
           if (rowEl) rowEl.style.display = 'flex';
           if (dlBtnEl) dlBtnEl.style.display = 'inline-flex';
           if (badgeIconEl) badgeIconEl.style.display = 'inline-flex';
+        } else {
+          if (rowEl) rowEl.style.display = 'none';
+          if (dlBtnEl) dlBtnEl.style.display = 'none';
+          if (badgeIconEl) badgeIconEl.style.display = 'none';
         }
       });
     }
