@@ -6,7 +6,7 @@
   <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
   <meta http-equiv="Pragma" content="no-cache">
   <meta http-equiv="Expires" content="0">
-  <meta name="build-time" content="2026-10-24T15:56:00+09:00">
+  <meta name="build-time" content="2026-10-24T19:32:00+09:00">
   <title>SK하이닉스 AISK 심층 대비 마스터 백과사전 (커스텀 편집 & 문항 추가 지원)</title>
   
   <!-- Pretendard & JetBrains Mono Fonts -->
@@ -4537,6 +4537,10 @@
         }
         showToast('🎙️ 실전 면접 모드로 전환되었습니다. 랜덤 출제나 녹음으로 연습해보세요!');
       } else {
+        stopSpeakingQuestion();
+        if (isRecording) {
+          stopRecording(true);
+        }
         body.classList.remove('interview-mode');
         if (btnLearnMain) btnLearnMain.classList.add('active');
         if (btnIntMain) btnIntMain.classList.remove('active');
@@ -4658,7 +4662,7 @@
     function speakInterviewQuestion(topic, onEndCallback) {
       stopSpeakingQuestion();
       if (isRecording) {
-        stopRecording();
+        stopRecording(true);
       }
 
       if (!('speechSynthesis' in window)) {
@@ -4800,7 +4804,7 @@
       // 기존 음성 및 녹음 즉시 중지
       stopSpeakingQuestion();
       if (isRecording) {
-        stopRecording();
+        stopRecording(true);
       }
 
       // 텍스트창 및 타이머 초기화
@@ -4808,6 +4812,8 @@
       if (transcriptArea) transcriptArea.value = '';
       updateInterviewCharCount();
       resetRecordingTimer();
+      const statusNotice = document.getElementById('recStatusNotice');
+      if (statusNotice) statusNotice.textContent = '버튼을 누르고 말하면 실시간으로 자동 텍스트 기록됩니다.';
 
       // 배지 및 카테고리
       const badgeEl = document.getElementById('intQBadge');
@@ -4930,6 +4936,7 @@
           let finalTranscript = transcriptArea.value ? (transcriptArea.value + ' ') : '';
 
           recognition.onresult = (event) => {
+            if (!isRecording) return;
             let interim = '';
             for (let i = event.resultIndex; i < event.results.length; ++i) {
               if (event.results[i].isFinal) {
@@ -4946,7 +4953,7 @@
             console.warn('SpeechRecognition error:', event.error);
             if (event.error === 'not-allowed') {
               showToast('⚠️ 마이크 사용 권한을 허용해주세요.');
-              stopRecording();
+              stopRecording(true);
             }
           };
 
@@ -4984,20 +4991,19 @@
       }, 1000);
     }
 
-    function stopRecording() {
+    function stopRecording(silent = false) {
       isRecording = false;
       const btn = document.getElementById('btnRecordToggle');
       const btnText = document.getElementById('btnRecordText');
       const statusNotice = document.getElementById('recStatusNotice');
       const recDot = document.getElementById('recDot');
+      const transcriptArea = document.getElementById('intTranscriptArea');
 
       if (btn) {
         btn.classList.remove('recording');
         btn.classList.remove('waiting-voice');
       }
       if (btnText) btnText.textContent = '답변 녹음 시작 (STT)';
-      if (statusNotice) statusNotice.textContent = '답변 녹음이 종료되었습니다. 아래에서 수정하거나 [이번 답변 기록 저장]을 누르세요.';
-      if (recDot) recDot.style.background = '#64748b';
 
       clearInterval(recTimerInterval);
       recTimerInterval = null;
@@ -5005,6 +5011,25 @@
       if (recognition) {
         try { recognition.stop(); } catch (e) {}
         recognition = null;
+      }
+
+      // 녹음을 시작했더라도 글자가 안 적혀있으면 녹음 안 한 것으로 간주하고 자동으로 지움
+      const hasText = transcriptArea && transcriptArea.value.trim().length > 0;
+      if (!hasText) {
+        if (transcriptArea) transcriptArea.value = '';
+        updateInterviewCharCount();
+        resetRecordingTimer();
+        if (statusNotice) {
+          statusNotice.textContent = '버튼을 누르고 말하면 실시간으로 자동 텍스트 기록됩니다.';
+        }
+        if (!silent) {
+          showToast('ℹ️ 작성된 글자가 없어 녹음 안 한 것으로 간주하여 자동 초기화되었습니다.');
+        }
+      } else {
+        if (statusNotice) {
+          statusNotice.textContent = '답변 녹음이 종료되었습니다. 아래에서 수정하거나 [이번 답변 기록 저장]을 누르세요.';
+        }
+        if (recDot) recDot.style.background = '#64748b';
       }
     }
 
@@ -5030,14 +5055,21 @@
       const area = document.getElementById('intTranscriptArea');
       const countEl = document.getElementById('intTranscriptLen');
       if (area && countEl) {
-        countEl.textContent = `${area.value.length}자`;
+        countEl.textContent = `${area.value.trim().length}자`;
       }
     }
 
-    // 실시간 글자수 input 리스너
+    // 실시간 글자수 input 리스너 (글자가 모두 지워지면 타이머/상태도 자동 초기화)
     document.addEventListener('input', (e) => {
       if (e.target && e.target.id === 'intTranscriptArea') {
         updateInterviewCharCount();
+        if (!isRecording && !e.target.value.trim()) {
+          resetRecordingTimer();
+          const statusNotice = document.getElementById('recStatusNotice');
+          if (statusNotice) {
+            statusNotice.textContent = '버튼을 누르고 말하면 실시간으로 자동 텍스트 기록됩니다.';
+          }
+        }
       }
     });
 
@@ -5048,23 +5080,69 @@
         area.value = '';
         updateInterviewCharCount();
       }
+      if (isRecording) stopRecording(true);
       resetRecordingTimer();
-      if (isRecording) stopRecording();
+      const statusNotice = document.getElementById('recStatusNotice');
+      if (statusNotice) {
+        statusNotice.textContent = '버튼을 누르고 말하면 실시간으로 자동 텍스트 기록됩니다.';
+      }
       showToast('대사창이 비워졌습니다.');
     }
+
+    // 빈 기록 자동 정리 함수 (글자가 없는 기록은 녹음 안 한 것으로 간주하여 자동 삭제)
+    function cleanupEmptyInterviewRecords() {
+      try {
+        const keysToFix = [];
+        for (let i = 0; i < localStorage.length; i++) {
+          const k = localStorage.key(i);
+          if (k && k.startsWith(INTERVIEW_RECORDS_KEY_PREFIX)) {
+            keysToFix.push(k);
+          }
+        }
+        keysToFix.forEach(storageKey => {
+          const saved = localStorage.getItem(storageKey);
+          if (!saved) return;
+          const parsed = JSON.parse(saved);
+          if (!Array.isArray(parsed)) return;
+          const valid = parsed.filter(r => r && r.text && String(r.text).trim().length > 0);
+          if (valid.length === 0) {
+            localStorage.removeItem(storageKey);
+          } else if (valid.length !== parsed.length) {
+            const total = valid.length;
+            valid.forEach((r, idx) => {
+              r.text = String(r.text).trim();
+              r.charCount = r.text.length;
+              r.tryNumber = total - idx;
+            });
+            localStorage.setItem(storageKey, JSON.stringify(valid));
+          }
+        });
+      } catch (e) {}
+    }
+    cleanupEmptyInterviewRecords();
 
     // 9. 답변 기록 저장 (문항별 다회차 누적)
     function saveCurrentInterviewRecord() {
       const area = document.getElementById('intTranscriptArea');
       if (!area || !area.value.trim()) {
-        showToast('⚠️ 저장할 답변 내용이 없습니다. 먼저 말하거나 작성해주세요.');
+        if (isRecording) {
+          stopRecording(true);
+        }
+        if (area) area.value = '';
+        updateInterviewCharCount();
+        resetRecordingTimer();
+        const statusNotice = document.getElementById('recStatusNotice');
+        if (statusNotice) {
+          statusNotice.textContent = '버튼을 누르고 말하면 실시간으로 자동 텍스트 기록됩니다.';
+        }
+        showToast('ℹ️ 작성된 글자가 없어 녹음 안 한 것으로 간주하고 자동 초기화되었습니다.');
         return;
       }
 
       if (!interviewCurrentTopicId) return;
 
       if (isRecording) {
-        stopRecording();
+        stopRecording(true);
       }
 
       const text = area.value.trim();
@@ -5074,6 +5152,7 @@
         const saved = localStorage.getItem(storageKey);
         if (saved) history = JSON.parse(saved);
       } catch (e) {}
+      history = history.filter(r => r && r.text && String(r.text).trim().length > 0);
 
       const durationStr = (recSeconds > 0) ? `${Math.floor(recSeconds / 60)}분 ${recSeconds % 60}초` : '시간 미측정';
 
@@ -5097,6 +5176,10 @@
       area.value = '';
       updateInterviewCharCount();
       resetRecordingTimer();
+      const statusNotice = document.getElementById('recStatusNotice');
+      if (statusNotice) {
+        statusNotice.textContent = '버튼을 누르고 말하면 실시간으로 자동 텍스트 기록됩니다.';
+      }
     }
 
     // 10. 답변 히스토리 렌더링
@@ -5111,6 +5194,27 @@
         const saved = localStorage.getItem(storageKey);
         if (saved) history = JSON.parse(saved);
       } catch (e) {}
+
+      // 글자가 없는 빈 기록은 자동으로 제거
+      if (Array.isArray(history)) {
+        const validHistory = history.filter(r => r && r.text && String(r.text).trim().length > 0);
+        if (validHistory.length !== history.length) {
+          history = validHistory;
+          if (history.length === 0) {
+            localStorage.removeItem(storageKey);
+          } else {
+            const total = history.length;
+            history.forEach((r, idx) => {
+              r.text = String(r.text).trim();
+              r.charCount = r.text.length;
+              r.tryNumber = total - idx;
+            });
+            localStorage.setItem(storageKey, JSON.stringify(history));
+          }
+        }
+      } else {
+        history = [];
+      }
 
       if (badgeEl) {
         badgeEl.textContent = `${history.length}회 연습함`;
