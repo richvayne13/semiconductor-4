@@ -5509,6 +5509,11 @@
     let isSpeakingQuestion = false;
     let autoVoiceAndRecordEnabled = true; // 기본 ON: 랜덤/다음 이동 시 질문 음성 후 녹음 자동 시작
     let questionUtterance = null;
+    let speechTtsSessionId = 0;
+    let speakStartTimer = null;
+    let recordingSessionId = 0;
+    let isStartingRecording = false;
+    let interviewFinalTranscript = '';
 
     // 질문 음성 및 자동 녹음 토글
     function updateAutoVoiceToggleUI() {
@@ -5538,13 +5543,24 @@
       }
     }
 
-    // 질문 음성 중지
+    // 질문 음성 중지 (이전 Utterance의 onerror/onend 콜백이 뒤늦게 실행되어 녹음을 꼬이게 하는 현상 원천 차단)
     function stopSpeakingQuestion() {
+      speechTtsSessionId++;
+      if (speakStartTimer) {
+        clearTimeout(speakStartTimer);
+        speakStartTimer = null;
+      }
+      if (questionUtterance) {
+        try {
+          questionUtterance.onend = null;
+          questionUtterance.onerror = null;
+        } catch (e) {}
+        questionUtterance = null;
+      }
       if ('speechSynthesis' in window) {
-        window.speechSynthesis.cancel();
+        try { window.speechSynthesis.cancel(); } catch (e) {}
       }
       isSpeakingQuestion = false;
-      questionUtterance = null;
 
       const qTitle = document.getElementById('intQTitle');
       if (qTitle) qTitle.classList.remove('speaking');
@@ -5555,7 +5571,7 @@
       if (speakText) speakText.textContent = '🔊 질문 다시 듣기';
 
       const btnRecord = document.getElementById('btnRecordToggle');
-      if (btnRecord && !isRecording) {
+      if (btnRecord && !isRecording && !isStartingRecording) {
         btnRecord.classList.remove('waiting-voice');
         const btnText = document.getElementById('btnRecordText');
         if (btnText) btnText.textContent = '답변 녹음 시작 (STT)';
@@ -5565,9 +5581,11 @@
     // 질문 음성(TTS) 재생 후 콜백(자동 녹음) 실행
     function speakInterviewQuestion(topic, onEndCallback) {
       stopSpeakingQuestion();
-      if (isRecording) {
+      if (isRecording || isStartingRecording) {
         stopRecording(true);
       }
+
+      const myTtsSession = ++speechTtsSessionId;
 
       if (!('speechSynthesis' in window)) {
         console.warn('SpeechSynthesis API not supported');
@@ -5581,20 +5599,7 @@
         return;
       }
 
-      const utterance = new SpeechSynthesisUtterance(text);
-      utterance.lang = 'ko-KR';
-      utterance.rate = 1.0;
-      utterance.pitch = 1.0;
-
-      // 한국어 음성 탐색
-      const voices = window.speechSynthesis.getVoices();
-      const koVoice = voices.find(v => v.lang === 'ko-KR' || v.lang === 'ko_KR' || (v.lang && v.lang.startsWith('ko')));
-      if (koVoice) {
-        utterance.voice = koVoice;
-      }
-
       isSpeakingQuestion = true;
-      questionUtterance = utterance;
 
       // UI 상태 반영 (질문 읽는 중)
       const qTitle = document.getElementById('intQTitle');
@@ -5617,7 +5622,7 @@
 
       let finished = false;
       const handleFinish = () => {
-        if (finished) return;
+        if (finished || myTtsSession !== speechTtsSessionId) return;
         finished = true;
         isSpeakingQuestion = false;
         questionUtterance = null;
@@ -5628,22 +5633,49 @@
         if (btnRecord) btnRecord.classList.remove('waiting-voice');
 
         if (onEndCallback) {
-          onEndCallback();
+          // TTS 오디오 출력이 완전히 해제된 직후 마이크 음성인식이 시작되도록 120ms 여유 부여
+          setTimeout(() => {
+            if (myTtsSession === speechTtsSessionId) {
+              onEndCallback();
+            }
+          }, 120);
         }
       };
 
-      utterance.onend = handleFinish;
-      utterance.onerror = (e) => {
-        console.warn('SpeechSynthesis error:', e);
-        handleFinish();
-      };
+      // Chrome에서 speechSynthesis.cancel() 직후 같은 틱에 speak() 호출 시 씹히는 현상 방지 (60ms 지연)
+      speakStartTimer = setTimeout(() => {
+        speakStartTimer = null;
+        if (myTtsSession !== speechTtsSessionId) return;
 
-      try {
-        window.speechSynthesis.speak(utterance);
-      } catch (err) {
-        console.warn('SpeechSynthesis speak failed:', err);
-        handleFinish();
-      }
+        const utterance = new SpeechSynthesisUtterance(text);
+        utterance.lang = 'ko-KR';
+        utterance.rate = 1.0;
+        utterance.pitch = 1.0;
+
+        const voices = window.speechSynthesis.getVoices();
+        const koVoice = voices.find(v => v.lang === 'ko-KR' || v.lang === 'ko_KR' || (v.lang && v.lang.startsWith('ko')));
+        if (koVoice) {
+          utterance.voice = koVoice;
+        }
+
+        questionUtterance = utterance;
+        utterance.onend = handleFinish;
+        utterance.onerror = (e) => {
+          if (myTtsSession !== speechTtsSessionId) return;
+          if (e && (e.error === 'canceled' || e.error === 'interrupted')) {
+            return;
+          }
+          console.warn('SpeechSynthesis error:', e);
+          handleFinish();
+        };
+
+        try {
+          window.speechSynthesis.speak(utterance);
+        } catch (err) {
+          console.warn('SpeechSynthesis speak failed:', err);
+          handleFinish();
+        }
+      }, 60);
     }
 
     // 질문 다시 듣기 (수동 버튼)
@@ -5838,10 +5870,17 @@
     }
 
     async function startRecording() {
-      if (isRecording) return;
+      if (isRecording || isStartingRecording) return;
+      isStartingRecording = true;
+      const myRecSession = ++recordingSessionId;
+
       stopSpeakingQuestion();
       if (typeof isRecordingModelAudio !== 'undefined' && isRecordingModelAudio) {
         await stopModelAudioRecording();
+      }
+      if (myRecSession !== recordingSessionId) {
+        isStartingRecording = false;
+        return;
       }
 
       const btn = document.getElementById('btnRecordToggle');
@@ -5855,38 +5894,21 @@
         clearCurrentAudioPreview();
       }
 
-      // 1) 마이크 스트림을 먼저 확보한 뒤 MediaRecorder 시작 (battery-3 검증 방식과 동일)
-      const stream = await ensureMicStream();
-      currentAudioChunks = [];
-
-      if (stream && window.MediaRecorder) {
-        try {
-          if (mediaRecorder && mediaRecorder.state !== 'inactive') {
-            try { mediaRecorder.stop(); } catch (e) {}
-          }
-          mediaRecorder = new MediaRecorder(stream);
-          mediaRecorder.ondataavailable = (e) => {
-            if (e.data && e.data.size > 0) {
-              currentAudioChunks.push(e.data);
-            }
-          };
-          mediaRecorder.start();
-        } catch (err) {
-          console.warn('MediaRecorder start error:', err);
-          mediaRecorder = null;
-        }
-      }
+      const existingVal = (transcriptArea && transcriptArea.value.trim()) ? transcriptArea.value.trim() : '';
+      interviewFinalTranscript = existingVal ? (existingVal + ' ') : '';
 
       isRecording = true;
+      isStartingRecording = false;
+
       if (btn) {
         btn.classList.remove('waiting-voice');
         btn.classList.add('recording');
       }
       if (btnText) btnText.textContent = '⏹️ 답변 완료 (녹음 종료)';
-      if (statusNotice) statusNotice.textContent = '🎙️ 음성 파일 녹음 및 자동 대사 인식 중입니다. 편안하게 답변을 말해보세요...';
+      if (statusNotice) statusNotice.textContent = '🔴 음성 파일 녹음 및 실시간 자동 대사 작성 중입니다. 편하게 말씀해보세요...';
       if (recDot) recDot.style.background = '#ef4444';
 
-      // 2) 타이머 시작
+      // 1) 타이머 시작
       recSeconds = 0;
       recStartTimeMs = Date.now();
       updateTimerDisplay(0);
@@ -5896,62 +5918,139 @@
         updateTimerDisplay(recSeconds);
       }, 250);
 
-      // 3) 브라우저 SpeechRecognition (STT) 시작
+      // 2) 브라우저 SpeechRecognition (STT) 먼저 즉시 시작 (비동기 스트림 대기로 인해 STT가 누락되는 현상 방지)
       const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
       if (SpeechRecognition) {
-        try {
-          if (recognition) {
-            try { recognition.stop(); } catch (e) {}
-          }
-          recognition = new SpeechRecognition();
-          recognition.lang = 'ko-KR';
-          recognition.continuous = true;
-          recognition.interimResults = true;
+        const launchInterviewStt = () => {
+          if (!isRecording || myRecSession !== recordingSessionId) return;
+          try {
+            if (recognition) {
+              try {
+                recognition.onresult = null;
+                recognition.onerror = null;
+                recognition.onend = null;
+                recognition.abort();
+              } catch (e) {}
+              recognition = null;
+            }
+            if (typeof modelRecognition !== 'undefined' && modelRecognition) {
+              try {
+                modelRecognition.onresult = null;
+                modelRecognition.onerror = null;
+                modelRecognition.onend = null;
+                modelRecognition.abort();
+              } catch (e) {}
+              modelRecognition = null;
+            }
 
-          let finalTranscript = (transcriptArea && transcriptArea.value) ? (transcriptArea.value + ' ') : '';
+            const rec = new SpeechRecognition();
+            recognition = rec;
+            rec.lang = 'ko-KR';
+            rec.continuous = true;
+            rec.interimResults = true;
 
-          recognition.onresult = (event) => {
-            if (!isRecording) return;
-            let interim = '';
-            for (let i = event.resultIndex; i < event.results.length; ++i) {
-              if (event.results[i].isFinal) {
-                finalTranscript += event.results[i][0].transcript + ' ';
-              } else {
-                interim += event.results[i][0].transcript;
+            rec.onresult = (event) => {
+              if (!isRecording || myRecSession !== recordingSessionId) return;
+              let interim = '';
+              for (let i = event.resultIndex; i < event.results.length; ++i) {
+                if (event.results[i].isFinal) {
+                  interviewFinalTranscript += event.results[i][0].transcript + ' ';
+                } else {
+                  interim += event.results[i][0].transcript;
+                }
               }
-            }
-            if (transcriptArea) {
-              transcriptArea.value = (finalTranscript + interim).trim();
-            }
-            updateInterviewCharCount();
-          };
+              const combined = (interviewFinalTranscript + interim).trim();
+              const areaEl = document.getElementById('intTranscriptArea');
+              if (areaEl) {
+                areaEl.value = combined;
+              }
+              updateInterviewCharCount();
+              const noticeEl = document.getElementById('recStatusNotice');
+              if (noticeEl) {
+                noticeEl.innerHTML = `<span style="color:#34d399; font-weight:700;">🔴 실시간 대본 자동 작성 중... (현재 ${combined.length}자 인식됨)</span>`;
+              }
+            };
 
-          recognition.onerror = (event) => {
-            console.warn('SpeechRecognition error:', event.error);
-            if (event.error === 'not-allowed') {
-              showToast('⚠️ 마이크 사용 권한을 허용해주세요.');
-              stopRecording(true);
+            rec.onerror = (event) => {
+              console.warn('SpeechRecognition error:', event.error);
+              if (event.error === 'not-allowed' || event.error === 'service-not-allowed') {
+                showToast('⚠️ 마이크 및 음성인식 권한을 허용해주세요.');
+                stopRecording(true);
+              }
+            };
+
+            rec.onend = () => {
+              if (isRecording && myRecSession === recordingSessionId) {
+                setTimeout(() => {
+                  if (isRecording && myRecSession === recordingSessionId) {
+                    launchInterviewStt();
+                  }
+                }, 140);
+              }
+            };
+
+            rec.start();
+          } catch (e) {
+            console.warn('Recognition start failed, retrying:', e);
+            setTimeout(() => {
+              if (isRecording && myRecSession === recordingSessionId) {
+                launchInterviewStt();
+              }
+            }, 250);
+          }
+        };
+
+        launchInterviewStt();
+      }
+
+      // 3) 마이크 오디오 스트림 확보 및 MediaRecorder 시작 (실패 시 새 스트림 재시도)
+      let stream = await ensureMicStream(false);
+      if (!stream) {
+        stream = await ensureMicStream(true);
+      }
+      if (!isRecording || myRecSession !== recordingSessionId) return;
+
+      currentAudioChunks = [];
+      if (stream && window.MediaRecorder) {
+        const tryStartTopRecorder = (targetStream) => {
+          if (mediaRecorder && mediaRecorder.state !== 'inactive') {
+            try { mediaRecorder.stop(); } catch (e) {}
+          }
+          const mr = new MediaRecorder(targetStream);
+          mr.ondataavailable = (e) => {
+            if (e.data && e.data.size > 0) {
+              currentAudioChunks.push(e.data);
             }
           };
+          mr.start();
+          mediaRecorder = mr;
+        };
 
-          recognition.onend = () => {
-            if (isRecording) {
-              try { recognition.start(); } catch (e) {}
+        try {
+          tryStartTopRecorder(stream);
+        } catch (err1) {
+          console.warn('MediaRecorder start error, retrying with fresh stream:', err1);
+          const freshStream = await ensureMicStream(true);
+          if (freshStream && isRecording && myRecSession === recordingSessionId) {
+            try {
+              tryStartTopRecorder(freshStream);
+            } catch (err2) {
+              console.warn('MediaRecorder retry failed:', err2);
+              mediaRecorder = null;
             }
-          };
-
-          recognition.start();
-        } catch (e) {
-          console.warn('Recognition start failed:', e);
+          }
         }
       }
     }
 
     function stopRecording(silent = false) {
-      if (!isRecording && activeStopPromise) {
+      if (!isRecording && !isStartingRecording && activeStopPromise) {
         return activeStopPromise;
       }
+      const stoppedSessionId = ++recordingSessionId;
       isRecording = false;
+      isStartingRecording = false;
+
       const btn = document.getElementById('btnRecordToggle');
       const btnText = document.getElementById('btnRecordText');
       const statusNotice = document.getElementById('recStatusNotice');
@@ -5968,8 +6067,18 @@
       recTimerInterval = null;
 
       if (recognition) {
-        try { recognition.stop(); } catch (e) {}
+        const oldRec = recognition;
         recognition = null;
+        try {
+          oldRec.onresult = null;
+          oldRec.onerror = null;
+          oldRec.onend = null;
+          if (silent) {
+            oldRec.abort();
+          } else {
+            oldRec.stop();
+          }
+        } catch (e) {}
       }
 
       // MediaRecorder 종료 및 오디오 Blob 생성 Promise
@@ -5994,6 +6103,12 @@
       });
 
       activeStopPromise = finalizeAudioPromise.then(async (blob) => {
+        // 만약 비동기 종료 중에 이미 새로운 질문 음성이나 새 녹음 세션이 시작되었다면 UI를 건드리지 않음
+        if (isRecording || isStartingRecording || isSpeakingQuestion || stoppedSessionId !== recordingSessionId) {
+          activeStopPromise = null;
+          return null;
+        }
+
         // 녹음을 시작했더라도 글자가 안 적혀있으면 녹음 안 한 것으로 간주하고 음성 및 상태를 자동으로 지움
         const hasText = transcriptArea && transcriptArea.value.trim().length > 0;
         if (!hasText) {
@@ -6054,6 +6169,10 @@
     // 실시간 글자수 input 리스너 (글자가 모두 지워지면 타이머/오디오/상태도 자동 초기화)
     document.addEventListener('input', (e) => {
       if (e.target && e.target.id === 'intTranscriptArea') {
+        if (isRecording) {
+          const v = e.target.value.trim();
+          interviewFinalTranscript = v ? (v + ' ') : '';
+        }
         updateInterviewCharCount();
         if (!isRecording && !e.target.value.trim()) {
           clearCurrentAudioPreview();
@@ -6765,13 +6884,9 @@
               if (isRecordingModelAudio && activeModelAudioTopicId === topicId) {
                 setTimeout(() => {
                   if (isRecordingModelAudio && activeModelAudioTopicId === topicId) {
-                    try {
-                      rec.start();
-                    } catch (err) {
-                      startModelStt();
-                    }
+                    startModelStt();
                   }
-                }, 150);
+                }, 140);
               }
             };
 
