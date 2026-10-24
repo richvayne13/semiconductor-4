@@ -6,7 +6,7 @@
   <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
   <meta http-equiv="Pragma" content="no-cache">
   <meta http-equiv="Expires" content="0">
-  <meta name="build-time" content="2026-10-24T19:32:00+09:00">
+  <meta name="build-time" content="2026-10-24T19:48:00+09:00">
   <title>SK하이닉스 AISK 심층 대비 마스터 백과사전 (커스텀 편집 & 문항 추가 지원)</title>
   
   <!-- Pretendard & JetBrains Mono Fonts -->
@@ -1907,6 +1907,57 @@
       white-space: pre-wrap;
       word-break: keep-all;
     }
+    .current-audio-preview-wrap {
+      display: none;
+      align-items: center;
+      gap: 10px;
+      background: rgba(15, 23, 42, 0.85);
+      border: 1px solid rgba(56, 189, 248, 0.3);
+      border-radius: 8px;
+      padding: 8px 12px;
+      margin-bottom: 12px;
+      flex-wrap: wrap;
+    }
+    .current-audio-preview-wrap.show {
+      display: flex;
+    }
+    .current-audio-preview-label {
+      font-size: 0.78rem;
+      font-weight: 700;
+      color: #38bdf8;
+      white-space: nowrap;
+      display: inline-flex;
+      align-items: center;
+      gap: 5px;
+    }
+    .current-audio-preview-wrap audio,
+    .history-audio-row audio {
+      height: 34px;
+      flex: 1;
+      min-width: 200px;
+      outline: none;
+      border-radius: 6px;
+    }
+    .history-audio-row {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      margin-bottom: 10px;
+      padding: 8px 12px;
+      background: rgba(15, 23, 42, 0.75);
+      border: 1px solid rgba(56, 189, 248, 0.22);
+      border-radius: 8px;
+      flex-wrap: wrap;
+    }
+    .history-audio-label {
+      font-size: 0.76rem;
+      font-weight: 700;
+      color: #38bdf8;
+      white-space: nowrap;
+      display: inline-flex;
+      align-items: center;
+      gap: 4px;
+    }
 
     /* 하단 모범답안 확인 카드 */
     .interview-model-box {
@@ -2289,6 +2340,12 @@
 
         <!-- 실시간 자동 대사 기록 창 (수정 가능) -->
         <textarea class="speech-transcript-area" id="intTranscriptArea" placeholder="[답변 녹음 시작] 버튼을 누르고 음성으로 답변하시거나, 키보드로 직접 나의 답변을 작성하세요..."></textarea>
+
+        <!-- 방금 녹음된 음성 미리듣기 바 (글자가 있을 때만 표시, 저장 시 함께 영구 보관) -->
+        <div class="current-audio-preview-wrap" id="currentAudioPreviewWrap">
+          <span class="current-audio-preview-label">🔊 방금 녹음된 음성 (기록 저장 시 함께 보관됨)</span>
+          <audio id="currentAudioPreviewPlayer" controls preload="metadata"></audio>
+        </div>
 
         <div class="recorder-action-row">
           <div style="font-size: 0.82rem; color: var(--text-sub);">
@@ -4504,12 +4561,131 @@
     let interviewCategory = 'all'; // 'all' | 'personality' | 'tech'
     let interviewProcess = 'ALL'; // 'ALL', 'COM', 'W', 'O', 'P', 'E', 'D', 'I', 'M', 'PKG', 'DEV'
     
-    // 녹음 / STT 관련 상태
+    // 녹음 / STT / 오디오 파일 저장(IndexedDB) 관련 상태
     let isRecording = false;
     let recognition = null;
     let recTimerInterval = null;
     let recSeconds = 0;
+    let mediaStream = null;
+    let mediaRecorder = null;
+    let currentAudioChunks = [];
+    let currentAudioBlob = null;
+    let currentAudioUrl = null;
+    const historyAudioUrls = new Map();
     const INTERVIEW_RECORDS_KEY_PREFIX = 'aisk_interview_history_';
+    const AUDIO_IDB_NAME = 'AISK_InterviewAudioDB_v1';
+    const AUDIO_IDB_STORE = 'audio_records';
+
+    // IndexedDB 열기 (녹음 오디오 Blob 영구 저장소)
+    function openInterviewAudioDB() {
+      return new Promise((resolve, reject) => {
+        if (!('indexedDB' in window)) {
+          resolve(null);
+          return;
+        }
+        const req = indexedDB.open(AUDIO_IDB_NAME, 1);
+        req.onupgradeneeded = (e) => {
+          const db = e.target.result;
+          if (!db.objectStoreNames.contains(AUDIO_IDB_STORE)) {
+            const store = db.createObjectStore(AUDIO_IDB_STORE, { keyPath: 'id' });
+            store.createIndex('topicId', 'topicId', { unique: false });
+          }
+        };
+        req.onsuccess = (e) => resolve(e.target.result);
+        req.onerror = () => resolve(null);
+      });
+    }
+
+    async function saveAudioBlobToDB(recId, topicId, blob, mimeType) {
+      try {
+        const db = await openInterviewAudioDB();
+        if (!db) return false;
+        return await new Promise((resolve) => {
+          const tx = db.transaction(AUDIO_IDB_STORE, 'readwrite');
+          const store = tx.objectStore(AUDIO_IDB_STORE);
+          store.put({
+            id: recId,
+            topicId: topicId,
+            blob: blob,
+            mimeType: mimeType || blob.type || 'audio/webm',
+            savedAt: Date.now()
+          });
+          tx.oncomplete = () => resolve(true);
+          tx.onerror = () => resolve(false);
+        });
+      } catch (e) {
+        console.warn('saveAudioBlobToDB failed:', e);
+        return false;
+      }
+    }
+
+    async function getAudioBlobFromDB(recId) {
+      try {
+        const db = await openInterviewAudioDB();
+        if (!db) return null;
+        return await new Promise((resolve) => {
+          const tx = db.transaction(AUDIO_IDB_STORE, 'readonly');
+          const store = tx.objectStore(AUDIO_IDB_STORE);
+          const req = store.get(recId);
+          req.onsuccess = () => resolve(req.result || null);
+          req.onerror = () => resolve(null);
+        });
+      } catch (e) {
+        return null;
+      }
+    }
+
+    async function deleteAudioBlobFromDB(recId) {
+      try {
+        if (historyAudioUrls.has(recId)) {
+          URL.revokeObjectURL(historyAudioUrls.get(recId));
+          historyAudioUrls.delete(recId);
+        }
+        const db = await openInterviewAudioDB();
+        if (!db) return;
+        await new Promise((resolve) => {
+          const tx = db.transaction(AUDIO_IDB_STORE, 'readwrite');
+          tx.objectStore(AUDIO_IDB_STORE).delete(recId);
+          tx.oncomplete = () => resolve();
+          tx.onerror = () => resolve();
+        });
+      } catch (e) {}
+    }
+
+    function clearCurrentAudioPreview() {
+      currentAudioChunks = [];
+      currentAudioBlob = null;
+      if (currentAudioUrl) {
+        URL.revokeObjectURL(currentAudioUrl);
+        currentAudioUrl = null;
+      }
+      const wrap = document.getElementById('currentAudioPreviewWrap');
+      const player = document.getElementById('currentAudioPreviewPlayer');
+      if (player) {
+        player.pause();
+        player.removeAttribute('src');
+        player.load();
+      }
+      if (wrap) wrap.classList.remove('show');
+    }
+
+    function updateCurrentAudioPreview(blob) {
+      if (!blob || blob.size === 0) {
+        clearCurrentAudioPreview();
+        return;
+      }
+      currentAudioBlob = blob;
+      if (currentAudioUrl) {
+        URL.revokeObjectURL(currentAudioUrl);
+      }
+      currentAudioUrl = URL.createObjectURL(blob);
+      const wrap = document.getElementById('currentAudioPreviewWrap');
+      const player = document.getElementById('currentAudioPreviewPlayer');
+      if (player) {
+        player.src = currentAudioUrl;
+      }
+      if (wrap) wrap.classList.add('show');
+    }
 
     // 1. 모드 전환 함수
     function toggleViewMode(mode) {
@@ -4807,9 +4983,10 @@
         stopRecording(true);
       }
 
-      // 텍스트창 및 타이머 초기화
+      // 텍스트창, 오디오 미리보기 및 타이머 초기화
       const transcriptArea = document.getElementById('intTranscriptArea');
       if (transcriptArea) transcriptArea.value = '';
+      clearCurrentAudioPreview();
       updateInterviewCharCount();
       resetRecordingTimer();
       const statusNotice = document.getElementById('recStatusNotice');
@@ -4914,6 +5091,42 @@
       }
     }
 
+    async function startAudioMediaRecorder() {
+      try {
+        if (!navigator.mediaDevices || !navigator.mediaDevices.getUserMedia) return;
+        if (!mediaStream || !mediaStream.active) {
+          mediaStream = await navigator.mediaDevices.getUserMedia({ audio: true });
+        }
+        if (!isRecording) return; // 권한 대기 중 이미 녹음이 취소된 경우
+
+        currentAudioChunks = [];
+        let options = {};
+        if (window.MediaRecorder) {
+          const preferredTypes = [
+            'audio/webm;codecs=opus',
+            'audio/webm',
+            'audio/mp4',
+            'audio/ogg;codecs=opus'
+          ];
+          for (const t of preferredTypes) {
+            if (MediaRecorder.isTypeSupported && MediaRecorder.isTypeSupported(t)) {
+              options = { mimeType: t };
+              break;
+            }
+          }
+          mediaRecorder = new MediaRecorder(mediaStream, options);
+          mediaRecorder.ondataavailable = (e) => {
+            if (e.data && e.data.size > 0) {
+              currentAudioChunks.push(e.data);
+            }
+          };
+          mediaRecorder.start(250);
+        }
+      } catch (err) {
+        console.warn('MediaRecorder start failed:', err);
+      }
+    }
+
     function startRecording() {
       stopSpeakingQuestion();
 
@@ -4921,6 +5134,12 @@
       const btnText = document.getElementById('btnRecordText');
       const statusNotice = document.getElementById('recStatusNotice');
       const recDot = document.getElementById('recDot');
+      const transcriptArea = document.getElementById('intTranscriptArea');
+
+      // 대사창이 비어있다면 이전 오디오 프리뷰도 초기화
+      if (!transcriptArea || !transcriptArea.value.trim()) {
+        clearCurrentAudioPreview();
+      }
 
       // 브라우저 SpeechRecognition 확인
       const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
@@ -4932,8 +5151,7 @@
           recognition.continuous = true;
           recognition.interimResults = true;
 
-          const transcriptArea = document.getElementById('intTranscriptArea');
-          let finalTranscript = transcriptArea.value ? (transcriptArea.value + ' ') : '';
+          let finalTranscript = (transcriptArea && transcriptArea.value) ? (transcriptArea.value + ' ') : '';
 
           recognition.onresult = (event) => {
             if (!isRecording) return;
@@ -4945,7 +5163,9 @@
                 interim += event.results[i][0].transcript;
               }
             }
-            transcriptArea.value = (finalTranscript + interim).trim();
+            if (transcriptArea) {
+              transcriptArea.value = (finalTranscript + interim).trim();
+            }
             updateInterviewCharCount();
           };
 
@@ -4969,16 +5189,19 @@
           console.warn('Recognition start failed:', e);
         }
       } else {
-        showToast('ℹ️ 현재 브라우저는 실시간 STT 음성인식을 지원하지 않아 타이머만 동작합니다. (Chrome 권장)');
+        showToast('ℹ️ 현재 브라우저는 실시간 STT 음성인식을 지원하지 않아 음성 녹음 및 타이머만 동작합니다. (Chrome 권장)');
       }
 
       isRecording = true;
+      // 실제 마이크 오디오 파일 녹음(MediaRecorder) 동시 시작
+      startAudioMediaRecorder();
+
       if (btn) {
         btn.classList.remove('waiting-voice');
         btn.classList.add('recording');
       }
       if (btnText) btnText.textContent = '⏹️ 답변 완료 (녹음 종료)';
-      if (statusNotice) statusNotice.textContent = '🎙️ 녹음 및 자동 대사 인식 중입니다. 편안하게 답변을 말해보세요...';
+      if (statusNotice) statusNotice.textContent = '🎙️ 음성 파일 녹음 및 자동 대사 인식 중입니다. 편안하게 답변을 말해보세요...';
       if (recDot) recDot.style.background = '#ef4444';
 
       // 타이머 시작
@@ -5013,24 +5236,53 @@
         recognition = null;
       }
 
-      // 녹음을 시작했더라도 글자가 안 적혀있으면 녹음 안 한 것으로 간주하고 자동으로 지움
-      const hasText = transcriptArea && transcriptArea.value.trim().length > 0;
-      if (!hasText) {
-        if (transcriptArea) transcriptArea.value = '';
-        updateInterviewCharCount();
-        resetRecordingTimer();
-        if (statusNotice) {
-          statusNotice.textContent = '버튼을 누르고 말하면 실시간으로 자동 텍스트 기록됩니다.';
+      // MediaRecorder 종료 및 오디오 Blob 생성 Promise
+      const finalizeAudioPromise = new Promise((resolve) => {
+        if (mediaRecorder && mediaRecorder.state !== 'inactive') {
+          const mimeType = mediaRecorder.mimeType || 'audio/webm';
+          mediaRecorder.onstop = () => {
+            const blob = currentAudioChunks.length > 0 ? new Blob(currentAudioChunks, { type: mimeType }) : null;
+            mediaRecorder = null;
+            resolve(blob);
+          };
+          try {
+            mediaRecorder.stop();
+          } catch (e) {
+            mediaRecorder = null;
+            resolve(null);
+          }
+        } else {
+          mediaRecorder = null;
+          resolve(currentAudioBlob);
         }
-        if (!silent) {
-          showToast('ℹ️ 작성된 글자가 없어 녹음 안 한 것으로 간주하여 자동 초기화되었습니다.');
+      });
+
+      return finalizeAudioPromise.then((blob) => {
+        // 녹음을 시작했더라도 글자가 안 적혀있으면 녹음 안 한 것으로 간주하고 음성 및 상태를 자동으로 지움
+        const hasText = transcriptArea && transcriptArea.value.trim().length > 0;
+        if (!hasText) {
+          if (transcriptArea) transcriptArea.value = '';
+          clearCurrentAudioPreview();
+          updateInterviewCharCount();
+          resetRecordingTimer();
+          if (statusNotice) {
+            statusNotice.textContent = '버튼을 누르고 말하면 실시간으로 자동 텍스트 기록됩니다.';
+          }
+          if (!silent) {
+            showToast('ℹ️ 작성된 글자가 없어 녹음 안 한 것으로 간주하여 자동 초기화되었습니다.');
+          }
+          return null;
+        } else {
+          if (blob && blob.size > 0) {
+            updateCurrentAudioPreview(blob);
+          }
+          if (statusNotice) {
+            statusNotice.textContent = '답변 녹음이 종료되었습니다. 아래에서 수정하거나 [이번 답변 기록 저장]을 누르면 음성 파일과 함께 저장됩니다.';
+          }
+          if (recDot) recDot.style.background = '#64748b';
+          return currentAudioBlob;
         }
-      } else {
-        if (statusNotice) {
-          statusNotice.textContent = '답변 녹음이 종료되었습니다. 아래에서 수정하거나 [이번 답변 기록 저장]을 누르세요.';
-        }
-        if (recDot) recDot.style.background = '#64748b';
-      }
+      });
     }
 
     function resetRecordingTimer() {
@@ -5059,11 +5311,12 @@
       }
     }
 
-    // 실시간 글자수 input 리스너 (글자가 모두 지워지면 타이머/상태도 자동 초기화)
+    // 실시간 글자수 input 리스너 (글자가 모두 지워지면 타이머/오디오/상태도 자동 초기화)
     document.addEventListener('input', (e) => {
       if (e.target && e.target.id === 'intTranscriptArea') {
         updateInterviewCharCount();
         if (!isRecording && !e.target.value.trim()) {
+          clearCurrentAudioPreview();
           resetRecordingTimer();
           const statusNotice = document.getElementById('recStatusNotice');
           if (statusNotice) {
@@ -5081,12 +5334,13 @@
         updateInterviewCharCount();
       }
       if (isRecording) stopRecording(true);
+      clearCurrentAudioPreview();
       resetRecordingTimer();
       const statusNotice = document.getElementById('recStatusNotice');
       if (statusNotice) {
         statusNotice.textContent = '버튼을 누르고 말하면 실시간으로 자동 텍스트 기록됩니다.';
       }
-      showToast('대사창이 비워졌습니다.');
+      showToast('대사창 및 녹음 음성이 비워졌습니다.');
     }
 
     // 빈 기록 자동 정리 함수 (글자가 없는 기록은 녹음 안 한 것으로 간주하여 자동 삭제)
@@ -5104,6 +5358,10 @@
           if (!saved) return;
           const parsed = JSON.parse(saved);
           if (!Array.isArray(parsed)) return;
+          const removed = parsed.filter(r => !r || !r.text || String(r.text).trim().length === 0);
+          removed.forEach(r => {
+            if (r && r.id) deleteAudioBlobFromDB(r.id);
+          });
           const valid = parsed.filter(r => r && r.text && String(r.text).trim().length > 0);
           if (valid.length === 0) {
             localStorage.removeItem(storageKey);
@@ -5121,14 +5379,15 @@
     }
     cleanupEmptyInterviewRecords();
 
-    // 9. 답변 기록 저장 (문항별 다회차 누적)
-    function saveCurrentInterviewRecord() {
+    // 9. 답변 기록 저장 (문항별 다회차 누적 + 녹음된 음성 파일 IndexedDB 영구 저장)
+    async function saveCurrentInterviewRecord() {
       const area = document.getElementById('intTranscriptArea');
       if (!area || !area.value.trim()) {
         if (isRecording) {
-          stopRecording(true);
+          await stopRecording(true);
         }
         if (area) area.value = '';
+        clearCurrentAudioPreview();
         updateInterviewCharCount();
         resetRecordingTimer();
         const statusNotice = document.getElementById('recStatusNotice');
@@ -5141,11 +5400,19 @@
 
       if (!interviewCurrentTopicId) return;
 
+      const recordedDurationSec = recSeconds;
+
+      // 녹음 중 상태에서 바로 저장을 누른 경우, 녹음을 종료하고 오디오 Blob이 생성될 때까지 대기
       if (isRecording) {
-        stopRecording(true);
+        await stopRecording(true);
       }
 
       const text = area.value.trim();
+      if (!text) return;
+
+      const audioBlobToSave = currentAudioBlob;
+      const hasAudioBlob = Boolean(audioBlobToSave && audioBlobToSave.size > 0);
+
       const storageKey = INTERVIEW_RECORDS_KEY_PREFIX + interviewCurrentTopicId;
       let history = [];
       try {
@@ -5154,26 +5421,38 @@
       } catch (e) {}
       history = history.filter(r => r && r.text && String(r.text).trim().length > 0);
 
-      const durationStr = (recSeconds > 0) ? `${Math.floor(recSeconds / 60)}분 ${recSeconds % 60}초` : '시간 미측정';
+      const finalSec = recordedDurationSec > 0 ? recordedDurationSec : recSeconds;
+      const durationStr = (finalSec > 0) ? `${Math.floor(finalSec / 60)}분 ${finalSec % 60}초` : '시간 미측정';
 
       const newRecord = {
         id: 'rec_' + Date.now(),
         tryNumber: history.length + 1,
         date: new Date().toLocaleString('ko-KR', { month:'numeric', day:'numeric', hour:'2-digit', minute:'2-digit' }),
-        durationSeconds: recSeconds,
+        durationSeconds: finalSec,
         durationFormatted: durationStr,
         text: text,
-        charCount: text.length
+        charCount: text.length,
+        hasAudio: hasAudioBlob,
+        audioMimeType: hasAudioBlob ? (audioBlobToSave.type || 'audio/webm') : ''
       };
+
+      // 녹음된 오디오 파일이 있으면 IndexedDB에 영구 저장
+      if (hasAudioBlob) {
+        await saveAudioBlobToDB(newRecord.id, interviewCurrentTopicId, audioBlobToSave, newRecord.audioMimeType);
+      }
 
       history.unshift(newRecord); // 최신 기록을 맨 위에 배치
       localStorage.setItem(storageKey, JSON.stringify(history));
 
-      showToast(`🎉 [제 ${newRecord.tryNumber}회차] 답변 기록이 성공적으로 저장되었습니다!`);
+      showToast(hasAudioBlob
+        ? `🎉 [제 ${newRecord.tryNumber}회차] 답변 텍스트와 녹음 음성 파일이 함께 저장되었습니다!`
+        : `🎉 [제 ${newRecord.tryNumber}회차] 답변 기록이 성공적으로 저장되었습니다!`);
+
       renderInterviewHistory(interviewCurrentTopicId);
 
-      // 대사창 비우기 및 타이머 리셋
+      // 대사창, 오디오 프리뷰 비우기 및 타이머 리셋
       area.value = '';
+      clearCurrentAudioPreview();
       updateInterviewCharCount();
       resetRecordingTimer();
       const statusNotice = document.getElementById('recStatusNotice');
@@ -5182,7 +5461,36 @@
       }
     }
 
-    // 10. 답변 히스토리 렌더링
+    // 녹음된 음성 파일 다운로드 함수
+    async function downloadInterviewRecordAudio(recId, topicId, tryNumber) {
+      const record = await getAudioBlobFromDB(recId);
+      if (!record || !record.blob) {
+        showToast('⚠️ 저장된 녹음 파일을 찾을 수 없습니다.');
+        return;
+      }
+      const mime = record.mimeType || record.blob.type || 'audio/webm';
+      let ext = 'webm';
+      if (mime.includes('mp4') || mime.includes('m4a')) ext = 'm4a';
+      else if (mime.includes('ogg')) ext = 'ogg';
+      else if (mime.includes('wav')) ext = 'wav';
+
+      const topic = currentTopics.find(t => t.id === topicId);
+      const badgeText = topic
+        ? (topic.category === 'personality' ? `인성-${String(topic.number || 1).padStart(2, '0')}` : `${topic.process || '직무'}-${String(topic.number || 1).padStart(2, '0')}`)
+        : topicId;
+
+      const url = URL.createObjectURL(record.blob);
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = `AISK_면접녹음_${badgeText}_${tryNumber}회차.${ext}`;
+      document.body.appendChild(a);
+      a.click();
+      a.remove();
+      setTimeout(() => URL.revokeObjectURL(url), 3000);
+      showToast('💾 녹음된 음성 파일 다운로드를 시작합니다.');
+    }
+
+    // 10. 답변 히스토리 렌더링 (저장된 녹음 음성 플레이어 및 파일 다운로드 지원)
     function renderInterviewHistory(topicId) {
       const listEl = document.getElementById('intHistoryList');
       const badgeEl = document.getElementById('historyCountBadge');
@@ -5197,6 +5505,10 @@
 
       // 글자가 없는 빈 기록은 자동으로 제거
       if (Array.isArray(history)) {
+        const removed = history.filter(r => !r || !r.text || String(r.text).trim().length === 0);
+        removed.forEach(r => {
+          if (r && r.id) deleteAudioBlobFromDB(r.id);
+        });
         const validHistory = history.filter(r => r && r.text && String(r.text).trim().length > 0);
         if (validHistory.length !== history.length) {
           history = validHistory;
@@ -5235,13 +5547,18 @@
         html += `
           <div class="history-card-item" id="${rec.id}">
             <div class="history-card-meta">
-              <div style="display:flex; align-items:center; gap:8px;">
+              <div style="display:flex; align-items:center; gap:8px; flex-wrap:wrap;">
                 <span class="history-try-badge">제 ${rec.tryNumber}회차</span>
                 <span>⏱️ ${rec.durationFormatted}</span>
                 <span>📝 ${rec.charCount}자</span>
+                <span id="audio-badge-${rec.id}" style="display:${rec.hasAudio ? 'inline-flex' : 'none'}; align-items:center; gap:3px; color:#38bdf8; font-weight:700;">🎙️ 음성 녹음됨</span>
                 <span style="opacity:0.6;">· ${rec.date}</span>
               </div>
-              <div style="display:flex; gap:6px;">
+              <div style="display:flex; gap:6px; flex-wrap:wrap;">
+                <button class="btn-card-action" id="btn-dl-audio-${rec.id}" onclick="downloadInterviewRecordAudio('${rec.id}', '${topicId}', ${rec.tryNumber})" title="녹음된 음성 파일 다운로드" style="display:${rec.hasAudio ? 'inline-flex' : 'none'}; color:#38bdf8; border-color:rgba(56,189,248,0.4);">
+                  <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path><polyline points="7 10 12 15 17 10"></polyline><line x1="12" y1="15" x2="12" y2="3"></line></svg>
+                  녹음파일 저장
+                </button>
                 <button class="btn-card-action" onclick="copyRecordText('${rec.id}')" title="이 기록 복사">
                   <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="9" y="9" width="13" height="13" rx="2" ry="2"></rect><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"></path></svg>
                   복사
@@ -5252,12 +5569,38 @@
                 </button>
               </div>
             </div>
+            <div class="history-audio-row" id="audio-row-${rec.id}" style="display:none;">
+              <span class="history-audio-label">🔊 녹음 다시 듣기</span>
+              <audio id="audio-player-${rec.id}" controls preload="metadata"></audio>
+            </div>
             <div class="history-card-text" id="text-${rec.id}">${escapeHtml(rec.text)}</div>
           </div>
         `;
       });
 
       listEl.innerHTML = html;
+
+      // IndexedDB에서 각 기록의 오디오 Blob을 비동기로 불러와 오디오 플레이어 연결
+      history.forEach(async (rec) => {
+        const audioRecord = await getAudioBlobFromDB(rec.id);
+        if (audioRecord && audioRecord.blob && audioRecord.blob.size > 0) {
+          if (historyAudioUrls.has(rec.id)) {
+            URL.revokeObjectURL(historyAudioUrls.get(rec.id));
+          }
+          const url = URL.createObjectURL(audioRecord.blob);
+          historyAudioUrls.set(rec.id, url);
+
+          const rowEl = document.getElementById(`audio-row-${rec.id}`);
+          const playerEl = document.getElementById(`audio-player-${rec.id}`);
+          const dlBtnEl = document.getElementById(`btn-dl-audio-${rec.id}`);
+          const badgeIconEl = document.getElementById(`audio-badge-${rec.id}`);
+
+          if (playerEl) playerEl.src = url;
+          if (rowEl) rowEl.style.display = 'flex';
+          if (dlBtnEl) dlBtnEl.style.display = 'inline-flex';
+          if (badgeIconEl) badgeIconEl.style.display = 'inline-flex';
+        }
+      });
     }
 
     function copyRecordText(recId) {
@@ -5268,8 +5611,10 @@
       });
     }
 
-    function deleteInterviewRecord(topicId, recId) {
-      if (!confirm('이 답변 기록을 삭제하시겠습니까?')) return;
+    async function deleteInterviewRecord(topicId, recId) {
+      if (!confirm('이 답변 기록(음성 파일 포함)을 삭제하시겠습니까?')) return;
+
+      await deleteAudioBlobFromDB(recId);
 
       const storageKey = INTERVIEW_RECORDS_KEY_PREFIX + topicId;
       let history = [];
@@ -5279,9 +5624,17 @@
       } catch (e) {}
 
       history = history.filter(r => r.id !== recId);
-      localStorage.setItem(storageKey, JSON.stringify(history));
+      const total = history.length;
+      history.forEach((r, idx) => {
+        r.tryNumber = total - idx;
+      });
+      if (history.length === 0) {
+        localStorage.removeItem(storageKey);
+      } else {
+        localStorage.setItem(storageKey, JSON.stringify(history));
+      }
       renderInterviewHistory(topicId);
-      showToast('기록이 삭제되었습니다.');
+      showToast('기록 및 녹음 파일이 삭제되었습니다.');
     }
 
     // 11. 하단 모범답안 렌더링 & 토글
