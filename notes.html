@@ -1,0 +1,1143 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>반도체 전공면접 손글씨 노트 완벽 정리 (DRAM · SCE · SOI/HKMG · WOPEDIMP)</title>
+  <style>
+    :root {
+      --bg: #0f172a;
+      --surface: #1e293b;
+      --surface-2: #263449;
+      --border: #334155;
+      --text: #f8fafc;
+      --text-muted: #94a3b8;
+      --accent: #38bdf8;
+      --accent-2: #818cf8;
+      --green: #34d399;
+      --amber: #fbbf24;
+      --rose: #fb7185;
+      --purple: #c084fc;
+    }
+
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+    }
+
+    body {
+      font-family: 'Pretendard', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Malgun Gothic', sans-serif;
+      background-color: var(--bg);
+      color: var(--text);
+      line-height: 1.7;
+      padding-bottom: 80px;
+    }
+
+    /* Header */
+    header {
+      position: sticky;
+      top: 0;
+      z-index: 100;
+      background: rgba(15, 23, 42, 0.92);
+      backdrop-filter: blur(12px);
+      border-bottom: 1px solid var(--border);
+      padding: 16px 24px;
+    }
+
+    .header-inner {
+      max-width: 1280px;
+      margin: 0 auto;
+      display: flex;
+      flex-direction: column;
+      gap: 12px;
+    }
+
+    .title-row {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      flex-wrap: wrap;
+      gap: 12px;
+    }
+
+    h1 {
+      font-size: 1.35rem;
+      font-weight: 800;
+      background: linear-gradient(90deg, #38bdf8, #818cf8, #c084fc);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+    }
+
+    .toolbar {
+      display: flex;
+      gap: 8px;
+      align-items: center;
+      flex-wrap: wrap;
+    }
+
+    .search-input {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      color: var(--text);
+      padding: 8px 14px;
+      border-radius: 8px;
+      font-size: 0.9rem;
+      width: 240px;
+      outline: none;
+      transition: border-color 0.2s;
+    }
+
+    .search-input:focus {
+      border-color: var(--accent);
+    }
+
+    .btn {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      color: var(--text);
+      padding: 7px 13px;
+      border-radius: 8px;
+      font-size: 0.85rem;
+      font-weight: 600;
+      cursor: pointer;
+      transition: all 0.15s;
+    }
+
+    .btn:hover {
+      border-color: var(--accent);
+      color: var(--accent);
+    }
+
+    .btn.active {
+      background: var(--accent);
+      color: #0f172a;
+      border-color: var(--accent);
+    }
+
+    .nav-tabs {
+      display: flex;
+      gap: 8px;
+      overflow-x: auto;
+      padding-bottom: 4px;
+    }
+
+    /* Main Container */
+    .container {
+      max-width: 1280px;
+      margin: 28px auto;
+      padding: 0 20px;
+      display: flex;
+      flex-direction: column;
+      gap: 32px;
+    }
+
+    .section-block {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 16px;
+      overflow: hidden;
+      box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.35);
+    }
+
+    .section-header {
+      background: linear-gradient(90deg, rgba(56, 189, 248, 0.14), rgba(129, 140, 248, 0.08));
+      padding: 18px 24px;
+      border-bottom: 1px solid var(--border);
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      flex-wrap: wrap;
+      gap: 10px;
+    }
+
+    .section-header h2 {
+      font-size: 1.25rem;
+      font-weight: 800;
+      color: var(--accent);
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+
+    .section-badge {
+      font-size: 0.78rem;
+      padding: 4px 10px;
+      border-radius: 999px;
+      background: rgba(56, 189, 248, 0.15);
+      color: var(--accent);
+      border: 1px solid rgba(56, 189, 248, 0.3);
+      font-weight: 600;
+    }
+
+    .cards-grid {
+      padding: 20px;
+      display: grid;
+      grid-template-columns: 1fr;
+      gap: 16px;
+    }
+
+    .note-card {
+      background: var(--surface-2);
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      padding: 18px 22px;
+      transition: border-color 0.2s;
+    }
+
+    .note-card:hover {
+      border-color: rgba(56, 189, 248, 0.5);
+    }
+
+    .card-title {
+      font-size: 1.08rem;
+      font-weight: 700;
+      color: var(--amber);
+      margin-bottom: 10px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 8px;
+      border-bottom: 1px dashed rgba(148, 163, 184, 0.25);
+      padding-bottom: 8px;
+    }
+
+    .card-tag {
+      font-size: 0.75rem;
+      padding: 2px 9px;
+      border-radius: 6px;
+      background: rgba(251, 191, 36, 0.15);
+      color: var(--amber);
+      font-weight: 600;
+    }
+
+    .card-body {
+      font-size: 0.96rem;
+      color: var(--text);
+    }
+
+    .card-body ul, .card-body ol {
+      padding-left: 20px;
+      margin-top: 6px;
+      margin-bottom: 6px;
+    }
+
+    .card-body li {
+      margin-bottom: 6px;
+    }
+
+    .hl-yellow {
+      background: rgba(251, 191, 36, 0.22);
+      color: #fde68a;
+      padding: 1px 6px;
+      border-radius: 4px;
+      font-weight: 700;
+    }
+
+    .hl-blue {
+      background: rgba(56, 189, 248, 0.2);
+      color: #7dd3fc;
+      padding: 1px 6px;
+      border-radius: 4px;
+      font-weight: 700;
+    }
+
+    .hl-rose {
+      background: rgba(251, 113, 133, 0.2);
+      color: #fda4af;
+      padding: 1px 6px;
+      border-radius: 4px;
+      font-weight: 700;
+    }
+
+    .hl-green {
+      background: rgba(52, 211, 153, 0.2);
+      color: #6ee7b7;
+      padding: 1px 6px;
+      border-radius: 4px;
+      font-weight: 700;
+    }
+
+    .formula-box {
+      background: rgba(15, 23, 42, 0.75);
+      border-left: 4px solid var(--accent-2);
+      padding: 12px 16px;
+      margin: 10px 0;
+      border-radius: 8px;
+      font-family: 'Cambria Math', 'Consolas', monospace;
+      font-size: 0.98rem;
+      color: #e0e7ff;
+    }
+
+    .diagram-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(230px, 1fr));
+      gap: 12px;
+      margin: 12px 0;
+    }
+
+    .diagram-box {
+      background: rgba(15, 23, 42, 0.7);
+      border: 1px solid var(--border);
+      border-radius: 10px;
+      padding: 12px 14px;
+    }
+
+    .diagram-box h4 {
+      color: var(--accent);
+      font-size: 0.92rem;
+      margin-bottom: 6px;
+    }
+
+    .sub-Memo {
+      margin-top: 8px;
+      padding: 8px 12px;
+      background: rgba(192, 132, 252, 0.1);
+      border-left: 3px solid var(--purple);
+      border-radius: 6px;
+      font-size: 0.88rem;
+      color: #e9d5ff;
+    }
+
+    .editable-tip {
+      font-size: 0.8rem;
+      color: var(--text-muted);
+    }
+
+    [contenteditable="true"]:focus {
+      outline: 2px solid var(--accent);
+      border-radius: 6px;
+      background: rgba(15, 23, 42, 0.45);
+    }
+
+    @media print {
+      header {
+        position: static;
+      }
+      body {
+        background: #fff;
+        color: #000;
+      }
+      .section-block, .note-card {
+        background: #fff;
+        border: 1px solid #ccc;
+        box-shadow: none;
+        break-inside: avoid;
+      }
+    }
+  </style>
+</head>
+<body>
+
+  <header>
+    <div class="header-inner">
+      <div class="title-row">
+        <h1>📘 반도체 전공면접 손글씨 노트 완벽 통합본</h1>
+        <div class="toolbar">
+          <input type="text" id="searchInput" class="search-input" placeholder="🔍 키워드 검색 (예: DIBL, ALD, TSV...)" oninput="filterCards()" />
+          <button class="btn" onclick="resetEdits()">🔄 원본 복구</button>
+          <button class="btn" onclick="window.print()">🖨️ 인쇄 / PDF 저장</button>
+        </div>
+      </div>
+      <div class="nav-tabs">
+        <button class="btn active" onclick="filterSection('all', this)">전체 보기</button>
+        <button class="btn" onclick="filterSection('sec-dram', this)">1. DRAM & 3D DRAM</button>
+        <button class="btn" onclick="filterSection('sec-sce', this)">2. 단채널 효과(SCE) & 신뢰성</button>
+        <button class="btn" onclick="filterSection('sec-soi', this)">3. 산화막·바디·SOI·HKMG</button>
+        <button class="btn" onclick="filterSection('sec-photo', this)">[P] Photo (노광)</button>
+        <button class="btn" onclick="filterSection('sec-etch', this)">[E] Etch (식각)</button>
+        <button class="btn" onclick="filterSection('sec-depo', this)">[D] Deposition (증착)</button>
+        <button class="btn" onclick="filterSection('sec-ii', this)">[I] Ion Implant (이온주입)</button>
+        <button class="btn" onclick="filterSection('sec-metal', this)">[M] Metal & 플라즈마/진공</button>
+        <button class="btn" onclick="filterSection('sec-pkg', this)">[P] Packaging (TSV)</button>
+      </div>
+      <div class="editable-tip">💡 모든 카드 본문은 클릭하여 직접 수정할 수 있으며(Ctrl+B 하이라이트 지원), 수정 내용은 브라우저에 자동 저장됩니다.</div>
+    </div>
+  </header>
+
+  <main class="container" id="mainContainer">
+
+    <!-- ==================== 1. DRAM & 3D DRAM ==================== -->
+    <section class="section-block" data-section="sec-dram">
+      <div class="section-header">
+        <h2>1️⃣ DRAM 동작 원리 및 차세대 3D DRAM</h2>
+        <span class="section-badge">메모리 소자 · 아키텍처</span>
+      </div>
+      <div class="cards-grid">
+
+        <div class="note-card">
+          <div class="card-title">
+            <span>DRAM / DDR DRAM / LPDDR 정의 및 발전 방향</span>
+            <span class="card-tag">DRAM 기초</span>
+          </div>
+          <div class="card-body" contenteditable="true">
+            <ul>
+              <li><strong>DRAM</strong>: <span class="hl-yellow">1T-1C 구조</span>의 Dynamic Random Access Memory. 정보를 읽을 때 순차적으로 읽지 않고(×) <span class="hl-blue">랜덤하게(Random Access)</span> 읽을 수 있기 때문에 데이터 쓰기/읽기 속도가 매우 빠른 특성을 가짐. 용량이 크고 매우 빨라 CPU의 연산을 돕는 고속 메모리.</li>
+              <li><strong>DDR DRAM</strong>: 낮은 전력으로 <span class="hl-yellow">한 번의 Clock 신호에 Data를 2번 전송</span>하는 램. 초기 DRAM(SDR)은 Clock 1번에 Data 1번을 보냈으나, CPU가 빨라지면서 고속 메모리가 요구되어 등장.</li>
+              <li><strong>DDR DRAM의 성능향상 방향</strong>:
+                <ul>
+                  <li><span class="hl-blue">Clock의 Frequency</span>를 높여 속도를 향상시키는 방향 (400M → 800M → 1600M ...).</li>
+                  <li><strong>동작 전압 감소</strong>: <code>2.5V → 1.8V → 1.5V</code> 순으로 낮춰 소비전력 절감.</li>
+                </ul>
+              </li>
+              <li><strong>LPDDR</strong>: 소비전력이 낮고 성능이 향상된 메모리. <span class="hl-green">모바일 기기</span>가 발전하면서 낮은 소비전력에 특화됨.</li>
+            </ul>
+          </div>
+        </div>
+
+        <div class="note-card">
+          <div class="card-title">
+            <span>DRAM 1T-1C 동작 원리 ('1' 쓰기 / '0' 쓰기 / '1' 읽기 / '0' 읽기)</span>
+            <span class="card-tag">회로 동작</span>
+          </div>
+          <div class="card-body" contenteditable="true">
+            <div class="diagram-grid">
+              <div class="diagram-box">
+                <h4>① ['1' 쓰기]</h4>
+                <p>W/L에 <code>V_DD</code> 인가, B/L에 <code>V_DD</code> 인가 → B/L에서 커패시터(판 전압 <code>1/2 V_DD</code>) 쪽으로 전류가 흘러 전하 충전 (<code>+ / -</code>).</p>
+              </div>
+              <div class="diagram-box">
+                <h4>② ['0' 쓰기]</h4>
+                <p>W/L에 <code>V_DD</code> 인가, B/L에 <code>0V</code> 인가 → 커패시터에서 B/L로 전하가 빠져나가 방전.</p>
+              </div>
+              <div class="diagram-box">
+                <h4>③ ['1' 읽기]</h4>
+                <p>B/L을 <code>1/2 V_DD</code>로 프리차지 후 W/L에 <code>V_DD</code> 인가 → 커패시터에서 B/L로 전하가 공유되어 B/L 전압이 <span class="hl-yellow">1/2 V_DD + δ</span>로 상승.</p>
+              </div>
+              <div class="diagram-box">
+                <h4>④ ['0' 읽기]</h4>
+                <p>B/L을 <code>1/2 V_DD</code>로 프리차지 후 W/L에 <code>V_DD</code> 인가 → B/L에서 커패시터로 전하가 이동해 B/L 전압이 <span class="hl-rose">1/2 V_DD - δ</span>로 하강.</p>
+              </div>
+            </div>
+            <ul>
+              <li><strong>Destructive Readout (파괴적 읽기)</strong>: 읽을 때마다 커패시터의 데이터를 지우면서 읽으므로 읽은 후 반드시 재쓰기(Restore)가 필요함.</li>
+            </ul>
+          </div>
+        </div>
+
+        <div class="note-card">
+          <div class="card-title">
+            <span>DRAM Feature Size 변천 (8F² → 6F² → 4F²) 및 주변회로(Peri) 구조</span>
+            <span class="card-tag">집적화 & 패키징</span>
+          </div>
+          <div class="card-body" contenteditable="true">
+            <ul>
+              <li><strong>DRAM Feature Size 축소</strong>:
+                <ul>
+                  <li><code>8F²</code> (기본 배치) → <code>12F² / 2 = 6F²</code> (D/C 공유 1bit pair layout) → <code>24F² / 4 = 6F²</code> (대각선 회전 배치) → <span class="hl-yellow">Vertical TR 기반 4F² (Open Bitline Array)</span>.</li>
+                </ul>
+              </li>
+              <li><strong>주변회로 구조(Peri)의 차이 (COP / PUC 원리)</strong>:
+                <ul>
+                  <li>DRAM Cell을 구동하는 Peri 회로(<strong>① 디코더 ② Sense Amplifier ③ Voltage Generator ④ I/O 버퍼</strong>)를 <span class="hl-blue">DRAM Cell 아래에 배치</span>시키는 구조 (3D NAND Flash의 PUC / COP 기술과 같은 원리).</li>
+                  <li><strong>장점</strong>: Peri를 아래에 둘 경우 <span class="hl-green">Net die가 증가</span>되어 가격 경쟁력을 갖추고, Memory cell과 Peri 회로 간 데이터 전달이 빨라짐.</li>
+                </ul>
+              </li>
+              <li><strong>주변회로와 Memory Cell 만드는 방법 (Advanced Packaging 응용)</strong>:
+                <ul>
+                  <li><span class="hl-yellow">하이브리드 본딩 (Hybrid Bonding)</span>: Memory cell 웨이퍼와 Peri 회로 웨이퍼를 별도로 제작한 후 하이브리드 본딩으로 결합.</li>
+                  <li>하이브리드 본딩으로 접합한 배선들은 <span class="hl-blue">저항 Variation(산포)이 매우 작아</span> 매우 중요함.</li>
+                </ul>
+              </li>
+            </ul>
+          </div>
+        </div>
+
+        <div class="note-card">
+          <div class="card-title">
+            <span>2D DRAM ↔ 3D DRAM 차이점 및 Floating Body Effect 이슈</span>
+            <span class="card-tag">3D DRAM</span>
+          </div>
+          <div class="card-body" contenteditable="true">
+            <ul>
+              <li><strong>2D vs 3D DRAM 배치 차이</strong>:
+                <ul>
+                  <li><strong>기존 2D</strong>: Si Wafer 위에 전류 제어용 TR을 배치하고 데이터 저장용 Capacitor가 수직 위치 (B/L과 W/L이 수평 배치).</li>
+                  <li><strong>3D DRAM</strong>: W/L은 수평, <span class="hl-yellow">B/L(Bit Line)을 수직으로 배치!</span></li>
+                  <li>① Bit line을 수직으로 놓으면 메모리에 저장된 데이터를 정확하게 판별할 수 있어 <span class="hl-green">Sensing Margin 확보</span>. W/L과 연결된 TR이 증가할수록 Field effect 향상 가능 및 고집적에 유리.</li>
+                  <li>② Planar MOSFET과 달리 <span class="hl-blue">Double Gate 구조</span>를 취함 → 채널을 감싸는 면적 ↑ → <code>W_eff ↑, I_on ↑</code>, DIBL 억제.</li>
+                  <li>③ <strong>Cap 구조 차이</strong>: 기존 2D DRAM은 High A/R(종횡비) profile로 인해 쓰러짐(Leaning) 한계 → 3D의 경우 <span class="hl-yellow">짧고 뚱뚱한(수평형) 구조</span>라 Cap 면적 한계 완화.</li>
+                </ul>
+              </li>
+              <li><strong>3D DRAM 디바이스 이슈 / Dual Gate의 Challenge: <span class="hl-rose">Floating Body Effect</span></strong>:
+                <ul>
+                  <li><strong>정의</strong>: Channel을 Gate가 감싸다 보니 Body가 고립되어 3D DRAM에서 Hole이 빠져나가지 못하고 Floating 되면 Cap의 전하를 끌어당겨 치명적인 누설전류와 Data 오류 유발.</li>
+                  <li><strong>물리적 메커니즘</strong>: Gate가 Off인 상태에서 <code>V_D</code>에 바이어스를 인가하면 강한 E-field가 형성되고 가속된 전자에 의해 <span class="hl-rose">Impact Ionization</span>이 발생하여 E-H Pair 생성 → 전자는 Drain으로 빠지지만 <span class="hl-yellow">Hole은 Gate Oxide에 Block되어 Body에 쌓임</span>(BJT와 다르게 4단자 소자임) → Body 전위가 상승해 <code>V_T ↓</code>, Cap의 전자를 끌어당겨 Data Error 발생.</li>
+                  <li><strong>개선방법</strong>: <span class="hl-green">Si Body 두께를 줄여 Fully Depletion(완전 공핍) 만들기</span>.</li>
+                </ul>
+              </li>
+            </ul>
+          </div>
+        </div>
+
+      </div>
+    </section>
+
+    <!-- ==================== 2. 단채널 효과(SCE) & 신뢰성 ==================== -->
+    <section class="section-block" data-section="sec-sce">
+      <div class="section-header">
+        <h2>2️⃣ 단채널 효과 (Short Channel Effect) 및 신뢰성 이슈</h2>
+        <span class="section-badge">V_T Roll-off · DIBL · SS · Punch-through · GIDL · HCI</span>
+      </div>
+      <div class="cards-grid">
+
+        <div class="note-card">
+          <div class="card-title">
+            <span>V_T Roll-off 메커니즘과 문턱전압(V_T) 감소의 양면성</span>
+            <span class="card-tag">V_T Roll-off</span>
+          </div>
+          <div class="card-body" contenteditable="true">
+            <div class="sub-Memo">
+              📌 <strong>기초 메모</strong>: <strong>공핍층(Depletion layer)</strong>이란 캐리어(정공)가 싹 비워지고(Depleted), 붕소 음이온만 남아 <code>(-)</code> 성질을 띠게 된 층.
+            </div>
+            <ul style="margin-top:10px;">
+              <li><strong>V_T가 작아지면 좋은 점 아닌가? (장점)</strong>
+                <ol>
+                  <li><code>V_th</code>가 낮을수록 커패시터를 빨리 충전하므로 <strong>동작 속도가 빨라짐 (클럭 주파수 ↑, I_on ↑)</strong>.</li>
+                  <li><strong>저전압 구동 가능</strong>: <code>V_th</code>가 낮으면 <code>V_DD</code> 자체를 낮출 수 있어 소비전력 절감.</li>
+                </ol>
+              </li>
+              <li><strong>나쁜 점 (치명적 단점)</strong>
+                <ol>
+                  <li><span class="hl-rose">I_off ∝ 10^(-V_th / SS)</span> : <code>V_th</code>와 <code>I_off</code>가 로그 스케일 관계라 <span class="hl-yellow">0.2V만 떨어져도 누설전류(Leakage current)가 1,000배 증가</span> (DIBL 발생).</li>
+                  <li>게이트 제어력 저하.</li>
+                </ol>
+              </li>
+            </ul>
+          </div>
+        </div>
+
+        <div class="note-card">
+          <div class="card-title">
+            <span>DIBL (Drain-Induced Barrier Lowering) 원리 및 5대 개선방법</span>
+            <span class="card-tag">DIBL</span>
+          </div>
+          <div class="card-body" contenteditable="true">
+            <ul>
+              <li><strong>정의 및 메커니즘</strong>:
+                <ul>
+                  <li>소자 Dimension이 미세화되면서 Charge Sharing으로 인한 <code>V_T roll-off</code>가 발생하고 <code>V_D</code>에 의한 누설전류가 발생하는 현상.</li>
+                  <li>Drain에 <code>V_D</code>를 인가하면 Depletion region이 생기고 채널을 침범하며, 더 강해지면 드레인의 전계가 소스를 침범하여 <span class="hl-rose">Source-Channel 간 Potential Barrier(에너지 장벽)를 낮춘다</span>.</li>
+                  <li>이로 인해 게이트 제어력을 상실하고 소스에서 채널로 캐리어가 주입되어 <code>I_off</code>가 폭증함. <em>(처음엔 문턱전압 낮춤 → Potential barrier 낮춤)</em></li>
+                </ul>
+              </li>
+              <li><strong>DIBL 5대 개선방법</strong>:
+                <ol>
+                  <li><span class="hl-yellow">Halo Implant</span>: 드레인 모서리 도핑(p+)을 높여놓으면 Depletion 확장이 가로막힘 (공핍층 <code>W_dep</code>을 줄이고 Source와 Body의 농도 차이 ↓).</li>
+                  <li><span class="hl-blue">High-k / HKMG (Metal Gate)</span>: 터널링을 피하기 위해 물리적 <code>t_ox</code>를 두껍게 하면서 유전율(ε) ↑ 물질을 씀 (<code>C_ox = εA / d</code>).</li>
+                  <li><span class="hl-green">FD-SOI</span>: 기판 위에 산화막 BOX를 깔고 그 위에 실리콘을 채널로 씀. 드레인 전계가 소스로 들어가는 경로를 BOX가 차단함.</li>
+                  <li><span class="hl-green">FinFET</span>: 게이트가 채널 3면을 감싼 구조로 드레인의 전계가 침투할 틈이 없음.</li>
+                  <li><span class="hl-green">GAA</span>: 4면을 게이트가 감싼 구조로 DIBL 최소화 + <strong>LDD 구조</strong> 병행.</li>
+                </ol>
+              </li>
+            </ul>
+          </div>
+        </div>
+
+        <div class="note-card">
+          <div class="card-title">
+            <span>Subthreshold Current & SS (Subthreshold Swing)</span>
+            <span class="card-tag">스위칭 특성</span>
+          </div>
+          <div class="card-body" contenteditable="true">
+            <ul>
+              <li><strong>Subthreshold Current</strong>: <code>V_T</code> 이하 전압에서 흐르는 Off current.</li>
+              <li><strong>SS (Subthreshold Swing) 정의</strong>:
+                <ul>
+                  <li>Subthreshold 평가 수단으로 <code>V_GS - log(I_D)</code> 그래프 기울기의 역수. <span class="hl-yellow">I_D를 10배 증가시키기 위한 게이트 전압값 (mV/dec)</span>.</li>
+                  <li>이 값이 작을수록 작은 전압으로 큰 전류를 만들 수 있고 Off current가 작음을 뜻함.</li>
+                </ul>
+              </li>
+            </ul>
+            <div class="formula-box">
+              SS = η · 60mV · (T / 300K), &nbsp;&nbsp; η = 1 + (C_dep / C_ox)
+            </div>
+            <ul>
+              <li><strong>SS 개선(억제) 방법</strong>:
+                <ol>
+                  <li><span class="hl-blue">C_ox ↑ (t_ox ↓)</span>: High-k Gate Oxide 적용.</li>
+                  <li><span class="hl-green">C_dep ↓</span>: Shallow junction depth profile 및 FD-SOI 적용 → <code>C_dep = ε(A↓)/d</code> (접합 면적을 낮게 함).</li>
+                </ol>
+              </li>
+            </ul>
+          </div>
+        </div>
+
+        <div class="note-card">
+          <div class="card-title">
+            <span>Punch-through (펀치스루) & GIDL & HCI & LDD/USJ</span>
+            <span class="card-tag">누설전류 & 신뢰성</span>
+          </div>
+          <div class="card-body" contenteditable="true">
+            <ul>
+              <li><strong>Punch-through (펀치스루)</strong>:
+                <ul>
+                  <li><strong>정의</strong>: 드레인 전압이 증가하면서 Source/Drain 두 공핍층이 <strong>기판(Body) 하부에서 만나</strong> 소스에서 드레인으로 전자가 직접 이동하는 현상.</li>
+                  <li><strong>개선방법</strong>: ① <span class="hl-yellow">Halo implant (p+) / Punch-through stop implantation</span> (S/D 모서리 및 하부에 고농도 불순물 주입), ② <span class="hl-green">FD-SOI</span> (Body와 S/D를 분리하여 기생 Cap 제거), ③ <span class="hl-blue">Shallow junction depth profile</span> (S/D를 얕게 하여 Depletion 확장을 억제).</li>
+                  <li><em>※ 주의: Punch-through는 Body 하부 현상이어서 게이트 용량(C_G)을 높이는 High-k로는 개선 불가능!</em></li>
+                </ul>
+              </li>
+              <li><strong>GIDL (Gate-Induced Drain Leakage)</strong>:
+                <ul>
+                  <li><strong>정의</strong>: 꺼져있는(Off) 상태에서 <strong>Gate와 Drain이 겹치는 영역에 걸리는 고전계</strong>로 인해 <span class="hl-rose">밴드 간 터널링(BTBT)</span>이 발생하여 드레인으로 빠져나가는 누설전류 (<code>t_ox</code>가 얇아지면서 심화).</li>
+                  <li><strong>개선방법</strong>: Gate, Oxide, Drain의 Electric field 완화 → ① <span class="hl-yellow">LDD (Lightly Doped Drain)</span>로 최대 전계 낮추기, ② <span class="hl-blue">Gate Spacer 형성</span>으로 물리적 오버랩 차단 (Hot Carrier & GIDL 동시 억제).</li>
+                </ul>
+              </li>
+              <li><strong>HCI (Hot Carrier Injection)</strong>:
+                <ul>
+                  <li><strong>정의</strong>: 드레인 부근의 강한 전계에 의해 가속된 전자가 게이트 절연막으로 뛰어들어 소자를 영구 손상시키는 현상.</li>
+                  <li><strong>4단계 메커니즘</strong>: ① 소스에서 출발한 전자가 채널을 지나 드레인 끝단(핀치오프 영역)에 도달하면 큰 전계를 만나 가속됨 → ② <span class="hl-rose">Impact Ionization</span> (전자가 실리콘 원자 격자와 충돌해 e-h pair 생성) → ③ <code>SiO₂</code> 내부로 침투하여 Interface trap과 Charge trapped 됨 → ④ <strong>문턱전압 상승</strong>(산화막에 음전하가 갇혀 더 높은 양전압을 걸어야 함), 전류 저하(전자 이동도 ↓), SS 특성 저하.</li>
+                  <li><strong>개선방법</strong>: Drain side의 높은 Electric field 완화 → <span class="hl-yellow">LDD</span> (표면쪽 도핑농도 감소. 도핑이 낮아진 만큼 <code>E = dV/dx</code> 공핍층 폭이 커져 드레인 전계가 분산됨).</li>
+                </ul>
+              </li>
+              <li><strong>Shallow Junction Depth Profile (USJ) — 왜 얇게 만드나?</strong>
+                <ul>
+                  <li>소스/드레인의 깊이를 얕게 도핑하는 기술. ① <strong>DIBL 억제</strong>(전계선이 침투할 수 있는 단면적 ↓), ② <strong>Punch-through 억제</strong>(바디 하부에서 두 공핍층이 만날 수 없음), ③ <strong>기생 커패시턴스(C_j) 최소화</strong>(속도 빨라짐).</li>
+                  <li><strong>단점 및 보완</strong>: 접합이 얕아질수록 단면적이 줄어 <strong>기생 저항이 커지므로</strong> <span class="hl-blue">Laser Annealing</span>이나 <span class="hl-green">Raised S/D 공정</span>을 진행함.</li>
+                </ul>
+              </li>
+            </ul>
+          </div>
+        </div>
+
+      </div>
+    </section>
+
+    <!-- ==================== 3. 산화막·바디 두께 / SOI / HKMG ==================== -->
+    <section class="section-block" data-section="sec-soi">
+      <div class="section-header">
+        <h2>3️⃣ Gate Oxide · Body 두께 · SOI (PD/FD) · HKMG</h2>
+        <span class="section-badge">소자 구조 · 물질 엔지니어링</span>
+      </div>
+      <div class="cards-grid">
+
+        <div class="note-card">
+          <div class="card-title">
+            <span>Gate Oxide 두께(t_ox)와 Body 두께가 얇아져야 하는 이유 및 한계</span>
+            <span class="card-tag">Scaling 원리</span>
+          </div>
+          <div class="card-body" contenteditable="true">
+            <ul>
+              <li><strong>Gate Oxide Thickness가 얇아져야 하는 이유</strong>:
+                <ul>
+                  <li><code>L ↓</code>에 따라 상대적으로 <code>C_dep ↑</code> → 게이트 전압 결정권(<code>C_ox</code>가 이기길 바라는 바) 확보를 위해 <code>C_ox ↑</code> 시키려면 <code>t_ox</code>를 작게 해야 함.</li>
+                  <li><strong>한계</strong>: <code>t_ox</code>를 줄이다 보니 <strong>Direct Tunneling 및 GIDL</strong>에 의한 Subthreshold current ↑, Leakage current 증가.</li>
+                  <li><strong>해결</strong>: High-k 도입 + <code>C_dep</code>를 줄이기 위해 Shallow junction depth profile 및 <strong>SOI 기술</strong>로 Body와 S/D를 분리하여 기생 Cap을 없애 누설전류 억제.</li>
+                </ul>
+              </li>
+              <li><strong>Body Thickness ↓ 이유와 한계</strong>:
+                <ul>
+                  <li><strong>이유</strong>: SCE 억제. UTB FET에서 <code>7nm → 3nm</code>일 때 Off current가 1,000배 감소. Depletion region이 커지면서 누설 경로가 형성되는 것을 막고 <span class="hl-yellow">Fully Depletion(완전 공핍)</span>을 만들기 위함 (기판 하부 펀치스루 억제, <code>C_dep</code> 최소화).</li>
+                  <li><strong>무조건 얇은 게 좋나?</strong> Body thickness ↓ → S/D 형성 시 원활한 도핑이 어려움 → <strong>S/D 직렬 저항 증가</strong> → <span class="hl-blue">Raised Source/Drain</span> 도입. 또한 물리적 박막화 한계로 인해 <span class="hl-green">Double Gate 구조 (Electrical Fully Depletion)</span>로 발전.</li>
+                </ul>
+              </li>
+            </ul>
+          </div>
+        </div>
+
+        <div class="note-card">
+          <div class="card-title">
+            <span>SOI 기술 도입 이유 · PD-SOI vs FD-SOI · Current Kink Effect</span>
+            <span class="card-tag">SOI MOSFET</span>
+          </div>
+          <div class="card-body" contenteditable="true">
+            <ul>
+              <li><strong>SOI (Silicon On Insulator) 도입 이유 및 Cap 특성</strong>:
+                <ul>
+                  <li>웨이퍼에 절연 산화막(<strong>BOX</strong>)을 배치하고 그 위로 TR을 구성하는 기술.</li>
+                  <li>하단에 Insulator가 존재하여 <code>C_dep</code>와 GND가 연결된 Path가 끊어짐 → <span class="hl-yellow">C_dep를 0으로 만듦 (Body factor: 1 + C_dep/C_ox → 1)</span>, 게이트 영향력을 극대화하고 Punch-through 차단.</li>
+                </ul>
+              </li>
+              <li><strong>PD-SOI vs FD-SOI 차이 및 소자 영향</strong>:
+                <ul>
+                  <li><strong>PD-SOI (Partially Depleted)</strong>: BOX 위의 Body가 두꺼워 부분 공핍됨. 공핍영역 내에서 Impact Ionization으로 생성된 전자는 Drain으로 가지만, <strong>정공(Hole)은 기판 단자로 빠지지 못하고 채널 아래 p-Si에 쌓여서(Floating)</strong> 양전하 영향으로 <code>V_T</code>를 낮추면서 갑자기 더 많은 전류를 흐르게 함 → <span class="hl-rose">Current Kink Effect 발생</span>.</li>
+                  <li><strong>FD-SOI (Fully Depleted)</strong>: Body thickness를 얇게 줄여 완전 공핍시킴으로써 양전하가 쌓일 영역을 제거하여 <span class="hl-green">Current Kink Effect 완벽 억제</span>.</li>
+                </ul>
+              </li>
+            </ul>
+          </div>
+        </div>
+
+        <div class="note-card">
+          <div class="card-title">
+            <span>Pinch-off · V_T Modulation · High-k & HKMG (Metal Gate)</span>
+            <span class="card-tag">HKMG & 물리</span>
+          </div>
+          <div class="card-body" contenteditable="true">
+            <ul>
+              <li><strong>Pinch-off란?</strong> <code>V_D</code>에 의해 형성된 Depletion 영역에 의해 <strong>Drain side 채널이 끊어지는 현상</strong>. 내부 강한 전계에 의해 전자가 Drift 되어 포화전류가 흐름.</li>
+              <li><strong>Threshold Voltage Modulation</strong>:
+                <div class="formula-box">
+                  V_T = Φ_ms - (Q_f / C_ox) + 2Φ_B + √(2·ε_Si·q·N_a·2Φ_B) / C_ox
+                </div>
+                ① Body doping 농도(<code>N_a</code>) 높여 <code>V_T</code> 올리기, ② <code>t_ox ↓ → C_ox ↑ → V_T ↓</code>, ③ High-k: <code>C_ox ↑ → V_T ↓</code>, ④ Work function 조절(도핑/금속).
+              </li>
+              <li><strong>유전율(k)이 높다는 것의 의미 & High-k 사용 이유</strong>:
+                <ul>
+                  <li>소재가 전하를 얼마나 분극시킬 수 있는지 나타내는 척도. Gate에 양전압을 인가하면 분극으로 인해 절연막의 위쪽은 <code>(-)</code>, 아래쪽은 <code>(+)</code>로 분극되어 하부 채널에 전자를 잘 모을 수 있음.</li>
+                  <li><code>t_ox</code>가 작아지다 보니 Tunneling에 의한 Gate leakage current 증가 → <strong>High-k 도입</strong> (<code>HfO₂</code>: 유전율 20~25 vs <code>SiO₂</code>: 3.9).</li>
+                </ul>
+              </li>
+              <li><strong>HKMG에서 Poly-Si 대신 Metal Gate를 쓰는 이유 (Gate Depletion Effect)</strong>:
+                <ul>
+                  <li>Poly-Si는 녹는점이 높아 열적 안정성이 우수하고 도핑으로 Work function을 조절할 수 있는 장점이 있었으나, High-k 물질 위에 Poly-Si 게이트를 사용할 시 <strong>① 저항이 높고, ② <span class="hl-rose">Gate Depletion Effect</span>에 의해 유효 <code>C_ox</code>가 작아지며, ③ <code>HfO₂</code> 위 Poly-Si 형성 시 계면에 기생 <code>SiO₂</code> 막이 생성되어 누설전류/Fermi-level pinning 발생</strong> → <span class="hl-yellow">Metal Gate (TiN, TaN)</span> 채택.</li>
+                  <li><strong>Metal Gate 이슈</strong>: Low work function 금속은 저항은 낮지만 산소에 흡수가 잘 되고, High work function(Al 등)은 녹는점이 낮아 Gate Last 공정 도입 필요. 핵심 요구사항: <strong>① 열적 안정성 ② 낮은 저항</strong>.</li>
+                </ul>
+              </li>
+            </ul>
+          </div>
+        </div>
+
+      </div>
+    </section>
+
+    <!-- ==================== 4. [P] Photo (노광 공정) ==================== -->
+    <section class="section-block" data-section="sec-photo">
+      <div class="section-header">
+        <h2>📸 [P] Photo (포토 노광 공정 — W·O·P·E·D·I·M·P)</h2>
+        <span class="section-badge">노광 프로세스 · PR · RET · EUV</span>
+      </div>
+      <div class="cards-grid">
+
+        <div class="note-card">
+          <div class="card-title">
+            <span>Photo 전체 프로세스 · PEB 필요성 · PR 역할 및 현상 메커니즘</span>
+            <span class="card-tag">Photo 기본</span>
+          </div>
+          <div class="card-body" contenteditable="true">
+            <ul>
+              <li><strong>Photo 프로세스 순서</strong>:
+                <ol>
+                  <li>PR과 웨이퍼 접착도 향상을 위해 <span class="hl-yellow">HMDS 형성</span> <em>(친수성 Wafer 표면을 소수성으로 바꿔줌)</em></li>
+                  <li><strong>PR 도포 (Spin Coating)</strong> 후 <strong>Soft Bake</strong></li>
+                  <li><strong>Scanner or Stepper</strong>에서 마스크 정렬 후 노광(Exposure) 공정 수행 <em>(Scanner는 빛이 이동하며 스캔, Stepper는 한 이미지를 반복적으로 찍음)</em></li>
+                  <li><span class="hl-blue">PEB (Post Exposure Bake)</span> 열처리 이후 <strong>Develop (현상)</strong></li>
+                  <li><strong>Hard Bake</strong> 후 <strong>Develop Inspect (ADI)</strong></li>
+                </ol>
+              </li>
+              <li><strong>PEB (노광 후 열처리) 필요성</strong>: 노광 이후 하부 반사파 간섭으로 <span class="hl-rose">Standing Wave Effect(정재파 효과)</span> 발생 → PEB로 PR 내부 PAC/Acid를 확산·활성화하여 물결 무늬를 펴주고 Selectivity ↑.</li>
+              <li><strong>PR (Photoresist) 역할 및 성분</strong>: 빛을 센싱할 수 있는 물질로 주성분은 <strong>Resin, PAC, Solvent</strong> 포함. 노광에서 이미지 패턴을 그릴 수 있고 후속 Etch나 I.I에서 <strong>Organic Barrier</strong> 역할.</li>
+              <li><strong>Develop (현상) 메커니즘</strong>: 산-염기 반응. 빛을 받으면 <strong>Acid(산)</strong>가 발생하고 PEB로 활성화되며, 현상액으로 산-염기 반응을 통해 제거됨.</li>
+            </ul>
+          </div>
+        </div>
+
+        <div class="note-card">
+          <div class="card-title">
+            <span>Positive PR vs Negative PR · Low-k₁ 해상도 향상 기술 · EUV 미러 광학계</span>
+            <span class="card-tag">심화 노광 기술</span>
+          </div>
+          <div class="card-body" contenteditable="true">
+            <ul>
+              <li><strong>Positive vs Negative PR 비교</strong>:
+                <ul>
+                  <li><strong>Positive (P)</strong>: 빛을 받은 부분이 제거됨. <span class="hl-green">Resolution(해상도)이 우수</span>하고 현상 시 잔류 감광막인 <strong>Scum이 적으며</strong>, Step coverage와 열적 안정성이 우수하여 <strong>양산에 주로 사용</strong> (단, 비용 높음).</li>
+                  <li><strong>Negative (N)</strong>: 빛을 받지 않은 부분이 제거됨. 산화막에 대한 접착도는 우수하지만 <strong>Scum 형성이 심하고 Develop 시 Swelling(부풂)</strong> 현상이 발생함.</li>
+                </ul>
+              </li>
+              <li><strong>Low-k₁ (해상도 향상) 기술</strong>:
+                <ol>
+                  <li><strong>광원</strong>: <span class="hl-blue">Off-axis Illumination (사입사 조명)</span></li>
+                  <li><strong>마스크</strong>: <span class="hl-yellow">OPC 기술</span>, <span class="hl-yellow">PSM (위상반전마스크 — 180° 위상차를 이용해 회절 상쇄)</span></li>
+                  <li><strong>반사 방지 및 공정</strong>: <span class="hl-green">BARC (하부 박막에서 반사되는 빛 억제 위해 SiON이나 Nitride 코팅)</span>와 <strong>Resist Reflow</strong></li>
+                  <li><span class="hl-blue">ArF-Immersion (액침 노광)</span>: 물을 매질로 굴절률을 크게 해 해상도(R) 향상.</li>
+                </ol>
+              </li>
+              <li><strong>EUV 광학계가 미러(반사경)로만 구성된 이유</strong>:
+                <ul>
+                  <li>EUV는 <code>13.5nm</code>의 짧은 파장의 광원을 사용하고 에너지가 큼. 투과형(렌즈)을 쓸 경우 빛이 물질에 <strong>흡수</strong>되어 원하는 패턴을 전사하지 못함.</li>
+                  <li>흡수를 줄이려면 얇은 마스크를 사용해야 하는데 얇은 흡수체로는 원하는 패턴 구현이 불가함 → <span class="hl-yellow">Mo/Si 다층 박막 기반 반사경(Mirror)</span>을 사용함.</li>
+                </ul>
+              </li>
+            </ul>
+          </div>
+        </div>
+
+      </div>
+    </section>
+
+    <!-- ==================== 5. [E] Etch (식각 공정) ==================== -->
+    <section class="section-block" data-section="sec-etch">
+      <div class="section-header">
+        <h2>⚡ [E] Etch (식각 공정 — W·O·P·E·D·I·M·P)</h2>
+        <span class="section-badge">Wet · Ion Milling · RIE · Pulsed Plasma</span>
+      </div>
+      <div class="cards-grid">
+
+        <div class="note-card">
+          <div class="card-title">
+            <span>식각 지표(선택비·Loading Effect) · Wet Etch · Ion Milling · Plasma Etching(RIE)</span>
+            <span class="card-tag">식각 메커니즘</span>
+          </div>
+          <div class="card-body" contenteditable="true">
+            <div class="sub-Memo">
+              📌 <strong>우측 상단 메모</strong>: CCP는 RIE, Etchant = Radical
+            </div>
+            <ul style="margin-top:10px;">
+              <li><strong>선택비(Selectivity) / Micro-trenching / Loading Effect</strong>: 물질 간 식각률 차이. 반응생성물 배출이 안 되어 식각률 차이가 생기고 넓은 면적에서 불균일한 식각이 진행되는 현상(<strong>Loading Effect</strong>) → 저압 공정으로 해결.</li>
+              <li><strong>Wet Etching (습식 식각)</strong>: Cleaning 등에 사용. ① 화학 용액이 확산하여 타겟으로 이동 → ② 표면 화학 반응 → ③ 반응생성물이 확산에 의해 제거됨 (식각 용액의 농도, 온도, 교반 속도가 Parameter).</li>
+              <li><strong>Ion Milling</strong>: <code>Ar+</code> 이온을 가속시켜 Sputtering하는 물리적 식각 공정. 비활성 기체(Ar)를 주입하고 필라멘트를 가열해 전자를 가속시켜 이온화한 뒤 바이어스로 타격함. <strong>Vertical profile</strong>이지만 <span class="hl-rose">Selectivity와 Throughput ↓</span>.</li>
+              <li><strong>Plasma Etching (RIE)</strong>:
+                <ul>
+                  <li>화학 반응에 의한 <strong>등방성 Etching</strong>과 이온 충돌에 의한 <strong>비등방성 Etching</strong>을 모두 포함.</li>
+                  <li>반응성이 높은 <strong>Radical</strong>이 표면에 먼저 흡착하고, <strong>양이온</strong>이 타겟에 수직 충돌해 분자 간 결합을 약화시켜 반응 및 배출 촉진 → <span class="hl-green">Selectivity ↑, Throughput ↑</span>.</li>
+                </ul>
+              </li>
+              <li><strong>높은 Etching 기술이 요구되는 이유</strong>: 10nm 미만 소자 구현, <strong>DRAM A/R 100 이상 커패시터</strong>, <strong>NAND 256단 이상 적층 채널 홀</strong>을 구현해야 함.</li>
+              <li><strong>Pulsed Plasma Etch 기술</strong>: Plasma와 Bias power를 On/Off하여 싱크 Pulse를 가해주는 기술로, <span class="hl-yellow">Etch Uniformity를 저하시키는 Loading Effect를 개선</span>함.</li>
+              <li><strong>Plasma 소멸 및 유지(Density 향상) 방법</strong>:
+                <ul>
+                  <li><strong>소멸</strong>: 양이온이 음극과 충돌해 중성이 되거나, 전자가 기체와 충돌 못 해 전자 Loss가 생기면 글로우 방전이 끊겨 소멸.</li>
+                  <li><strong>유지</strong>: 높은 전압을 가해 2차 전자 생성을 극대화하여 양이온 Loss를 줄이고, <strong>자계(자기장)로 전자 회전 운동을 유도</strong>시켜 기체 원자와의 충돌 확률을 높여 전자 Loss ↓.</li>
+                </ul>
+              </li>
+            </ul>
+          </div>
+        </div>
+
+      </div>
+    </section>
+
+    <!-- ==================== 6. [D] Deposition (박막 증착 공정) ==================== -->
+    <section class="section-block" data-section="sec-depo">
+      <div class="section-header">
+        <h2>🧱 [D] Deposition (박막 증착 공정 — W·O·P·E·D·I·M·P)</h2>
+        <span class="section-badge">Step Coverage · Stress · CVD · ALD · PVD</span>
+      </div>
+      <div class="cards-grid">
+
+        <div class="note-card">
+          <div class="card-title">
+            <span>Aspect Ratio · Step Coverage · Sticking Coefficient · 박막 Stress 제어</span>
+            <span class="card-tag">박막 품질 지표</span>
+          </div>
+          <div class="card-body" contenteditable="true">
+            <ul>
+              <li><strong>Aspect Ratio (종횡비)</strong>: 박막 패턴에서 밑변과 높이의 비율.</li>
+              <li><strong>Step Coverage (피복성)</strong>: 위치에 따른 박막 두께의 비율 (상부 대 측벽 비율은 Side, 상부 대 하부 비율은 Bottom).</li>
+              <li><strong>Step Coverage 인자 & Sticking Coefficient & 압력 관계</strong>:
+                <ul>
+                  <li><strong>인자</strong>: 압력, Sticking coefficient 함수, 입자 방향성.</li>
+                  <li><strong>Sticking Coefficient (부착 계수)</strong>: 반응 가스가 표면에 잘 붙어있는지 나타내는 지표. <span class="hl-rose">높으면 표면에 먼저 증착되어 하부에 Void가 생김</span>. <span class="hl-green">낮으면 잘 Migration 되어 Step Coverage ↑</span>.</li>
+                  <li><strong>압력 관계</strong>: 압력이 낮을수록 <strong>MFP(평균자유이동거리)가 길어져</strong> 높은 A/R의 하부 Gap까지 입자가 충분히 도달해 Step Coverage 향상.</li>
+                </ul>
+              </li>
+              <li><strong>박막의 Stress와 제어해야 하는 이유</strong>:
+                <ul>
+                  <li>Wafer와 Film 간 재료의 기계적·물성 불일치에 의해 발생. 박막 성장 과정에서 발생하는 <strong>Intrinsic Stress</strong>와 열팽창계수 차이에 의해 발생하는 <strong>Extrinsic Stress</strong>, 그리고 방향에 따라 <strong>Tensile(인장)</strong>과 <strong>Compressive(압축)</strong>로 나뉨.</li>
+                  <li>① <span class="hl-rose">Warpage 현상</span>으로 수백 층 박막이 적층되는 구조에서 누적된 응력은 웨이퍼 전체를 휘게 만들어 <strong>포토 공정 시 DOF 마진을 벗어나 오버레이 왜곡과 패턴 Defect 유발</strong>.</li>
+                  <li>② <strong>인장 응력은 크랙(Crack)</strong>을, <strong>압축 응력은 계면 들뜸(Delamination)</strong>을 일으켜 막 구조 파괴.</li>
+                  <li>③ 실리콘 격자 왜곡에 따른 <strong>전자 이동도 변화와 소자 누설전류 증가</strong>.</li>
+                  <li><strong>제어</strong>: 증착 시 RF 파워, 온도, 가스 유량비를 최적화하여 박막 응력 제어.</li>
+                </ul>
+              </li>
+              <li><strong>STI (Shallow Trench Isolation)</strong>: 트렌치를 형성하고 내부에 절연막을 채워 소자를 분리하는 기술.</li>
+            </ul>
+          </div>
+        </div>
+
+        <div class="note-card">
+          <div class="card-title">
+            <span>CVD 메커니즘 · 종류 비교 (APCVD / LPCVD / PECVD / HDPCVD / MOCVD) · CCP vs ICP</span>
+            <span class="card-tag">CVD</span>
+          </div>
+          <div class="card-body" contenteditable="true">
+            <ul>
+              <li><strong>CVD 장단점 및 메커니즘</strong>:
+                <ul>
+                  <li>반응 가스들을 주입하여 Wafer 표면에서 화학적 반응을 통해 박막 형성. Uniform하고 Step coverage가 우수한 박막(Poly-Si, SiO₂, SiN) 형성. 단, 부산물이 독성이어서 높은 처리 비용 발생.</li>
+                  <li><strong>메커니즘</strong>: 반응 가스 챔버 주입 → 확산에 의해 반응종들이 표면 이동 → 전구체들이 표면에 흡착 및 표면 이동 → 표면 화학 반응을 통해 박막 형성 → 부산물 배기.</li>
+                </ul>
+              </li>
+              <li><strong>CVD 종류별 특징</strong>:
+                <ol>
+                  <li><strong>APCVD</strong>: 상압(760 Torr) 박막 증착. 진공펌프나 RF generator가 필요 없으나 <strong>Step coverage ↓, Particle 오염 많음</strong>.</li>
+                  <li><strong>LPCVD</strong>: 저압·고온 공정. 진공펌프로 확산 속도를 높여 표면 반응 속도 제한 영역에서 증착 → 온도를 올려 Throughput 해결, <strong>우수한 막질과 Step coverage</strong>. 단, 고온(600~900℃)이라 <strong>Metal line을 녹임</strong>.</li>
+                  <li><strong>PECVD</strong>: 저압·저온 공정. 높은 바이어스를 인가해 플라즈마를 형성하여 반응 가스를 활성화. <strong>Thermal budget 감소와 공정 유연성</strong>이 좋아 <strong>BEOL(금속배선) 공정</strong>에 도입됨 (막질과 Step coverage는 LPCVD 대비 불량).</li>
+                  <li><strong>HDPCVD</strong>: PECVD의 불량한 Step coverage를 커버하기 위해 더욱 저압에서 CCP를 ICP로 변경해 고밀도 플라즈마를 구현하고 바이어스로 스퍼터링 식각과 증착을 병행.</li>
+                  <li><strong>MOCVD & 비전</strong>: 유기금속화합물을 증기 상태로 주입해 열분해 반응으로 증착(TiN 같은 Metal barrier 증착). <em>(Si 소자에 비해 Ge 소자는 정공 이동도가 높고 3-5족 소자는 전자 이동도가 높아 각각 PMOS, NMOS를 대체해 높은 퍼포먼스 가능)</em></li>
+                </ol>
+              </li>
+              <li><strong>CCP와 ICP 차이</strong>:
+                <ul>
+                  <li><strong>CCP</strong>: 평행평판 전극에 RF 전압을 걸어 전자를 가속 (전극 스퍼터링 소멸 우려).</li>
+                  <li><strong>ICP</strong>: 챔버 주변에 코일을 감아 <strong>전자의 회전 운동을 유도</strong>해 가스를 계속 이온화시켜 <strong>고밀도 플라즈마</strong> 구현 (바이어스로 이온 에너지 독립 컨트롤).</li>
+                </ul>
+              </li>
+              <li><strong>SiO₂ 및 Plug W(텅스텐) on CVD</strong>:
+                <ul>
+                  <li><strong>SiO₂</strong>: 비정질 구조의 우수한 절연막. <code>9.1eV</code>의 넓은 밴드갭, Breakdown voltage <code>10MV/cm</code> 이상, Si와의 우수한 계면 특성. (LPCVD: Poly-Si, SiO₂, Si₃N₄ / PECVD: BEOL 저온 IMD, ILD, PSG, Passivation layer).</li>
+                  <li><strong>Plug W on CVD</strong>: Contact이나 Via에 사용. 높은 녹는점과 우수한 EM 특성. 단, Oxide 표면과 부착성이 불량하고 금속 원자가 Diffusion되는 문제로 반드시 <strong>TiN 같은 Metal Barrier를 먼저 증착</strong>해야 함.</li>
+                  <li><strong>금속재료의 요구조건 5가지</strong>: ① 웨이퍼 부착성, ② 전기저항 낮음, ③ 열적 안정성, ④ 패턴 형성 용이(식각), ⑤ 가격.</li>
+                </ul>
+              </li>
+            </ul>
+          </div>
+        </div>
+
+        <div class="note-card">
+          <div class="card-title">
+            <span>ALD (Atomic Layer Deposition, 원자층 증착) 메커니즘 및 파라미터</span>
+            <span class="card-tag">ALD</span>
+          </div>
+          <div class="card-body" contenteditable="true">
+            <ul>
+              <li><strong>정의 및 장점</strong>: 전구체와 반응 가스를 동시에 주입하는 CVD와 달리 <strong>독립적·교대로 주입</strong>하여 <span class="hl-yellow">자기포화반응(Self-limiting reaction)</span>을 통해 원자 단위로 증착. 저온 공정으로 <span class="hl-green">100%에 가까운 우수한 Step Coverage</span> 확보.</li>
+              <li><strong>ALD 4단계 사이클 메커니즘</strong>:
+                <ol>
+                  <li><strong>전구체(Precursor) 주입</strong> → 100% 표면 반응(자기포화현상)으로 1층만 흡착됨</li>
+                  <li><strong>잔류 가스 Purge</strong></li>
+                  <li><strong>반응 가스(Reactant) 주입</strong>해 박막 형성</li>
+                  <li><strong>부산물 Purge</strong></li>
+                </ol>
+              </li>
+              <li><strong>ALD 공정 인자(Parameter)</strong>: 전구체와 반응 가스의 <strong>Feeding time, Purge time, 압력, 온도</strong>.</li>
+            </ul>
+          </div>
+        </div>
+
+      </div>
+    </section>
+
+    <!-- ==================== 7. [I] Ion Implantation (이온주입) ==================== -->
+    <section class="section-block" data-section="sec-ii">
+      <div class="section-header">
+        <h2>🎯 [I] Ion Implantation (이온주입 공정 — W·O·P·E·D·I·M·P)</h2>
+        <span class="section-badge">5대 변수 · Channeling · RTA/Laser Annealing · SIMS</span>
+      </div>
+      <div class="cards-grid">
+
+        <div class="note-card">
+          <div class="card-title">
+            <span>Ion Implant 장단점 · Diffusion 비교 · 5대 공정 변수 · 이온 무게별 특성</span>
+            <span class="card-tag">이온주입 기초</span>
+          </div>
+          <div class="card-body" contenteditable="true">
+            <ul>
+              <li><strong>Ion Implant란 & 장단점</strong>:
+                <ul>
+                  <li>이온을 가속시켜 원하는 깊이, 농도만큼 도핑하는 공정으로 전기적 특성 조절 (n-type: 5족 원소, p-type: 3족 원소 주입).</li>
+                  <li><strong>장점</strong>: 정밀 도핑하여 <code>V_th</code> 조절, 저온 공정, <strong>Vertical profile(이방성)</strong>.</li>
+                  <li><strong>단점</strong>: Activation을 위한 후속 열처리 필요, Throughput ↓.</li>
+                </ul>
+              </li>
+              <li><strong>Diffusion을 통한 Doping의 한계</strong>: 고온에서 확산을 통해 불순물을 주입해 표면은 농도가 높고 기판 하부는 낮으며, <strong>등방성 Profile</strong>을 보여 미세화에 부적합.</li>
+              <li><strong>I.I의 변수 5가지</strong>:
+                <ol>
+                  <li><span class="hl-yellow">Dopant Type</span>: 이온 질량 계산해 결정</li>
+                  <li><span class="hl-yellow">Dose량</span>: 주입량 제어. 과도핑할 경우 Dopant 원자들끼리 격자(클러스터)를 이뤄 전도도 ↓ (적정 <code>10¹¹ ~ 10¹⁵</code>)</li>
+                  <li><span class="hl-yellow">Energy</span>: 가속 전압에 따라 깊이(<code>R_p</code>) 제어</li>
+                  <li><span class="hl-yellow">Beam Current</span>: 단위시간당 주입량으로 Uniformity 뜻함</li>
+                  <li><span class="hl-yellow">Endstation Wafer 조절 (Tilt, Twist, Rotation)</span>: Ion channeling 이슈 개선</li>
+                </ol>
+              </li>
+              <li><strong>이온 무게에 따른 분포 특성</strong>:
+                <ul>
+                  <li><strong>가벼운 이온 (B, P)</strong>: <code>R_p</code>(Projected range, 주입 깊이) ↑, 수평 방향 퍼짐 ↓, 후방 산란(Backscattering) 분산.</li>
+                  <li><strong>무거운 이온 (As 등)</strong>: Range(<code>R_p</code>) ↓ (얕은 접합 유리), 폭 방향 퍼짐 ↑.</li>
+                </ul>
+              </li>
+            </ul>
+          </div>
+        </div>
+
+        <div class="note-card">
+          <div class="card-title">
+            <span>Ion Channeling · Shadowing Effect · Annealing (RTA / Laser) · 4-Point Probe & SIMS</span>
+            <span class="card-tag">채널링 & 열처리</span>
+          </div>
+          <div class="card-body" contenteditable="true">
+            <ul>
+              <li><strong>Ion Channeling이란 & 개선방법</strong>:
+                <ul>
+                  <li>Single Crystal(단결정)에 주입 시 원자 격자 사이 통로로 충돌 없이 통과하여 예상보다 더 깊게 주입되는 현상.</li>
+                  <li><strong>3대 개선방법</strong>: ★ <span class="hl-green">Tilt 7°</span>, <span class="hl-blue">비정질 SiO₂ 보호막(Screen Oxide / Nitride Buffer layer)</span>, <span class="hl-yellow">PAI (Pre-Amorphization Implantation)</span>.</li>
+                </ul>
+              </li>
+              <li><strong>Tilt 문제점 (Shadowing Effect)</strong>: Mask layer에 의해 그림자가 생겨 도핑되지 않는 비대칭 영역 발생 → <span class="hl-green">Rotation 주입</span> 및 후속 열처리로 Diffusion 유도.</li>
+              <li><strong>Annealing의 목적 및 RTA vs Laser Annealing</strong>:
+                <ul>
+                  <li><strong>목적</strong>: ① 격자 손상 회복, ② 이온 활성화(Activation).</li>
+                  <li><strong>RTA</strong>: 단시간 열처리 방법으로 Furnace보다 온도는 높지만 짧은 시간 열처리하여 Profile 제어 우수.</li>
+                  <li><strong>Laser Annealing</strong>: 국부적인 영역(<code>1mm × 50μm</code>)에 고에너지 레이저로 <code>ns</code> 속도로 짧게 열처리하여 얕은 확산층 형성 → <span class="hl-yellow">USJ (Ultra Shallow Junction)</span> 구현 가능.</li>
+                </ul>
+              </li>
+              <li><strong>I.I 공정 이슈 3가지</strong>:
+                <ol>
+                  <li><strong>Wafer Charging</strong>: 이온은 양전하여서 Charging effect를 야기하므로 전자(Electron)를 공급하여 중성화시킴.</li>
+                  <li><strong>Large Particle 오염</strong>.</li>
+                  <li><strong>동일 질량 대 전하비(m/q) 오염</strong>: 서로 다른 원소임에도 질량 대 전하비가 같아 함께 통과하여 오염 초래.</li>
+                </ol>
+              </li>
+              <li><strong>계측 장비 (4-Point Probe & SIMS)</strong>:
+                <ul>
+                  <li><strong>4-Point Probe</strong>: 프로브 Tip 4개를 Contact시켜 전류를 주고 Voltage drop을 측정해 <strong>Sheet Resistance(면저항)</strong> 평가.</li>
+                  <li><strong>SIMS</strong>: 이온 빔을 조사하여 표면에서 튀어나오는 원자를 Detect하여 분석하는 방법. <strong>깊이 방향의 Dopant 분포와 농도 정밀 분석</strong> 가능.</li>
+                </ul>
+              </li>
+            </ul>
+          </div>
+        </div>
+
+      </div>
+    </section>
+
+    <!-- ==================== 8. [M] Metallization & PVD / 진공 / 플라즈마 ==================== -->
+    <section class="section-block" data-section="sec-metal">
+      <div class="section-header">
+        <h2>🔌 [M] Metallization (금속배선) · PVD · 플라즈마 · 진공</h2>
+        <span class="section-badge">Ohmic/Silicide · Sputtering · Sheath · 고진공 펌프</span>
+      </div>
+      <div class="cards-grid">
+
+        <div class="note-card">
+          <div class="card-title">
+            <span>Metallization 개요 · Schottky vs Ohmic Contact · Silicide · TiN Barrier</span>
+            <span class="card-tag">금속 접합</span>
+          </div>
+          <div class="card-body" contenteditable="true">
+            <ul>
+              <li><strong>Metallization 개요</strong>: 금속 Plug나 Interconnect를 형성하는 공정 (전원 공급, 신호 전달, 패키징 연결). 보통 배선은 PVD를 통해 증착하고, Contact/Via hole 및 Barrier metal은 CVD로 Step coverage 확보.</li>
+              <li><strong>Schottky Contact vs Ohmic Contact</strong>:
+                <ul>
+                  <li><strong>Ohmic Contact</strong>: 옴의 법칙을 따르는 접합으로 <code>I-V</code>가 Linear한 접합(소자가 원하는 접합). 금속↔실리콘 양방향 전류 이동 용이.</li>
+                  <li><strong>Schottky Contact</strong>: 물질 간 Work function 차이로 인해 Interface에서 쇼트키 Barrier가 형성되어 Carrier가 에너지 장벽을 느껴 특정 전압 이상에서만 전류가 흐름.</li>
+                </ul>
+              </li>
+              <li><strong>Silicide (실리사이드) 공정</strong>: Metal과 Silicon 접합에서 쇼트키 컨택 대신 <strong>오믹 컨택을 형성해 주는 공정</strong>. G/S/D에 금속을 증착하고 Diffusion 열처리하여 <span class="hl-yellow">Silicide (CoSi₂, TiSi₂)</span>에 의해 쇼트키 배리어를 낮춰 낮은 비저항 접합 구조 형성.</li>
+              <li><strong>TiN은 언제 사용?</strong> W Plug 형성 시 <strong>Metal과 Si 확산 방지를 위한 Barrier Metal</strong>.</li>
+            </ul>
+          </div>
+        </div>
+
+        <div class="note-card">
+          <div class="card-title">
+            <span>진공(Vacuum) 원리 · 플라즈마 & Sheath 영역 · DC/RF Sputtering 메커니즘</span>
+            <span class="card-tag">PVD & 플라즈마</span>
+          </div>
+          <div class="card-body" contenteditable="true">
+            <ul>
+              <li><strong>진공이란 & 만드는 원리</strong>:
+                <ul>
+                  <li>챔버 내부 공기를 제거하여 대기압보다 낮은 압력 상태. PVD 공정에서는 금속 입자가 Wafer 표면으로 이동하며 기체 입자와 충돌·산란할 수 있어 <strong>고진공(긴 MFP)</strong>이 요구됨.</li>
+                  <li>Backside에서 <strong>Rotary Oil Pump</strong>(저진공)가 먼저 구동되고, 고진공은 <strong>① Cryo Pump</strong>(극저온 냉각 압축 He을 이용해 가스를 얼어붙게 해 고진공 형성), <strong>② TMP (Turbo Molecular Pump)</strong>(Blade가 초고속 회전하여 불순물을 외부로 뽑음), <strong>③ Diffusion Oil Pump</strong>(오일 증기가 확산되었다가 액화되면서 입자들을 끌어냄)로 형성.</li>
+                </ul>
+              </li>
+              <li><strong>플라즈마(Plasma)와 Sheath 영역</strong>:
+                <ul>
+                  <li><strong>플라즈마</strong>: 이온화된 기체로서 양이온, 전자, 라디칼로 구성된 전기적 준중성 상태. <strong>양이온</strong>은 바이어스로 운동 방향 제어 가능(Dry etch, Sputtering), <strong>Radical</strong>은 중성 활성기체로 반응성이 매우 높고 Diffusion으로 제어(PECVD 등).</li>
+                  <li><strong>Sheath 영역</strong>: 전자와 양이온의 질량에 따른 Mobility 차이에 의해 양이온 전하가 축적되는 공간전하 영역이 생기고, 이로 인해 <strong>Cathode(타겟) 부근에 강한 전압 강하</strong>가 생김. 양이온이 Sheath에 진입하면 강하게 가속되면서 Target을 Sputtering함.</li>
+                </ul>
+              </li>
+              <li><strong>Metal (DC) Sputtering 8단계 과정</strong>:
+                <p>① 고진공 → ② 로딩 → ③ Ar gas 주입 → ④ Target(Cathode)에 음전압 인가 → ⑤ 방출된 전자에 의해 Ar 이온화 → ⑥ <code>Ar+</code> 양이온이 Target으로 가속 충돌해 2차 전자 발생(글로우 방전) → ⑦ 2차 전자로 Ar 양이온 ↑↑ → ⑧ 높은 에너지의 <code>Ar+</code>이 Target에 충돌해 금속 입자가 튀어나와 Wafer에 증착 (직진성이 강해 CVD 대비 Side step coverage 불량).</p>
+              </li>
+              <li><strong>DC로 부도체(절연막) 증착이 안 되는 이유와 RF Sputtering</strong>:
+                <ul>
+                  <li><strong>이유</strong>: 음극으로 가속된 양이온이 절연체 Target 표면에 쌓이게 되어 Sheath의 Potential이 회복됨 → Sheath 전압이 약해져 음극으로 가속이 안 되고 2차 전자도 나오지 않아 방전 꺼짐.</li>
+                  <li><strong>RF Sputtering</strong>: <span class="hl-yellow">교류 전압(RF)</span>을 사용하여 전극의 극성을 빠르게 바꿔 <strong>전극 표면에 양이온이 축적되지 않게 하여 글로우 방전을 유지</strong>함.</li>
+                  <li><strong>RF Sputtering 용도</strong>: 절연막 Target Sputtering, 그리고 ILD/IMD 층에 Contact/Via hole 형성 후 <strong>Via 하부 막의 자연 산화막(Native Oxide)을 제거(Pre-clean)</strong>하여 Contact 저항 증가를 막음.</li>
+                </ul>
+              </li>
+            </ul>
+          </div>
+        </div>
+
+      </div>
+    </section>
+
+    <!-- ==================== 9. [P] Packaging (TSV) ==================== -->
+    <section class="section-block" data-section="sec-pkg">
+      <div class="section-header">
+        <h2>📦 [P] Packaging (패키징 공정 — W·O·P·E·D·I·M·P)</h2>
+        <span class="section-badge">TSV · 3D Advanced Packaging</span>
+      </div>
+      <div class="cards-grid">
+
+        <div class="note-card">
+          <div class="card-title">
+            <span>TSV (Through Silicon Via) 정의 및 5대 장점</span>
+            <span class="card-tag">TSV</span>
+          </div>
+          <div class="card-body" contenteditable="true">
+            <ul>
+              <li><strong>TSV란?</strong> 기존의 <strong>Wire Bonding</strong>을 대체하는 기술로, 이전에는 와이어를 이용해 적층했다면 TSV는 <strong>미세한 구멍을 뚫어 상하단 칩을 수직 연결하는 패키징 기술</strong>.</li>
+              <li><strong>장점</strong>:
+                <ol>
+                  <li><strong>와이어 공간 필요 없음</strong></li>
+                  <li><strong>In/Output unit 제한 없음</strong> (대역폭 극대화)</li>
+                  <li><strong>패키지 크기 작음</strong></li>
+                  <li>칩 간의 <strong>Interconnection 길이를 감소시켜 집적도 ↑</strong></li>
+                  <li><strong>빠른 신호 전달 및 저전력</strong> 구현</li>
+                </ol>
+              </li>
+            </ul>
+          </div>
+        </div>
+
+      </div>
+    </section>
+
+  </main>
+
+  <script>
+    const STORAGE_KEY = 'semicon_handwritten_notes_v1';
+
+    // Save edits automatically
+    function saveEdits() {
+      const cards = document.querySelectorAll('.card-body');
+      const data = Array.from(cards).map(el => el.innerHTML);
+      localStorage.setItem(STORAGE_KEY, JSON.stringify(data));
+    }
+
+    function loadEdits() {
+      const saved = localStorage.getItem(STORAGE_KEY);
+      if (!saved) return;
+      try {
+        const data = JSON.parse(saved);
+        const cards = document.querySelectorAll('.card-body');
+        cards.forEach((el, idx) => {
+          if (data[idx]) el.innerHTML = data[idx];
+        });
+      } catch (e) {
+        console.error(e);
+      }
+    }
+
+    function resetEdits() {
+      if (confirm('직접 수정한 내용을 초기화하고 원본 정리본으로 되돌리시겠습니까?')) {
+        localStorage.removeItem(STORAGE_KEY);
+        location.reload();
+      }
+    }
+
+    document.addEventListener('DOMContentLoaded', () => {
+      loadEdits();
+      document.querySelectorAll('.card-body').forEach(el => {
+        el.addEventListener('input', saveEdits);
+      });
+    });
+
+    function filterSection(secId, btnEl) {
+      document.querySelectorAll('.nav-tabs .btn').forEach(b => b.classList.remove('active'));
+      if (btnEl) btnEl.classList.add('active');
+
+      document.querySelectorAll('.section-block').forEach(sec => {
+        if (secId === 'all' || sec.dataset.section === secId) {
+          sec.style.display = '';
+        } else {
+          sec.style.display = 'none';
+        }
+      });
+    }
+
+    function filterCards() {
+      const q = document.getElementById('searchInput').value.trim().toLowerCase();
+      document.querySelectorAll('.note-card').forEach(card => {
+        const text = card.innerText.toLowerCase();
+        card.style.display = (!q || text.includes(q)) ? '' : 'none';
+      });
+    }
+  </script>
+</body>
+</html>
