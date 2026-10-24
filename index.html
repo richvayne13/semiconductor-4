@@ -3969,7 +3969,7 @@
         try {
           currentTopics = JSON.parse(saved);
           let updated = false;
-          const needClean = !localStorage.getItem('aisk_model_user_voice_clean_v1');
+          const needClean = !localStorage.getItem('aisk_model_user_voice_clean_v2');
           DEFAULT_TOPICS.forEach(dt => {
             const existing = currentTopics.find(ct => ct.id === dt.id);
             if (!existing) {
@@ -6418,7 +6418,7 @@
 
     // 기존 녹음본 및 직무 기본 대본 일괄 초기화 (사용자 요청: 내 목소리로 다 기록할 것이므로 기존 대본·녹음 전체 삭제)
     async function wipeExistingModelScriptsAndRecordingsOnce() {
-      if (localStorage.getItem('aisk_model_user_voice_clean_v1') === 'done') return;
+      if (localStorage.getItem('aisk_model_user_voice_clean_v2') === 'done') return;
       try {
         // 1) localStorage 내 이전 녹음 기록 및 모범답안 오디오 메타데이터 모두 삭제
         const keysToRemove = [];
@@ -6453,11 +6453,11 @@
           }
         });
         memoryAudioMap.clear();
-        const db = await openAudioDB();
+        const db = await openInterviewAudioDB();
         if (db) {
           await new Promise((resolve) => {
-            const tx = db.transaction(AUDIO_STORE_NAME, 'readwrite');
-            tx.objectStore(AUDIO_STORE_NAME).clear();
+            const tx = db.transaction(AUDIO_IDB_STORE, 'readwrite');
+            tx.objectStore(AUDIO_IDB_STORE).clear();
             tx.oncomplete = () => resolve(true);
             tx.onerror = () => resolve(false);
           });
@@ -6465,7 +6465,7 @@
       } catch (e) {
         console.warn('Initial cleanup warning:', e);
       }
-      localStorage.setItem('aisk_model_user_voice_clean_v1', 'done');
+      localStorage.setItem('aisk_model_user_voice_clean_v2', 'done');
     }
 
     function getModelAudioRecordId(topicId) {
@@ -6564,22 +6564,26 @@
       modelRecSeconds = 0;
       modelRecStartTimeMs = Date.now();
 
-      // 1) MediaRecorder 시작 (내 목소리 오디오 캡처)
-      try {
-        const mimeType = getSupportedAudioMimeType();
-        modelMediaRecorder = mimeType ? new MediaRecorder(stream, { mimeType }) : new MediaRecorder(stream);
-        modelMediaRecorder.ondataavailable = (e) => {
-          if (e.data && e.data.size > 0) {
-            modelAudioChunks.push(e.data);
+      // 1) MediaRecorder 시작 (내 목소리 오디오 캡처 - 면접 녹음과 동일한 검증된 방식)
+      if (stream && window.MediaRecorder) {
+        try {
+          if (modelMediaRecorder && modelMediaRecorder.state !== 'inactive') {
+            try { modelMediaRecorder.stop(); } catch (e) {}
           }
-        };
-        modelMediaRecorder.start();
-      } catch (err) {
-        console.error('Model MediaRecorder start error:', err);
-        isRecordingModelAudio = false;
-        activeModelAudioTopicId = null;
-        showToast('⚠️ 오디오 녹음을 시작할 수 없습니다.');
-        return;
+          modelMediaRecorder = new MediaRecorder(stream);
+          modelMediaRecorder.ondataavailable = (e) => {
+            if (e.data && e.data.size > 0) {
+              modelAudioChunks.push(e.data);
+            }
+          };
+          modelMediaRecorder.start();
+        } catch (err) {
+          console.error('Model MediaRecorder start error:', err);
+          isRecordingModelAudio = false;
+          activeModelAudioTopicId = null;
+          showToast('⚠️ 오디오 녹음을 시작할 수 없습니다.');
+          return;
+        }
       }
 
       // 2) Web Speech API (STT 실시간 대본 자동 받아쓰기) 시작
@@ -6674,7 +6678,7 @@
           }
 
           if (blob && blob.size > 0) {
-            const dataUrl = await blobToDataURL(blob);
+            const dataUrl = await blobToDataUrl(blob);
             const recId = getModelAudioRecordId(topicId);
             await saveAudioBlobToDB(recId, topicId, blob, dataUrl, mimeType);
             const durationStr = `${Math.floor(finalSec / 60)}분 ${finalSec % 60}초`;
@@ -6999,7 +7003,7 @@
 
     async function restoreLastViewedState() {
       window.isRestoringState = true;
-      const wasCleaned = localStorage.getItem('aisk_model_user_voice_clean_v1') === 'done';
+      const wasCleaned = localStorage.getItem('aisk_model_user_voice_clean_v2') === 'done';
       if (!wasCleaned) {
         await wipeExistingModelScriptsAndRecordingsOnce();
         renderDashboard();
