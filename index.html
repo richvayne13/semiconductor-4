@@ -2460,10 +2460,16 @@
             <span class="interview-q-badge cat-badge-t" id="intQBadge">직무-01</span>
             <span class="category-chip" id="intQCategory">반도체 직무 · 기술</span>
           </div>
-          <button class="interview-hint-btn" onclick="toggleInterviewHint()">
-            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"></circle><line x1="12" y1="16" x2="12" y2="12"></line><line x1="12" y1="8" x2="12.01" y2="8"></line></svg>
-            <span>핵심 키워드 힌트</span>
-          </button>
+          <div style="display: flex; align-items: center; gap: 8px; flex-wrap: wrap;">
+            <button class="interview-hint-btn" onclick="toggleInterviewHint()">
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"></circle><line x1="12" y1="16" x2="12" y2="12"></line><line x1="12" y1="8" x2="12.01" y2="8"></line></svg>
+              <span>핵심 키워드 힌트</span>
+            </button>
+            <button class="btn-card-action delete-btn" id="btnDeleteIntQuestion" onclick="deleteCurrentInterviewTopic()" title="현재 면접 질문 삭제">
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="3 6 5 6 21 6"></polyline><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path></svg>
+              <span>질문 삭제</span>
+            </button>
+          </div>
         </div>
 
         <h2 class="interview-q-title" id="intQTitle">질문을 불러오는 중입니다...</h2>
@@ -4043,6 +4049,16 @@
       if (tabAll) tabAll.textContent = `전체 (${totalCount})`;
       if (tabPersonality) tabPersonality.textContent = `인성·협업 (${pCount})`;
       if (tabTech) tabTech.textContent = `직무·소자 (${tCount})`;
+
+      const intCatAll = document.getElementById('intCatAll');
+      const intCatPersonality = document.getElementById('intCatPersonality');
+      const intCatTech = document.getElementById('intCatTech');
+      const intProcAll = document.querySelector('#interviewProcChips .proc-chip[data-intproc="ALL"]');
+
+      if (intCatAll) intCatAll.textContent = `전체 질문 (${totalCount})`;
+      if (intCatPersonality) intCatPersonality.textContent = `🤝 인성·협업 (${pCount})`;
+      if (intCatTech) intCatTech.textContent = `⚙️ 직무·공정·소자 (${tCount})`;
+      if (intProcAll) intProcAll.textContent = `ALL (${tCount})`;
     }
 
     // 사이드바 렌더링
@@ -4449,8 +4465,16 @@
     }
 
     // ========================================================
-    // 4. 문항 삭제 기능 (Delete)
+    // 4. 문항 삭제 기능 (Delete - 학습 모드 & 실전 면접 모드 공통 지원)
     // ========================================================
+    function deleteCurrentInterviewTopic() {
+      if (typeof interviewCurrentTopicId === 'undefined' || !interviewCurrentTopicId) {
+        showToast('⚠️ 현재 선택된 면접 질문이 없습니다.');
+        return;
+      }
+      deleteTopic(interviewCurrentTopicId);
+    }
+
     function deleteTopic(id) {
       const topic = currentTopics.find(t => t.id === id);
       if (!topic) return;
@@ -4459,9 +4483,58 @@
         return;
       }
 
+      // 실전 면접 모드에서 현재 보고 있는 문항을 삭제하는 경우, 다음으로 보여줄 문항을 미리 계산
+      let nextInterviewId = null;
+      const isDeletingCurrentInterviewTopic = (typeof interviewCurrentTopicId !== 'undefined' && interviewCurrentTopicId === id);
+
+      if (isDeletingCurrentInterviewTopic) {
+        if (typeof stopSpeakingQuestion === 'function') stopSpeakingQuestion();
+        if (typeof isRecording !== 'undefined' && isRecording && typeof stopRecording === 'function') {
+          stopRecording(true);
+        }
+        if (typeof isRecordingModelAudio !== 'undefined' && isRecordingModelAudio && typeof stopModelAudioRecording === 'function') {
+          stopModelAudioRecording();
+        }
+        const pool = (typeof getFilteredInterviewPool === 'function') ? getFilteredInterviewPool() : currentTopics;
+        const idx = pool.findIndex(t => t.id === id);
+        if (idx !== -1 && pool.length > 1) {
+          nextInterviewId = (idx < pool.length - 1) ? pool[idx + 1].id : pool[idx - 1].id;
+        }
+      }
+
       currentTopics = currentTopics.filter(t => t.id !== id);
       saveTopicsToStorage();
       renderDashboard();
+
+      // 면접 모드 화면 및 다음 문항 자동 전환 처리
+      if (isDeletingCurrentInterviewTopic) {
+        if (!nextInterviewId) {
+          const remainingPool = (typeof getFilteredInterviewPool === 'function') ? getFilteredInterviewPool() : currentTopics;
+          nextInterviewId = (remainingPool.length > 0) ? remainingPool[0].id : (currentTopics[0] ? currentTopics[0].id : null);
+        }
+        interviewCurrentTopicId = nextInterviewId;
+        if (nextInterviewId && typeof loadInterviewTopic === 'function') {
+          loadInterviewTopic(nextInterviewId, false);
+        } else {
+          localStorage.removeItem('aisk_ui_int_topic_id');
+          const titleEl = document.getElementById('intQTitle');
+          if (titleEl) titleEl.textContent = '해당 카테고리에 등록된 질문이 없습니다.';
+          const progressEl = document.getElementById('interviewProgressText');
+          if (progressEl) progressEl.textContent = '0 / 0';
+          const modelAnswerEl = document.getElementById('modelAnswerText');
+          if (modelAnswerEl) modelAnswerEl.innerHTML = '';
+          const histEl = document.getElementById('intHistoryList');
+          if (histEl) histEl.innerHTML = '';
+        }
+      } else if (typeof currentViewMode !== 'undefined' && currentViewMode === 'interview' && interviewCurrentTopicId) {
+        const pool = (typeof getFilteredInterviewPool === 'function') ? getFilteredInterviewPool() : currentTopics;
+        const currIdx = pool.findIndex(t => t.id === interviewCurrentTopicId);
+        const progressEl = document.getElementById('interviewProgressText');
+        if (progressEl) {
+          progressEl.textContent = `${currIdx >= 0 ? currIdx + 1 : 1} / ${pool.length}`;
+        }
+      }
+
       showToast('🗑️ 문항이 삭제되었습니다.');
     }
 
