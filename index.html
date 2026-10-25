@@ -6,7 +6,7 @@
   <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
   <meta http-equiv="Pragma" content="no-cache">
   <meta http-equiv="Expires" content="0">
-  <meta name="build-time" content="2026-10-25T11:15:00+09:00">
+  <meta name="build-time" content="2026-10-25T11:20:00+09:00">
   <title>SK하이닉스 AISK 심층 대비 마스터 백과사전 (커스텀 편집 & 문항 추가 지원)</title>
   
   <!-- Pretendard & JetBrains Mono Fonts -->
@@ -2469,6 +2469,16 @@
       }
     }
 
+  
+    /* ✂️ 취소선 (Alt+S) 세련된 스타일 */
+    s, del, strike,
+    .speech-body s, .speech-body del, .speech-body strike,
+    .editable-field s, .editable-field del, .editable-field strike {
+      text-decoration: line-through 2px rgba(239, 68, 68, 0.8) !important;
+      color: var(--text-muted) !important;
+      opacity: 0.7;
+    }
+
   </style>
 </head>
 <body>
@@ -2817,7 +2827,7 @@
 
         <div class="model-body-content open" id="modelBodyContent">
           <div style="display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:8px; margin-bottom:14px; padding:8px 12px; background:rgba(56,189,248,0.08); border:1px solid rgba(56,189,248,0.28); border-radius:8px;">
-            <span class="speech-click-hint">✏️ 모범대본 본문을 클릭하면 바로 수정·자동 저장됩니다 (드래그 후 <strong>Ctrl+B</strong>: 노란색 음영 볼드 강조 · 학습 모드와 실시간 연동)</span>
+            <span class="speech-click-hint">✏️ 모범대본 본문을 클릭하면 바로 수정·자동 저장됩니다 (드래그 후 <strong>Ctrl+B</strong>: 형광펜 볼드, <strong>Alt+S</strong>: 취소선 · 학습 모드와 실시간 연동)</span>
             <span class="save-status-badge" id="int-model-save-status">클릭하여 바로 수정</span>
           </div>
 
@@ -4825,7 +4835,7 @@
   }
 ];
 
-    const STORAGE_KEY = 'aisk_master_topics_custom_v23_pc_auto_player';
+    const STORAGE_KEY = 'aisk_master_topics_custom_v24_strikethrough_alts';
     let currentTopics = [];
 
     // 1. 초기 데이터 로드 (localStorage 우선 및 구버전 마이그레이션)
@@ -5072,7 +5082,7 @@
                     <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 2a3 3 0 0 0-3 3v7a3 3 0 0 0 6 0V5a3 3 0 0 0-3-3Z"></path><path d="M19 10v2a7 7 0 0 1-14 0v-2"></path><line x1="12" y1="19" x2="12" y2="22"></line></svg>
                     <span>🎙️ 내 모범답안 음성과 대본 (심화해설 참고 내 목소리 녹음 · 직접 작성)</span>
                   </div>
-                  <span class="speech-click-hint">✏️ 녹음 시 자동 받아쓰기(STT)되며 클릭하여 직접 수정 가능 (<strong>Ctrl+B</strong>: 노란 형광펜)</span>
+                  <span class="speech-click-hint">✏️ 녹음 시 자동 받아쓰기(STT)되며 클릭하여 직접 수정 가능 (<strong>Ctrl+B</strong>: 형광펜, <strong>Alt+S</strong>: 취소선)</span>
                   <div style="display:flex; align-items:center; gap:6px;">
                     <button class="btn-card-action" onclick="copySpeech('${t.id}', 2)" title="내 모범답안 대본 복사">
                       <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="9" y="9" width="13" height="13" rx="2" ry="2"></rect><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"></path></svg>
@@ -5092,7 +5102,7 @@
                     <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 2a3 3 0 0 0-3 3v7a3 3 0 0 0 6 0V5a3 3 0 0 0-3-3Z"></path><path d="M19 10v2a7 7 0 0 1-14 0v-2"></path><line x1="12" y1="19" x2="12" y2="22"></line></svg>
                     <span>답변 2 · 1분 30초~2분 실전 대안 전달 (다른 관점·어프로치 · 약 420~560자)</span>
                   </div>
-                  <span class="speech-click-hint">✏️ 클릭하여 바로 작성·수정 (텍스트 드래그 후 <strong>Ctrl+B</strong>: 노란색 음영 볼드 강조)</span>
+                  <span class="speech-click-hint">✏️ 클릭하여 바로 작성·수정 (텍스트 드래그 후 <strong>Ctrl+B</strong>: 형광펜 볼드, <strong>Alt+S</strong>: 취소선)</span>
                   <button class="btn-card-action" onclick="copySpeech('${t.id}', 2)" title="답변 2 복사">
                     <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="9" y="9" width="13" height="13" rx="2" ry="2"></rect><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"></path></svg>
                     답변 2 복사
@@ -5133,7 +5143,7 @@
                     <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 2a3 3 0 0 0-3 3v7a3 3 0 0 0 6 0V5a3 3 0 0 0-3-3Z"></path><path d="M19 10v2a7 7 0 0 1-14 0v-2"></path><line x1="12" y1="19" x2="12" y2="22"></line></svg>
                     <span>${cardHeaderTitle}</span>
                   </div>
-                  <span class="speech-click-hint">✏️ 클릭하여 바로 작성·수정 (텍스트 드래그 후 <strong>Ctrl+B</strong>: 노란색 음영 볼드 강조)</span>
+                  <span class="speech-click-hint">✏️ 클릭하여 바로 작성·수정 (텍스트 드래그 후 <strong>Ctrl+B</strong>: 형광펜 볼드, <strong>Alt+S</strong>: 취소선)</span>
                   <div style="display:flex; align-items:center; gap:6px;">
                     <button class="btn-card-action btn-play-lecture" id="btn-play-lecture-${t.id}" onclick="toggleLectureVoice('${t.id}')" title="아나운서 음성(TTS)으로 심화해설을 들으며 학습합니다">
                       <span id="txt-play-lecture-${t.id}">🔊 심화해설 듣기</span>
@@ -5826,7 +5836,13 @@
       safe = safe.replace(/&lt;b&gt;/gi, '<b>')
                  .replace(/&lt;\/b&gt;/gi, '</b>')
                  .replace(/&lt;strong&gt;/gi, '<strong>')
-                 .replace(/&lt;\/strong&gt;/gi, '</strong>');
+                 .replace(/&lt;\/strong&gt;/gi, '</strong>')
+                 .replace(/&lt;s&gt;/gi, '<s>')
+                 .replace(/&lt;\/s&gt;/gi, '</s>')
+                 .replace(/&lt;del&gt;/gi, '<del>')
+                 .replace(/&lt;\/del&gt;/gi, '</del>')
+                 .replace(/&lt;strike&gt;/gi, '<strike>')
+                 .replace(/&lt;\/strike&gt;/gi, '</strike>');
       return safe;
     }
 
@@ -5839,8 +5855,8 @@
                        .replace(/<p[^>]*>/gi, '')
                        .replace(/<\/p>/gi, '\n')
                        .replace(/<br\s*[\/]?>/gi, '\n');
-      // <b>, </b>, <strong>, </strong>만 보존하고 기타 불필요한 태그 제거
-      content = content.replace(/<(?!b|\/b|strong|\/strong)[^>]+>/gi, '');
+      // <b>, <strong>, <s>, <del>, <strike> 보존하고 기타 불필요한 태그 제거
+      content = content.replace(/<(?!b|\/b|strong|\/strong|s|\/s|del|\/del|strike|\/strike)[^>]+>/gi, '');
       return content;
     }
 
@@ -5855,14 +5871,26 @@
     }
 
     // 실행 시작 (DOM 준비 상태 완벽 대응)
-        // 🌟 Ctrl+B 단축키 누르면 선택 텍스트 볼드(노란색 음영) 처리 & 실시간 자동 저장
+        // 🌟 Ctrl+B (노란색 형광펜 볼드) 및 Alt+S (취소선) 단축키
     document.addEventListener('keydown', (e) => {
+      const target = e.target.closest('.editable-field');
+      if (!target) return;
+
+      // 1. Ctrl+B: 볼드 강조 (노란색 형광펜)
       if ((e.ctrlKey || e.metaKey) && (e.key === 'b' || e.key === 'B')) {
-        const target = e.target.closest('.editable-field');
-        if (target) {
-          e.preventDefault();
-          document.execCommand('bold', false, null);
-          target.dispatchEvent(new Event('input', { bubbles: true }));
+        e.preventDefault();
+        document.execCommand('bold', false, null);
+        target.dispatchEvent(new Event('input', { bubbles: true }));
+      }
+
+      // 2. Alt+S (또는 Ctrl+Shift+S): 취소선 (Strike-through) 처리
+      if ((e.altKey && (e.key === 's' || e.key === 'S' || e.code === 'KeyS')) ||
+          ((e.ctrlKey || e.metaKey) && e.shiftKey && (e.key === 's' || e.key === 'S' || e.code === 'KeyS'))) {
+        e.preventDefault();
+        document.execCommand('strikeThrough', false, null);
+        target.dispatchEvent(new Event('input', { bubbles: true }));
+        if (typeof showToast === 'function') {
+          showToast('✂️ 취소선이 적용되었습니다 (Alt+S)');
         }
       }
     });
