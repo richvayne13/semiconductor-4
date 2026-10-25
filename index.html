@@ -6,7 +6,7 @@
   <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
   <meta http-equiv="Pragma" content="no-cache">
   <meta http-equiv="Expires" content="0">
-  <meta name="build-time" content="2026-10-25T11:10:00+09:00">
+  <meta name="build-time" content="2026-10-25T11:15:00+09:00">
   <title>SK하이닉스 AISK 심층 대비 마스터 백과사전 (커스텀 편집 & 문항 추가 지원)</title>
   
   <!-- Pretendard & JetBrains Mono Fonts -->
@@ -2453,6 +2453,22 @@
       box-shadow: 0 0 10px rgba(56, 189, 248, 0.4);
     }
 
+  
+    /* PC 대화면 전용 플로팅 도크 스타일 */
+    @media (min-width: 901px) {
+      .auto-player-dock {
+        left: 50% !important;
+        right: auto !important;
+        transform: translateX(-50%) !important;
+        width: 880px !important;
+        max-width: 92vw !important;
+        border-radius: 16px 16px 0 0 !important;
+        border-left: 1.5px solid rgba(56, 189, 248, 0.5) !important;
+        border-right: 1.5px solid rgba(56, 189, 248, 0.5) !important;
+        box-shadow: 0 -12px 48px rgba(0, 0, 0, 0.85) !important;
+      }
+    }
+
   </style>
 </head>
 <body>
@@ -2522,6 +2538,13 @@
           <span>🎙️ 실전 면접</span>
         </button>
       </div>
+    </div>
+
+    <!-- 🎧 PC 사이드바: 연속 자동 듣기 모드 버튼 -->
+    <div style="padding: 0 16px 12px 16px;">
+      <button class="btn-voice-toggle" onclick="toggleAutoPlayerDock()" style="width: 100%; justify-content: center; background: linear-gradient(135deg, #f59e0b 0%, #ef4444 100%); color: #fff; border: none; padding: 9px 14px; font-size: 0.84rem; font-weight: 800; border-radius: 8px; box-shadow: 0 4px 14px rgba(245, 158, 11, 0.35); cursor: pointer;" title="질문 읽고 10초 후 답변 읽기를 무한 자동 반복하는 핸즈프리 모드">
+        <span>🎧 연속 자동 듣기 모드</span>
+      </button>
     </div>
 
 
@@ -2601,6 +2624,10 @@
               <span>🎙️ 실전 면접 연습 모드</span>
             </button>
           </div>
+          <!-- 🎧 PC 메인 헤더: 연속 자동 듣기 버튼 -->
+          <button class="btn-voice-toggle" onclick="toggleAutoPlayerDock()" style="margin-left: 8px; background: linear-gradient(135deg, #f59e0b 0%, #ef4444 100%); color: #fff; border: none; padding: 7px 15px; font-size: 0.84rem; font-weight: 800; border-radius: 8px; box-shadow: 0 4px 14px rgba(245, 158, 11, 0.35); cursor: pointer; display: inline-flex; align-items: center; gap: 6px;" title="질문 읽고 10초 후 답변 읽기를 무한 자동 반복하는 핸즈프리 모드">
+            <span>🎧 연속 자동 듣기</span>
+          </button>
         </div>
 <div class="header-btn-group">
           <button class="btn-header primary" onclick="openAddModal()">
@@ -4798,7 +4825,7 @@
   }
 ];
 
-    const STORAGE_KEY = 'aisk_master_topics_custom_v22_auto_player';
+    const STORAGE_KEY = 'aisk_master_topics_custom_v23_pc_auto_player';
     let currentTopics = [];
 
     // 1. 초기 데이터 로드 (localStorage 우선 및 구버전 마이그레이션)
