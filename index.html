@@ -7031,6 +7031,7 @@
     let isSpeakingQuestion = false;
     let autoVoiceAndRecordEnabled = true; // 기본 ON: 랜덤/다음 이동 시 질문 음성 후 녹음 자동 시작
     let questionUtterance = null;
+    let currentQuestionAudioEl = null;
     let speechTtsSessionId = 0;
     let speakStartTimer = null;
     let ttsWatchdogTimer = null;
@@ -7099,7 +7100,7 @@
       }
     }
 
-    // 질문 음성 중지 (이전 Utterance의 onerror/onend 및 Watchdog 완벽 정리)
+    // 질문 음성 중지 (이전 Utterance/Audio의 onerror/onend 및 Watchdog 완벽 정리)
     function stopSpeakingQuestion(skipNativeCancel = false) {
       speechTtsSessionId++;
       if (speakStartTimer) {
@@ -7109,6 +7110,14 @@
       if (ttsWatchdogTimer) {
         clearInterval(ttsWatchdogTimer);
         ttsWatchdogTimer = null;
+      }
+      if (currentQuestionAudioEl) {
+        try {
+          currentQuestionAudioEl.onended = null;
+          currentQuestionAudioEl.onerror = null;
+          currentQuestionAudioEl.pause();
+        } catch (e) {}
+        currentQuestionAudioEl = null;
       }
       if (questionUtterance) {
         try {
@@ -7143,7 +7152,7 @@
       }
     }
 
-    // 질문 음성(TTS) 재생 후 콜백(자동 녹음) 실행 (PC & 모바일 크로스브라우저 완벽 대응)
+    // 질문 음성(내 목소리 AI 클로닝 MP3 우선, 미존재 시 TTS 폴백) 재생 후 콜백(자동 녹음) 실행
     function speakInterviewQuestion(topic, onEndCallback) {
       stopSpeakingQuestion();
       if (isRecording || isStartingRecording) {
@@ -7155,12 +7164,6 @@
       }
 
       const myTtsSession = ++speechTtsSessionId;
-
-      if (!('speechSynthesis' in window)) {
-        console.warn('SpeechSynthesis API not supported');
-        if (onEndCallback) onEndCallback();
-        return;
-      }
 
       const rawTitle = (topic && topic.title) ? topic.title.trim() : '';
       const text = (typeof cleanTextForAnnouncerTTS === 'function')
@@ -7189,7 +7192,7 @@
 
       if (btnRecord) btnRecord.classList.add('waiting-voice');
       if (btnRecordText) btnRecordText.textContent = '⏳ 질문 음성 재생 중... (클릭 시 즉시 녹음)';
-      if (statusNotice) statusNotice.textContent = '🔊 면접관 질문 음성 재생 중입니다... (음성이 끝나면 답변 녹음이 자동 시작됩니다)';
+      if (statusNotice) statusNotice.textContent = '🎙️ 내 목소리로 면접 질문을 읽고 있습니다... (음성이 끝나면 답변 녹음이 자동 시작됩니다)';
       if (recDot) recDot.style.background = '#38bdf8';
 
       let finished = false;
@@ -7199,6 +7202,11 @@
         if (ttsWatchdogTimer) {
           clearInterval(ttsWatchdogTimer);
           ttsWatchdogTimer = null;
+        }
+        if (currentQuestionAudioEl) {
+          currentQuestionAudioEl.onended = null;
+          currentQuestionAudioEl.onerror = null;
+          currentQuestionAudioEl = null;
         }
         isSpeakingQuestion = false;
         questionUtterance = null;
@@ -7219,81 +7227,118 @@
         }
       };
 
-      const buildAndSpeakUtterance = () => {
-        if (myTtsSession !== speechTtsSessionId || finished) return null;
-        try {
-          if (window.speechSynthesis.paused) {
-            window.speechSynthesis.resume();
-          }
-        } catch (e) {}
+      const useMyClonedVoice = (typeof apQuestionVoiceMode === 'undefined' || apQuestionVoiceMode === 'my_voice');
+      if (useMyClonedVoice && topic && topic.id) {
+        const qAudio = new Audio(`voices/questions/${encodeURIComponent(topic.id)}.mp3`);
+        qAudio.preload = 'auto';
+        qAudio.playsInline = true;
+        currentQuestionAudioEl = qAudio;
 
-        const utterance = new SpeechSynthesisUtterance(text);
-        utterance.lang = 'ko-KR';
-        utterance.rate = 1.03;
-        utterance.pitch = 1.0;
-
-        const koVoice = getKoreanVoice();
-        if (koVoice) {
-          utterance.voice = koVoice;
-        }
-
-        questionUtterance = utterance;
-        window._activeQuestionUtterance = utterance;
-
-        utterance.onend = handleFinish;
-        utterance.onerror = (e) => {
-          if (myTtsSession !== speechTtsSessionId) return;
-          console.warn('SpeechSynthesis error:', e ? e.error : e);
+        qAudio.onended = () => {
           handleFinish();
         };
+        qAudio.onerror = () => {
+          if (myTtsSession !== speechTtsSessionId || finished) return;
+          currentQuestionAudioEl = null;
+          fallbackToBrowserTts();
+        };
 
-        try {
-          window.speechSynthesis.speak(utterance);
-        } catch (err) {
-          console.warn('SpeechSynthesis speak failed:', err);
-          handleFinish();
+        const playProm = qAudio.play();
+        if (playProm && typeof playProm.catch === 'function') {
+          playProm.catch(() => {
+            if (myTtsSession !== speechTtsSessionId || finished) return;
+            currentQuestionAudioEl = null;
+            fallbackToBrowserTts();
+          });
         }
-        return utterance;
-      };
+        return;
+      }
 
-      buildAndSpeakUtterance();
+      fallbackToBrowserTts();
 
-      const startTickMs = Date.now();
-      const maxDurationMs = Math.min(24000, Math.max(7000, text.length * 220));
-      let startedSpeaking = false;
-      let retriedSpeak = false;
-
-      ttsWatchdogTimer = setInterval(() => {
-        if (myTtsSession !== speechTtsSessionId || finished) {
-          clearInterval(ttsWatchdogTimer);
-          ttsWatchdogTimer = null;
+      function fallbackToBrowserTts() {
+        if (myTtsSession !== speechTtsSessionId || finished) return;
+        if (!('speechSynthesis' in window)) {
+          handleFinish();
           return;
         }
-        const elapsed = Date.now() - startTickMs;
 
-        try {
-          if (window.speechSynthesis.paused) {
-            window.speechSynthesis.resume();
+        const buildAndSpeakUtterance = () => {
+          if (myTtsSession !== speechTtsSessionId || finished) return null;
+          try {
+            if (window.speechSynthesis.paused) {
+              window.speechSynthesis.resume();
+            }
+          } catch (e) {}
+
+          const utterance = new SpeechSynthesisUtterance(text);
+          utterance.lang = 'ko-KR';
+          utterance.rate = 1.03;
+          utterance.pitch = 1.0;
+
+          const koVoice = getKoreanVoice();
+          if (koVoice) {
+            utterance.voice = koVoice;
           }
-        } catch (e) {}
 
-        if (window.speechSynthesis.speaking) {
-          startedSpeaking = true;
-        } else if (startedSpeaking && !window.speechSynthesis.speaking && !window.speechSynthesis.pending) {
-          handleFinish();
-          return;
-        } else if (!startedSpeaking && elapsed >= 380 && !retriedSpeak) {
-          retriedSpeak = true;
-          buildAndSpeakUtterance();
-        } else if (!startedSpeaking && elapsed >= 1800) {
-          handleFinish();
-          return;
-        }
+          questionUtterance = utterance;
+          window._activeQuestionUtterance = utterance;
 
-        if (elapsed >= maxDurationMs) {
-          handleFinish();
-        }
-      }, 140);
+          utterance.onend = handleFinish;
+          utterance.onerror = (e) => {
+            if (myTtsSession !== speechTtsSessionId) return;
+            console.warn('SpeechSynthesis error:', e ? e.error : e);
+            handleFinish();
+          };
+
+          try {
+            window.speechSynthesis.speak(utterance);
+          } catch (err) {
+            console.warn('SpeechSynthesis speak failed:', err);
+            handleFinish();
+          }
+          return utterance;
+        };
+
+        buildAndSpeakUtterance();
+
+        const startTickMs = Date.now();
+        const maxDurationMs = Math.min(24000, Math.max(7000, text.length * 220));
+        let startedSpeaking = false;
+        let retriedSpeak = false;
+
+        ttsWatchdogTimer = setInterval(() => {
+          if (myTtsSession !== speechTtsSessionId || finished) {
+            clearInterval(ttsWatchdogTimer);
+            ttsWatchdogTimer = null;
+            return;
+          }
+          const elapsed = Date.now() - startTickMs;
+
+          try {
+            if (window.speechSynthesis.paused) {
+              window.speechSynthesis.resume();
+            }
+          } catch (e) {}
+
+          if (window.speechSynthesis.speaking) {
+            startedSpeaking = true;
+          } else if (startedSpeaking && !window.speechSynthesis.speaking && !window.speechSynthesis.pending) {
+            handleFinish();
+            return;
+          } else if (!startedSpeaking && elapsed >= 380 && !retriedSpeak) {
+            retriedSpeak = true;
+            buildAndSpeakUtterance();
+          } else if (!startedSpeaking && elapsed >= 1800) {
+            handleFinish();
+            return;
+          }
+
+          if (elapsed >= maxDurationMs) {
+            handleFinish();
+          }
+        }, 140);
+      }
     }
 
     // 질문 다시 듣기 (수동 버튼)
@@ -9738,6 +9783,7 @@
     // 플레이어 설정
     let apCategory = 'all';             // 'all' | 'personality' | 'tech'
     let apOrder = 'random';             // 'random' | 'sequential'
+    let apQuestionVoiceMode = 'my_voice'; // 'my_voice' | 'tts' (기본값: AI 복제 내 목소리)
     let apAnswerMode = 'my_model_first';// 'my_model_first' | 'lecture_tts'
     let apWaitSeconds = 10;             // 기본 10초 대기
 
@@ -9896,6 +9942,13 @@
       document.getElementById('apChipOrderRandom')?.classList.toggle('active', order === 'random');
       document.getElementById('apChipOrderSeq')?.classList.toggle('active', order === 'sequential');
       showToast(`출제 순서가 [${order === 'random' ? '랜덤' : '순서대로'}]로 변경되었습니다.`);
+    }
+
+    function setApQuestionVoiceMode(mode) {
+      apQuestionVoiceMode = mode;
+      document.getElementById('apChipQVoiceMy')?.classList.toggle('active', mode === 'my_voice');
+      document.getElementById('apChipQVoiceTts')?.classList.toggle('active', mode === 'tts');
+      showToast(mode === 'my_voice' ? '질문 음성: [🎙️ 내 목소리 (AI 클로닝)]' : '질문 음성: [🔊 기본 아나운서 (TTS)]');
     }
 
     function setApAnswerMode(mode) {
@@ -10100,13 +10153,14 @@
       updateApTopicHeader(topic);
       syncMainViewWithApTopic(topic.id);
 
-      // STEP 1: 질문 읽기 (Question TTS)
+      // STEP 1: 질문 읽기 (Question TTS / Cloned Voice)
       apCurrentStep = 'question';
-      updateApBanner('speaking-q', '🔊 질문을 읽고 있습니다...', '질문 낭독');
+      const isMyVoice = (apQuestionVoiceMode === 'my_voice');
+      updateApBanner('speaking-q', isMyVoice ? '🎙️ 내 목소리로 질문을 읽고 있습니다...' : '🔊 질문을 읽고 있습니다...', '질문 낭독');
       document.getElementById('btnApSkipWait').style.display = 'none';
       document.getElementById('apProgressBar').style.width = '0%';
 
-      await playQuestionTTSAsync(topic.title);
+      await playQuestionTTSAsync(topic.title, topic.id);
       if (!apIsPlaying || myGen !== apLoopGeneration) return;
 
       // STEP 2: 대기 카운트다운 (생각/답변 구상 시간)
@@ -10133,8 +10187,20 @@
       }, 1500);
     }
 
-    // 1) 질문 TTS Promise (문장 분할 + 워치독 엔진 사용)
-    async function playQuestionTTSAsync(title) {
+    // 1) 질문 재생 Promise (내 목소리 AI 클로닝 MP3 우선, 미존재 시 TTS 워치독 엔진으로 폴백)
+    async function playQuestionTTSAsync(title, topicId) {
+      if (apQuestionVoiceMode === 'my_voice' && topicId) {
+        const mp3Url = `voices/questions/${encodeURIComponent(topicId)}.mp3`;
+        let playedOk = false;
+        try {
+          await playUserAudioElementAsync(mp3Url);
+          playedOk = true;
+        } catch (e) {
+          playedOk = false;
+        }
+        if (playedOk) return;
+      }
+
       const cleanQ = cleanTextForAnnouncerTTS(title);
       if (!cleanQ) return;
       await speakChunkedTTSAsync(cleanQ, { rate: 1.0, pitch: 1.0 });
@@ -10378,6 +10444,18 @@
 
     <!-- 확장 설정 패널 -->
     <div class="ap-settings-panel" id="apSettingsPanel">
+      <div class="ap-setting-row">
+        <span class="ap-setting-label">0. 질문 낭독 음성 (출제자)</span>
+        <div class="ap-chip-group">
+          <button class="ap-chip active" id="apChipQVoiceMy" onclick="setApQuestionVoiceMode('my_voice')" title="내 목소리 AI 클로닝으로 문제를 출제합니다">
+            🎙️ 내 목소리 (AI 클로닝)
+          </button>
+          <button class="ap-chip" id="apChipQVoiceTts" onclick="setApQuestionVoiceMode('tts')" title="브라우저 기본 아나운서 음성(TTS)으로 문제를 읽습니다">
+            🔊 기본 아나운서 (TTS)
+          </button>
+        </div>
+      </div>
+
       <div class="ap-setting-row">
         <span class="ap-setting-label">1. 출제 범위 (카테고리)</span>
         <div class="ap-chip-group">
