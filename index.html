@@ -2484,11 +2484,16 @@
 
   
     /* PC 대화면 전용 플로팅 도크 스타일 */
+    @keyframes slideUpDockPC {
+      from { transform: translate(-50%, 100%); }
+      to { transform: translate(-50%, 0); }
+    }
     @media (min-width: 901px) {
       .auto-player-dock {
         left: 50% !important;
         right: auto !important;
         transform: translateX(-50%) !important;
+        animation: slideUpDockPC 0.3s cubic-bezier(0.16, 1, 0.3, 1) !important;
         width: 880px !important;
         max-width: 92vw !important;
         border-radius: 16px 16px 0 0 !important;
@@ -2496,6 +2501,9 @@
         border-right: 1.5px solid rgba(56, 189, 248, 0.5) !important;
         box-shadow: 0 -12px 48px rgba(0, 0, 0, 0.85) !important;
       }
+    }
+    body.ap-dock-open {
+      padding-bottom: 190px !important;
     }
 
   
@@ -2766,6 +2774,9 @@
             <span class="category-chip" id="intQCategory">반도체 직무 · 기술</span>
           </div>
           <div style="display: flex; align-items: center; gap: 8px; flex-wrap: wrap;">
+            <button class="interview-speak-btn" id="btnSpeakQuestion" onclick="replayQuestionVoice()" title="면접 질문 음성으로 다시 듣기 (끝나면 자동 녹음 시작)">
+              <span id="btnSpeakText">🔊 질문 다시 듣기</span>
+            </button>
             <button class="interview-hint-btn" onclick="toggleInterviewHint()">
               <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"></circle><line x1="12" y1="16" x2="12" y2="12"></line><line x1="12" y1="8" x2="12.01" y2="8"></line></svg>
               <span>핵심 키워드 힌트</span>
@@ -6559,14 +6570,48 @@
     const AUDIO_IDB_NAME = 'AISK_InterviewAudioDB_v2';
     const AUDIO_IDB_STORE = 'audio_records';
 
-    // 마이크 스트림 확보 (중복 getUserMedia 호출 방지 및 살아있는 트랙 검증 + 강제 재연결 지원)
-    async function ensureMicStream(forceFresh = false) {
-      if (forceFresh && mediaStream) {
+    // 모바일 기기 판별 (Android / iOS)
+    function isMobileBrowser() {
+      return /Android|iPhone|iPad|iPod|Mobile/i.test(navigator.userAgent || '');
+    }
+
+    // 마이크 스트림 해제 (모바일에서 TTS 재생 시 통화모드 볼륨 저하 및 STT 마이크 충돌 방지)
+    function releaseMicStream() {
+      if (mediaStream) {
         try {
           mediaStream.getTracks().forEach(t => t.stop());
         } catch (e) {}
         mediaStream = null;
-        micStreamPromise = null;
+      }
+      micStreamPromise = null;
+    }
+
+    // 녹음 시작 알림음 (Web Audio API 짧은 비프음)
+    function playStartBeep() {
+      try {
+        const AudioCtx = window.AudioContext || window.webkitAudioContext;
+        if (!AudioCtx) return;
+        const ctx = new AudioCtx();
+        const osc = ctx.createOscillator();
+        const gain = ctx.createGain();
+        osc.type = 'sine';
+        osc.frequency.setValueAtTime(880, ctx.currentTime);
+        gain.gain.setValueAtTime(0.06, ctx.currentTime);
+        gain.gain.exponentialRampToValueAtTime(0.001, ctx.currentTime + 0.12);
+        osc.connect(gain);
+        gain.connect(ctx.destination);
+        osc.start();
+        osc.stop(ctx.currentTime + 0.12);
+        setTimeout(() => {
+          try { ctx.close(); } catch (e) {}
+        }, 250);
+      } catch (e) {}
+    }
+
+    // 마이크 스트림 확보 (중복 getUserMedia 호출 방지 및 살아있는 트랙 검증 + 강제 재연결 지원)
+    async function ensureMicStream(forceFresh = false) {
+      if (forceFresh && mediaStream) {
+        releaseMicStream();
       }
       if (!forceFresh && mediaStream && mediaStream.active) {
         const tracks = mediaStream.getAudioTracks();
@@ -6872,9 +6917,6 @@
       const mobBtn = document.getElementById('mobModeBtn');
 
       if (mode === 'interview') {
-        if (!isRestore) {
-          ensureMicStream();
-        }
         body.classList.add('interview-mode');
         if (btnLearnMain) btnLearnMain.classList.remove('active');
         if (btnIntMain) btnIntMain.classList.add('active');
@@ -6897,10 +6939,11 @@
         if (!interviewCurrentTopicId) {
           pickRandomInterviewTopic(!isRestore);
         } else {
-          loadInterviewTopic(interviewCurrentTopicId, false, isRestore);
+          // 사용자가 직접 실전 면접 버튼을 눌렀을 때(!isRestore)는 현재 문항도 자동 질문&녹음 즉시 실행
+          loadInterviewTopic(interviewCurrentTopicId, !isRestore, isRestore);
         }
         if (!isRestore) {
-          showToast('🎙️ 실전 면접 모드로 전환되었습니다. 랜덤 출제나 녹음으로 연습해보세요!');
+          showToast('🎙️ 실전 면접 모드로 전환되었습니다. 질문 음성 후 자동 녹음이 시작됩니다!');
         }
       } else {
         stopSpeakingQuestion();
@@ -6990,9 +7033,36 @@
     let questionUtterance = null;
     let speechTtsSessionId = 0;
     let speakStartTimer = null;
+    let ttsWatchdogTimer = null;
+    let cachedKoreanVoice = null;
     let recordingSessionId = 0;
     let isStartingRecording = false;
     let interviewFinalTranscript = '';
+
+    // 한국어 TTS 음성 선택 및 사전 로드 (PC/모바일 브라우저 호환)
+    function getKoreanVoice() {
+      if (!('speechSynthesis' in window)) return null;
+      const voices = window.speechSynthesis.getVoices();
+      if (!voices || voices.length === 0) return cachedKoreanVoice;
+      const koVoices = voices.filter(v => v.lang && (v.lang.includes('ko') || v.lang.includes('KR')));
+      if (koVoices.length === 0) return null;
+      cachedKoreanVoice = koVoices.find(v =>
+        v.name.includes('Google') ||
+        v.name.includes('Natural') ||
+        v.name.includes('SunHi') ||
+        v.name.includes('InJoon') ||
+        v.name.includes('Yuna') ||
+        v.name.includes('Sora')
+      ) || koVoices[0];
+      return cachedKoreanVoice;
+    }
+
+    if ('speechSynthesis' in window) {
+      getKoreanVoice();
+      window.speechSynthesis.onvoiceschanged = () => {
+        getKoreanVoice();
+      };
+    }
 
     // 질문 음성 및 자동 녹음 토글
     function updateAutoVoiceToggleUI() {
@@ -7014,20 +7084,31 @@
       localStorage.setItem('aisk_ui_int_auto_voice', autoVoiceAndRecordEnabled ? 'true' : 'false');
       updateAutoVoiceToggleUI();
       if (autoVoiceAndRecordEnabled) {
-        ensureMicStream();
-        showToast('🔊 문항 이동 시 질문 음성 재생 후 자동 녹음이 켜졌습니다.');
+        showToast('🔊 자동 질문&녹음이 켜졌습니다! 현재 질문을 읽은 뒤 자동 녹음을 시작합니다.');
+        if (currentViewMode === 'interview' && interviewCurrentTopicId && !isRecording) {
+          const topic = currentTopics.find(t => t.id === interviewCurrentTopicId);
+          if (topic) {
+            speakInterviewQuestion(topic, () => {
+              startRecording();
+            });
+          }
+        }
       } else {
         stopSpeakingQuestion();
-        showToast('🔈 질문 음성 및 자동 녹음이 꺼졌습니다.');
+        showToast('🔈 자동 질문&녹음이 꺼졌습니다.');
       }
     }
 
-    // 질문 음성 중지 (이전 Utterance의 onerror/onend 콜백이 뒤늦게 실행되어 녹음을 꼬이게 하는 현상 원천 차단)
-    function stopSpeakingQuestion() {
+    // 질문 음성 중지 (이전 Utterance의 onerror/onend 및 Watchdog 완벽 정리)
+    function stopSpeakingQuestion(skipNativeCancel = false) {
       speechTtsSessionId++;
       if (speakStartTimer) {
         clearTimeout(speakStartTimer);
         speakStartTimer = null;
+      }
+      if (ttsWatchdogTimer) {
+        clearInterval(ttsWatchdogTimer);
+        ttsWatchdogTimer = null;
       }
       if (questionUtterance) {
         try {
@@ -7036,8 +7117,13 @@
         } catch (e) {}
         questionUtterance = null;
       }
-      if ('speechSynthesis' in window) {
-        try { window.speechSynthesis.cancel(); } catch (e) {}
+      window._activeQuestionUtterance = null;
+      if (!skipNativeCancel && ('speechSynthesis' in window)) {
+        try {
+          if (window.speechSynthesis.speaking || window.speechSynthesis.pending) {
+            window.speechSynthesis.cancel();
+          }
+        } catch (e) {}
       }
       isSpeakingQuestion = false;
 
@@ -7057,11 +7143,15 @@
       }
     }
 
-    // 질문 음성(TTS) 재생 후 콜백(자동 녹음) 실행
+    // 질문 음성(TTS) 재생 후 콜백(자동 녹음) 실행 (PC & 모바일 크로스브라우저 완벽 대응)
     function speakInterviewQuestion(topic, onEndCallback) {
       stopSpeakingQuestion();
       if (isRecording || isStartingRecording) {
         stopRecording(true);
+      }
+
+      if (isMobileBrowser()) {
+        releaseMicStream();
       }
 
       const myTtsSession = ++speechTtsSessionId;
@@ -7072,7 +7162,10 @@
         return;
       }
 
-      const text = (topic && topic.title) ? topic.title.trim() : '';
+      const rawTitle = (topic && topic.title) ? topic.title.trim() : '';
+      const text = (typeof cleanTextForAnnouncerTTS === 'function')
+        ? cleanTextForAnnouncerTTS(rawTitle)
+        : rawTitle;
       if (!text) {
         if (onEndCallback) onEndCallback();
         return;
@@ -7095,7 +7188,7 @@
       const recDot = document.getElementById('recDot');
 
       if (btnRecord) btnRecord.classList.add('waiting-voice');
-      if (btnRecordText) btnRecordText.textContent = '⏳ 질문 음성 재생 중...';
+      if (btnRecordText) btnRecordText.textContent = '⏳ 질문 음성 재생 중... (클릭 시 즉시 녹음)';
       if (statusNotice) statusNotice.textContent = '🔊 면접관 질문 음성 재생 중입니다... (음성이 끝나면 답변 녹음이 자동 시작됩니다)';
       if (recDot) recDot.style.background = '#38bdf8';
 
@@ -7103,48 +7196,54 @@
       const handleFinish = () => {
         if (finished || myTtsSession !== speechTtsSessionId) return;
         finished = true;
+        if (ttsWatchdogTimer) {
+          clearInterval(ttsWatchdogTimer);
+          ttsWatchdogTimer = null;
+        }
         isSpeakingQuestion = false;
         questionUtterance = null;
+        window._activeQuestionUtterance = null;
 
         if (qTitle) qTitle.classList.remove('speaking');
         if (speakBtn) speakBtn.classList.remove('speaking');
         if (speakText) speakText.textContent = '🔊 질문 다시 듣기';
         if (btnRecord) btnRecord.classList.remove('waiting-voice');
+        if (btnRecordText && !isRecording) btnRecordText.textContent = '답변 녹음 시작 (STT)';
 
         if (onEndCallback) {
-          // TTS 오디오 출력이 완전히 해제된 직후 마이크 음성인식이 시작되도록 120ms 여유 부여
           setTimeout(() => {
             if (myTtsSession === speechTtsSessionId) {
               onEndCallback();
             }
-          }, 120);
+          }, 150);
         }
       };
 
-      // Chrome에서 speechSynthesis.cancel() 직후 같은 틱에 speak() 호출 시 씹히는 현상 방지 (60ms 지연)
-      speakStartTimer = setTimeout(() => {
-        speakStartTimer = null;
-        if (myTtsSession !== speechTtsSessionId) return;
+      const buildAndSpeakUtterance = () => {
+        if (myTtsSession !== speechTtsSessionId || finished) return null;
+        try {
+          if (window.speechSynthesis.paused) {
+            window.speechSynthesis.resume();
+          }
+        } catch (e) {}
 
         const utterance = new SpeechSynthesisUtterance(text);
         utterance.lang = 'ko-KR';
-        utterance.rate = 1.0;
+        utterance.rate = 1.03;
         utterance.pitch = 1.0;
 
-        const voices = window.speechSynthesis.getVoices();
-        const koVoice = voices.find(v => v.lang === 'ko-KR' || v.lang === 'ko_KR' || (v.lang && v.lang.startsWith('ko')));
+        const koVoice = getKoreanVoice();
         if (koVoice) {
           utterance.voice = koVoice;
         }
 
         questionUtterance = utterance;
+        window._activeQuestionUtterance = utterance;
+
         utterance.onend = handleFinish;
         utterance.onerror = (e) => {
           if (myTtsSession !== speechTtsSessionId) return;
-          if (e && (e.error === 'canceled' || e.error === 'interrupted')) {
-            return;
-          }
-          console.warn('SpeechSynthesis error:', e);
+          console.warn('SpeechSynthesis error:', e ? e.error : e);
           handleFinish();
         };
 
@@ -7154,29 +7253,71 @@
           console.warn('SpeechSynthesis speak failed:', err);
           handleFinish();
         }
-      }, 60);
+        return utterance;
+      };
+
+      buildAndSpeakUtterance();
+
+      const startTickMs = Date.now();
+      const maxDurationMs = Math.min(24000, Math.max(7000, text.length * 220));
+      let startedSpeaking = false;
+      let retriedSpeak = false;
+
+      ttsWatchdogTimer = setInterval(() => {
+        if (myTtsSession !== speechTtsSessionId || finished) {
+          clearInterval(ttsWatchdogTimer);
+          ttsWatchdogTimer = null;
+          return;
+        }
+        const elapsed = Date.now() - startTickMs;
+
+        try {
+          if (window.speechSynthesis.paused) {
+            window.speechSynthesis.resume();
+          }
+        } catch (e) {}
+
+        if (window.speechSynthesis.speaking) {
+          startedSpeaking = true;
+        } else if (startedSpeaking && !window.speechSynthesis.speaking && !window.speechSynthesis.pending) {
+          handleFinish();
+          return;
+        } else if (!startedSpeaking && elapsed >= 380 && !retriedSpeak) {
+          retriedSpeak = true;
+          buildAndSpeakUtterance();
+        } else if (!startedSpeaking && elapsed >= 1800) {
+          handleFinish();
+          return;
+        }
+
+        if (elapsed >= maxDurationMs) {
+          handleFinish();
+        }
+      }, 140);
     }
 
     // 질문 다시 듣기 (수동 버튼)
     function replayQuestionVoice() {
-      ensureMicStream();
       if (isSpeakingQuestion) {
         stopSpeakingQuestion();
-        showToast('질문 음성을 중단했습니다.');
+        showToast('⏹️ 질문 음성을 중단했습니다.');
         return;
       }
       const topic = currentTopics.find(t => t.id === interviewCurrentTopicId);
       if (!topic) return;
 
-      showToast('🔊 질문 음성을 재생합니다. 끝나면 녹음이 자동 시작됩니다.');
+      showToast(autoVoiceAndRecordEnabled
+        ? '🔊 질문 음성을 재생합니다. 끝나면 녹음이 자동 시작됩니다.'
+        : '🔊 질문 음성을 재생합니다.');
       speakInterviewQuestion(topic, () => {
-        startRecording();
+        if (autoVoiceAndRecordEnabled) {
+          startRecording();
+        }
       });
     }
 
     // 5. 랜덤 문항 출제
     function pickRandomInterviewTopic(autoVoice = true) {
-      if (autoVoice) ensureMicStream();
       const pool = getFilteredInterviewPool();
       if (pool.length === 0) {
         showToast('해당 조건의 문항이 없습니다.');
@@ -7199,7 +7340,6 @@
 
     // 6. 이전/다음 문항 이동
     function navigateInterviewTopic(direction) {
-      ensureMicStream();
       const pool = getFilteredInterviewPool();
       if (pool.length === 0) return;
 
@@ -7385,6 +7525,8 @@
       isRecording = true;
       isStartingRecording = false;
 
+      playStartBeep();
+
       if (btn) {
         btn.classList.remove('waiting-voice');
         btn.classList.add('recording');
@@ -7403,11 +7545,66 @@
         updateTimerDisplay(recSeconds);
       }, 250);
 
-      // 2) 브라우저 SpeechRecognition (STT) 먼저 즉시 시작 (비동기 스트림 대기로 인해 STT가 누락되는 현상 방지)
+      const mobileMode = isMobileBrowser();
+
+      const startMediaRecorderCapture = async () => {
+        if (!isRecording || myRecSession !== recordingSessionId) return false;
+        let stream = await ensureMicStream(false);
+        if (!stream) {
+          stream = await ensureMicStream(true);
+        }
+        if (!isRecording || myRecSession !== recordingSessionId || !stream || !window.MediaRecorder) return false;
+
+        currentAudioChunks = [];
+        const tryStartTopRecorder = (targetStream) => {
+          if (mediaRecorder && mediaRecorder.state !== 'inactive') {
+            try { mediaRecorder.stop(); } catch (e) {}
+          }
+          const mr = new MediaRecorder(targetStream);
+          mr.ondataavailable = (e) => {
+            if (e.data && e.data.size > 0) {
+              currentAudioChunks.push(e.data);
+            }
+          };
+          mr.start();
+          mediaRecorder = mr;
+        };
+
+        try {
+          tryStartTopRecorder(stream);
+          return true;
+        } catch (err1) {
+          console.warn('MediaRecorder start error, retrying with fresh stream:', err1);
+          const freshStream = await ensureMicStream(true);
+          if (freshStream && isRecording && myRecSession === recordingSessionId) {
+            try {
+              tryStartTopRecorder(freshStream);
+              return true;
+            } catch (err2) {
+              console.warn('MediaRecorder retry failed:', err2);
+              mediaRecorder = null;
+            }
+          }
+          return false;
+        }
+      };
+
+      if (!mobileMode) {
+        await startMediaRecorderCapture();
+        if (!isRecording || myRecSession !== recordingSessionId) return;
+      } else {
+        releaseMicStream();
+      }
+
+      // 2) 브라우저 SpeechRecognition (STT) 시작 (모바일 무한 루프 방지 가드 포함)
       const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
       if (SpeechRecognition) {
+        let sttFatalError = false;
+        let sttQuickFailCount = 0;
+        let lastSttStartMs = 0;
+
         const launchInterviewStt = () => {
-          if (!isRecording || myRecSession !== recordingSessionId) return;
+          if (!isRecording || myRecSession !== recordingSessionId || sttFatalError) return;
           try {
             if (recognition) {
               try {
@@ -7431,11 +7628,13 @@
             const rec = new SpeechRecognition();
             recognition = rec;
             rec.lang = 'ko-KR';
-            rec.continuous = true;
+            rec.continuous = !mobileMode;
             rec.interimResults = true;
+            lastSttStartMs = Date.now();
 
             rec.onresult = (event) => {
               if (!isRecording || myRecSession !== recordingSessionId) return;
+              sttQuickFailCount = 0;
               let interim = '';
               for (let i = event.resultIndex; i < event.results.length; ++i) {
                 if (event.results[i].isFinal) {
@@ -7459,72 +7658,62 @@
             rec.onerror = (event) => {
               console.warn('SpeechRecognition error:', event.error);
               if (event.error === 'not-allowed' || event.error === 'service-not-allowed') {
-                showToast('⚠️ 마이크 및 음성인식 권한을 허용해주세요.');
-                stopRecording(true);
+                sttFatalError = true;
+                if (mobileMode) {
+                  const noticeEl = document.getElementById('recStatusNotice');
+                  if (noticeEl) {
+                    noticeEl.textContent = 'ℹ️ 모바일 보안 정책상 자동 음성인식이 대기되었습니다. [⏹️ 종료] 후 [답변 녹음 시작]을 직접 한 번 탭하거나 키보드 마이크🎙️를 사용해주세요.';
+                  }
+                } else {
+                  showToast('⚠️ 마이크 및 음성인식 권한을 허용해주세요.');
+                  stopRecording(true);
+                }
+              } else if (event.error === 'audio-capture' || event.error === 'aborted') {
+                sttQuickFailCount++;
+                if (mobileMode && sttQuickFailCount >= 2) {
+                  sttFatalError = true;
+                  startMediaRecorderCapture();
+                }
               }
             };
 
             rec.onend = () => {
-              if (isRecording && myRecSession === recordingSessionId) {
-                setTimeout(() => {
-                  if (isRecording && myRecSession === recordingSessionId) {
-                    launchInterviewStt();
-                  }
-                }, 140);
+              if (!isRecording || myRecSession !== recordingSessionId || sttFatalError) return;
+              const runDuration = Date.now() - lastSttStartMs;
+              if (runDuration < 350) {
+                sttQuickFailCount++;
+              } else {
+                sttQuickFailCount = 0;
               }
+              if (mobileMode && sttQuickFailCount >= 3) {
+                sttFatalError = true;
+                startMediaRecorderCapture();
+                return;
+              }
+              setTimeout(() => {
+                if (isRecording && myRecSession === recordingSessionId && !sttFatalError) {
+                  launchInterviewStt();
+                }
+              }, mobileMode ? 260 : 140);
             };
 
             rec.start();
           } catch (e) {
             console.warn('Recognition start failed, retrying:', e);
-            setTimeout(() => {
-              if (isRecording && myRecSession === recordingSessionId) {
-                launchInterviewStt();
-              }
-            }, 250);
+            sttQuickFailCount++;
+            if (sttQuickFailCount < 3) {
+              setTimeout(() => {
+                if (isRecording && myRecSession === recordingSessionId && !sttFatalError) {
+                  launchInterviewStt();
+                }
+              }, 250);
+            }
           }
         };
 
         launchInterviewStt();
-      }
-
-      // 3) 마이크 오디오 스트림 확보 및 MediaRecorder 시작 (실패 시 새 스트림 재시도)
-      let stream = await ensureMicStream(false);
-      if (!stream) {
-        stream = await ensureMicStream(true);
-      }
-      if (!isRecording || myRecSession !== recordingSessionId) return;
-
-      currentAudioChunks = [];
-      if (stream && window.MediaRecorder) {
-        const tryStartTopRecorder = (targetStream) => {
-          if (mediaRecorder && mediaRecorder.state !== 'inactive') {
-            try { mediaRecorder.stop(); } catch (e) {}
-          }
-          const mr = new MediaRecorder(targetStream);
-          mr.ondataavailable = (e) => {
-            if (e.data && e.data.size > 0) {
-              currentAudioChunks.push(e.data);
-            }
-          };
-          mr.start();
-          mediaRecorder = mr;
-        };
-
-        try {
-          tryStartTopRecorder(stream);
-        } catch (err1) {
-          console.warn('MediaRecorder start error, retrying with fresh stream:', err1);
-          const freshStream = await ensureMicStream(true);
-          if (freshStream && isRecording && myRecSession === recordingSessionId) {
-            try {
-              tryStartTopRecorder(freshStream);
-            } catch (err2) {
-              console.warn('MediaRecorder retry failed:', err2);
-              mediaRecorder = null;
-            }
-          }
-        }
+      } else if (mobileMode) {
+        await startMediaRecorderCapture();
       }
     }
 
@@ -7575,14 +7764,23 @@
           const mimeType = recorderToStop.mimeType || 'audio/webm';
           recorderToStop.onstop = () => {
             const blob = currentAudioChunks.length > 0 ? new Blob(currentAudioChunks, { type: mimeType }) : null;
+            if (isMobileBrowser()) {
+              releaseMicStream();
+            }
             resolve(blob);
           };
           try {
             recorderToStop.stop();
           } catch (e) {
+            if (isMobileBrowser()) {
+              releaseMicStream();
+            }
             resolve(null);
           }
         } else {
+          if (isMobileBrowser()) {
+            releaseMicStream();
+          }
           resolve(currentAudioBlob);
         }
       });
@@ -9030,11 +9228,14 @@
     let currentLectureUtterance = null;
     let playingLectureTopicId = null;
     let playingLectureMode = null; // 'learn' | 'int'
+    let currentChunkedTtsSessionId = 0;
+    let currentChunkedTtsTimer = null;
+    let currentChunkedTtsResolve = null;
 
     // 아나운서 TTS 발음 최적화 및 괄호 영문 완전 정제 함수
     function cleanTextForAnnouncerTTS(rawText) {
       if (!rawText) return '';
-      let text = rawText;
+      let text = String(rawText);
 
       // 1. HTML 태그 제거
       text = text.replace(/<[^>]+>/g, ' ');
@@ -9050,12 +9251,12 @@
         'NTD', 'OAI', 'PSM', 'RET', 'UHV', 'CNT', 'CTE', 'PECVD', 'HF', 'LF', 'RF',
         'SEG', 'SCE', 'SILC', 'TLC', 'QLC', 'MLC', 'SLC', 'MR-MUF', 'NCF', 'TCB', 'EMC',
         'SOH', 'ACL', 'STI', 'ILD', 'IMD', '1T-1C', '1T1C', 'MAC', 'TCO', 'EOT', 'CD',
-        'NA', 'SOP', 'SPC', 'FMEA', 'OOC', 'OOS', 'IP', 'PIR', 'HDP', 'TEOS', 'BL', 'WL'
+        'NA', 'SOP', 'SPC', 'FMEA', 'OOC', 'OOS', 'IP', 'PIR', 'HDP', 'TEOS', 'BL', 'WL',
+        'ONO', 'FinFET', 'MOSFET', 'HKMG', 'DIBL', 'BTBT', 'TAT'
       ]);
 
       text = text.replace(/\(([^()]+)\)/g, (match, inner) => {
         const trimmed = inner.trim();
-        // 만약 보존할 약어에 속하면 괄호를 벗겨서 단어만 남김
         if (keepAcronymsSet.has(trimmed)) {
           return ' ' + trimmed + ' ';
         }
@@ -9067,124 +9268,143 @@
         return ' ';
       });
 
-      // 3. 발음 및 수식·단위 친화적 한글 치환 사전
+      // 3. 발음 및 수식·단위 친화적 한글 치환 사전 (긴 단어 우선 + 단어 경계 \b 적용으로 부분 문자열 오치환 방지)
       const phonetics = [
-        [/1T-1C|1T1C/gi, '원티 원씨'],
-        [/SiO2/g, '에스아이오투'],
-        [/Si3N4/g, '에스아이쓰리엔포'],
-        [/Al2O3/g, '알루미나'],
-        [/ZrO2/g, '지르코니아'],
-        [/TiN/g, '질화티타늄'],
-        [/TaN/g, '질화탄탈륨'],
-        [/Ta/g, '탄탈륨'],
-        [/Ti/g, '티타늄'],
-        [/Ru/g, '루테늄'],
-        [/Mo/g, '몰리브덴'],
-        [/Sn/g, '주석'],
-        [/SiGe/g, '실리콘 게르마늄'],
-        [/eSiGe/g, '임베디드 실리콘 게르마늄'],
-        [/HfO2/g, '하프니아'],
-        [/SnH4/g, '스타난'],
-        [/CuClx|CuCl/g, '염화구리'],
-        [/AlCl3/g, '염화알루미늄'],
-        [/NF3/g, '삼불화질소'],
-        [/CF4/g, '사불화탄소'],
-        [/C4F8/g, '옥타플루오로사이클로부탄'],
-        [/SF6/g, '육불화황'],
-        [/WF6/g, '육불화텅스텐'],
-        [/SiH4/g, '실란'],
-        [/NH3/g, '암모니아'],
-        [/H2O2/g, '과산화수소'],
-        [/H2SO4/g, '황산'],
-        [/HCl/g, '염산'],
-        [/HF/g, '불산'],
-        [/IPA/g, '아이피에이'],
-        [/MR-MUF/g, '엠알 엠유에프'],
-        [/NCF/g, '엔씨에프'],
-        [/TCB/g, '티씨비'],
-        [/EMC/g, '이엠씨'],
-        [/BSPDN/g, '비에스피디엔'],
-        [/HARC/g, '하크'],
-        [/BARC/g, '바크'],
-        [/GAA/g, '지에이에이'],
-        [/MIM/g, '엠아이엠'],
-        [/ZAZ/g, '지에이지'],
-        [/TSV/g, '티에스브이'],
-        [/HBM/g, '에이치비엠'],
-        [/CTF/g, '씨티에프'],
-        [/BLSA/g, '비엘에스에이'],
-        [/PUC/g, '피유씨'],
-        [/COP/g, '씨오피'],
-        [/CXL/g, '씨엑스엘'],
-        [/PIM/g, '피아이엠'],
-        [/PNM/g, '피엔엠'],
-        [/ISPP/g, '아이에스피피'],
-        [/LDPC/g, '엘디피씨'],
-        [/ECC/g, '이씨씨'],
-        [/GIDL/g, '지아이디엘'],
-        [/TRR/g, '티알알'],
-        [/BCAT/g, '비캣'],
-        [/VCT/g, '브이씨티'],
-        [/EM/g, '이엠'],
-        [/RIE/g, '알아이이'],
-        [/ECD/g, '이씨디'],
-        [/CMP/g, '씨엠피'],
-        [/PEB/g, '피이비'],
-        [/PAG/g, '피에이지'],
-        [/CAR/g, '씨에이알'],
-        [/MOR/g, '엠오알'],
-        [/LER/g, '엘이알'],
-        [/LWR/g, '엘더블유알'],
-        [/NTD/g, '엔티디'],
-        [/OAI/g, '오에이아이'],
-        [/PSM/g, '피에스엠'],
-        [/RET/g, '알이티'],
-        [/UHV/g, '초고진공'],
-        [/CNT/g, '탄소나노튜브'],
-        [/CTE/g, '열팽창계수'],
-        [/PECVD/g, '피이씨브이디'],
-        [/LPP/g, '엘피피'],
-        [/DoF|DOF/g, '초점심도'],
-        [/EL/g, '노광 관용도'],
-        [/NA/g, '엔에이'],
-        [/CD/g, '씨디'],
-        [/EOT/g, '이오티'],
-        [/tRET/g, '티알이티'],
-        [/SRH/g, '에스알에이치'],
-        [/MAC/g, '맥'],
-        [/ALU/g, '에이엘유'],
-        [/TCO/g, '티씨오'],
-        [/PCIe/g, '피씨아이이'],
-        [/LLM/g, '엘엘엠'],
-        [/NPU/g, '엔피유'],
-        [/GPU/g, '지피유'],
-        [/CPU/g, '씨피유'],
-        [/DRAM/g, '디램'],
-        [/NAND/g, '낸드'],
-        [/ALD/g, '에이엘디'],
-        [/CVD/g, '씨브이디'],
-        [/PVD/g, '피브이디'],
-        [/EUV/g, '이유브이'],
-        [/ICP/g, '아이씨피'],
-        [/PR/g, '피알'],
-        [/RF/g, '알에프'],
-        [/HF/g, '고주파'],
-        [/LF/g, '저주파'],
-        [/TLC/g, '티엘씨'],
-        [/QLC/g, '큐엘씨'],
-        [/MLC/g, '엠엘씨'],
-        [/SLC/g, '에스엘씨'],
-        [/SOH/g, '에스오에이치'],
-        [/ACL/g, '에이씨엘'],
-        [/STI/g, '에스티아이'],
-        [/ILD/g, '아이엘디'],
-        [/IMD/g, '아이엠디'],
-        [/SOP/g, '에스오피'],
-        [/fF/g, '펨토패럿'],
-        [/nm/g, '나노미터'],
-        [/µm|μm/g, '마이크로미터'],
+        [/\b1T-1C\b|\b1T1C\b/gi, '원티 원씨'],
+        [/\bMR-MUF\b/g, '엠알 엠유에프'],
+        [/\beSiGe\b/g, '임베디드 실리콘 게르마늄'],
+        [/\bSiGe\b/g, '실리콘 게르마늄'],
+        [/\bSiO2\b/g, '에스아이오투'],
+        [/\bSi3N4\b/g, '에스아이쓰리엔포'],
+        [/\bAl2O3\b/g, '알루미나'],
+        [/\bZrO2\b/g, '지르코니아'],
+        [/\bHfO2\b/g, '하프니아'],
+        [/\bSnH4\b/g, '스타난'],
+        [/\bCuClx\b|\bCuCl\b/g, '염화구리'],
+        [/\bAlCl3\b/g, '염화알루미늄'],
+        [/\bC4F8\b/g, '옥타플루오로사이클로부탄'],
+        [/\bH2SO4\b/g, '황산'],
+        [/\bH2O2\b/g, '과산화수소'],
+        [/\bSiH4\b/g, '실란'],
+        [/\bNF3\b/g, '삼불화질소'],
+        [/\bCF4\b/g, '사불화탄소'],
+        [/\bSF6\b/g, '육불화황'],
+        [/\bWF6\b/g, '육불화텅스텐'],
+        [/\bNH3\b/g, '암모니아'],
+        [/\bHCl\b/g, '염산'],
+        [/\bTiN\b/g, '질화티타늄'],
+        [/\bTaN\b/g, '질화탄탈륨'],
+        [/\bPECVD\b/g, '피이씨브이디'],
+        [/\bBSPDN\b/g, '비에스피디엔'],
+        [/\bFinFET\b/gi, '핀펫'],
+        [/\bMOSFET\b/gi, '모스펫'],
+        [/\bHKMG\b/g, '에이치케이엠지'],
+        [/\bHARC\b/g, '하크'],
+        [/\bBARC\b/g, '바크'],
+        [/\bDRAM\b/g, '디램'],
+        [/\bNAND\b/g, '낸드'],
+        [/\bBLSA\b/g, '비엘에스에이'],
+        [/\bISPP\b/g, '아이에스피피'],
+        [/\bLDPC\b/g, '엘디피씨'],
+        [/\bGIDL\b/g, '지아이디엘'],
+        [/\bDIBL\b/g, '디아이비엘'],
+        [/\bBTBT\b/g, '비티비티'],
+        [/\bSILC\b/g, '실크'],
+        [/\bBCAT\b/g, '비캣'],
+        [/\bPCIe\b/g, '피씨아이이'],
+        [/\btRET\b/g, '티알이티'],
+        [/\bTEOS\b/g, '테오스'],
+        [/\bFMEA\b/g, '에프엠이에이'],
+        [/\bO\/ONO\b/g, '오 오엔오'],
+        [/\bONO\b/g, '오엔오'],
+        [/\bIPA\b/g, '아이피에이'],
+        [/\bNCF\b/g, '엔씨에프'],
+        [/\bTCB\b/g, '티씨비'],
+        [/\bEMC\b/g, '이엠씨'],
+        [/\bGAA\b/g, '지에이에이'],
+        [/\bMIM\b/g, '엠아이엠'],
+        [/\bZAZ\b/g, '지에이지'],
+        [/\bTSV\b/g, '티에스브이'],
+        [/\bHBM\b/g, '에이치비엠'],
+        [/\bCTF\b/g, '씨티에프'],
+        [/\bPUC\b/g, '피유씨'],
+        [/\bCOP\b/g, '씨오피'],
+        [/\bCXL\b/g, '씨엑스엘'],
+        [/\bPIM\b/g, '피아이엠'],
+        [/\bPNM\b/g, '피엔엠'],
+        [/\bECC\b/g, '이씨씨'],
+        [/\bTRR\b/g, '티알알'],
+        [/\bVCT\b/g, '브이씨티'],
+        [/\bRIE\b/g, '알아이이'],
+        [/\bECD\b/g, '이씨디'],
+        [/\bCMP\b/g, '씨엠피'],
+        [/\bPEB\b/g, '피이비'],
+        [/\bPAG\b/g, '피에이지'],
+        [/\bCAR\b/g, '씨에이알'],
+        [/\bMOR\b/g, '엠오알'],
+        [/\bLER\b/g, '엘이알'],
+        [/\bLWR\b/g, '엘더블유알'],
+        [/\bNTD\b/g, '엔티디'],
+        [/\bOAI\b/g, '오에이아이'],
+        [/\bPSM\b/g, '피에스엠'],
+        [/\bRET\b/g, '알이티'],
+        [/\bUHV\b/g, '초고진공'],
+        [/\bCNT\b/g, '탄소나노튜브'],
+        [/\bCTE\b/g, '열팽창계수'],
+        [/\bLPP\b/g, '엘피피'],
+        [/\bDoF\b|\bDOF\b/g, '초점심도'],
+        [/\bEOT\b/g, '이오티'],
+        [/\bSRH\b/g, '에스알에이치'],
+        [/\bTAT\b/g, '티에이티'],
+        [/\bMAC\b/g, '맥'],
+        [/\bALU\b/g, '에이엘유'],
+        [/\bTCO\b/g, '티씨오'],
+        [/\bLLM\b/g, '엘엘엠'],
+        [/\bNPU\b/g, '엔피유'],
+        [/\bGPU\b/g, '지피유'],
+        [/\bCPU\b/g, '씨피유'],
+        [/\bALD\b/g, '에이엘디'],
+        [/\bCVD\b/g, '씨브이디'],
+        [/\bPVD\b/g, '피브이디'],
+        [/\bEUV\b/g, '이유브이'],
+        [/\bICP\b/g, '아이씨피'],
+        [/\bTLC\b/g, '티엘씨'],
+        [/\bQLC\b/g, '큐엘씨'],
+        [/\bMLC\b/g, '엠엘씨'],
+        [/\bSLC\b/g, '에스엘씨'],
+        [/\bSOH\b/g, '에스오에이치'],
+        [/\bACL\b/g, '에이씨엘'],
+        [/\bSTI\b/g, '에스티아이'],
+        [/\bILD\b/g, '아이엘디'],
+        [/\bIMD\b/g, '아이엠디'],
+        [/\bSOP\b/g, '에스오피'],
+        [/\bSPC\b/g, '에스피씨'],
+        [/\bOOC\b/g, '오오씨'],
+        [/\bOOS\b/g, '오오에스'],
+        [/\bPIR\b/g, '피아이알'],
+        [/\bHDP\b/g, '에이치디피'],
+        [/\bSEG\b/g, '에스이지'],
+        [/\bSCE\b/g, '단채널 효과'],
+        [/\bTa\b/g, '탄탈륨'],
+        [/\bTi\b/g, '티타늄'],
+        [/\bRu\b/g, '루테늄'],
+        [/\bMo\b/g, '몰리브덴'],
+        [/\bSn\b/g, '주석'],
+        [/\bEM\b/g, '이엠'],
+        [/\bEL\b/g, '노광 관용도'],
+        [/\bNA\b/g, '엔에이'],
+        [/\bCD\b/g, '씨디'],
+        [/\bPR\b/g, '피알'],
+        [/\bRF\b/g, '알에프'],
+        [/\bHF\b/g, '불산'],
+        [/\bLF\b/g, '저주파'],
+        [/\bBL\b/g, '비트라인'],
+        [/\bWL\b/g, '워드라인'],
         [/MV\/cm/g, '메가볼트 퍼 센티미터'],
-        [/eV/g, '일렉트론볼트'],
+        [/\bfF\b/g, '펨토패럿'],
+        [/\bnm\b/g, '나노미터'],
+        [/µm|μm/g, '마이크로미터'],
+        [/\beV\b/g, '일렉트론볼트'],
         [/℃/g, '도'],
         [/≈/g, '약 '],
         [/~/g, '에서 '],
@@ -9201,13 +9421,226 @@
       return text;
     }
 
+    // 장문 TTS가 PC/모바일(Chrome 15초 끊김, iOS/Android onend 누락)에서 멈추지 않도록 문장 단위로 분할
+    function splitTextIntoTTSChunks(text, maxLen = 135) {
+      if (!text) return [];
+      const rawSentences = text
+        .replace(/([.!?。！？])\s+/g, '$1\n')
+        .split(/\n+/)
+        .map(s => s.trim())
+        .filter(Boolean);
+
+      const chunks = [];
+      let current = '';
+
+      const pushLongSentence = (sentence) => {
+        const subParts = sentence.split(/(,\s*|\s+및\s+|\s+그리고\s+|\s+또한\s+|\s+반면\s+)/);
+        let subBuf = '';
+        for (const part of subParts) {
+          if ((subBuf + part).length > maxLen && subBuf.trim().length > 0) {
+            chunks.push(subBuf.trim());
+            subBuf = part;
+          } else {
+            subBuf += part;
+          }
+        }
+        if (subBuf.trim().length > 0) {
+          const rem = subBuf.trim();
+          if (rem.length <= maxLen) {
+            chunks.push(rem);
+          } else {
+            for (let i = 0; i < rem.length; i += maxLen) {
+              chunks.push(rem.slice(i, i + maxLen).trim());
+            }
+          }
+        }
+      };
+
+      for (const sent of rawSentences) {
+        if (sent.length > maxLen) {
+          if (current.trim().length > 0) {
+            chunks.push(current.trim());
+            current = '';
+          }
+          pushLongSentence(sent);
+        } else if ((current + ' ' + sent).trim().length > maxLen) {
+          if (current.trim().length > 0) chunks.push(current.trim());
+          current = sent;
+        } else {
+          current = current ? (current + ' ' + sent) : sent;
+        }
+      }
+      if (current.trim().length > 0) {
+        chunks.push(current.trim());
+      }
+      return chunks.filter(Boolean);
+    }
+
+    // 진행 중인 분할 TTS 세션 강제 종료
+    function cancelChunkedTTS() {
+      currentChunkedTtsSessionId++;
+      if (currentChunkedTtsTimer) {
+        clearInterval(currentChunkedTtsTimer);
+        currentChunkedTtsTimer = null;
+      }
+      if ('speechSynthesis' in window) {
+        try {
+          window.speechSynthesis.cancel();
+        } catch (e) {}
+      }
+      window._activeChunkUtterance = null;
+      if (currentChunkedTtsResolve) {
+        const res = currentChunkedTtsResolve;
+        currentChunkedTtsResolve = null;
+        res(false);
+      }
+    }
+
+    // PC & 모바일 완벽 호환 문장 분할 + 워치독(Watchdog) 비동기 TTS 재생기
+    async function speakChunkedTTSAsync(cleanText, options = {}) {
+      if (!cleanText || !('speechSynthesis' in window)) {
+        await new Promise(r => setTimeout(r, 1200));
+        return false;
+      }
+
+      cancelChunkedTTS();
+      const sessionId = ++currentChunkedTtsSessionId;
+      const rate = options.rate || 1.04;
+      const pitch = options.pitch || 1.0;
+      const chunks = splitTextIntoTTSChunks(cleanText, 135);
+      if (chunks.length === 0) return false;
+
+      // 이전 cancel() IPC가 새 speak()를 삼키지 않도록 짧게 대기
+      await new Promise(r => setTimeout(r, 45));
+      if (sessionId !== currentChunkedTtsSessionId) return false;
+
+      const koVoice = (typeof getKoreanVoice === 'function')
+        ? getKoreanVoice()
+        : (window.speechSynthesis.getVoices().find(v => v.lang && v.lang.toLowerCase().startsWith('ko')) || null);
+
+      for (let i = 0; i < chunks.length; i++) {
+        if (sessionId !== currentChunkedTtsSessionId) return false;
+        const chunkText = chunks[i];
+        const ok = await new Promise((resolve) => {
+          currentChunkedTtsResolve = resolve;
+          let settled = false;
+          let started = false;
+          let retried = false;
+          const startTime = Date.now();
+          const maxDurationMs = Math.max(8000, chunkText.length * 260);
+
+          const finishChunk = (result) => {
+            if (settled) return;
+            settled = true;
+            if (currentChunkedTtsTimer) {
+              clearInterval(currentChunkedTtsTimer);
+              currentChunkedTtsTimer = null;
+            }
+            if (currentChunkedTtsResolve === resolve) {
+              currentChunkedTtsResolve = null;
+            }
+            resolve(result);
+          };
+
+          const utterance = new SpeechSynthesisUtterance(chunkText);
+          utterance.lang = 'ko-KR';
+          utterance.rate = rate;
+          utterance.pitch = pitch;
+          if (koVoice) utterance.voice = koVoice;
+
+          // GC 수거 방지용 전역 참조 유지
+          window._activeChunkUtterance = utterance;
+          currentLectureUtterance = utterance;
+          apCurrentUtterance = utterance;
+
+          utterance.onstart = () => {
+            started = true;
+          };
+          utterance.onend = () => {
+            finishChunk(true);
+          };
+          utterance.onerror = (e) => {
+            if (e && (e.error === 'interrupted' || e.error === 'canceled')) {
+              finishChunk(false);
+              return;
+            }
+            console.warn('TTS chunk error:', e ? e.error : e);
+            finishChunk(true);
+          };
+
+          try {
+            if (window.speechSynthesis.paused) {
+              window.speechSynthesis.resume();
+            }
+            window.speechSynthesis.speak(utterance);
+          } catch (err) {
+            console.warn('TTS speak exception:', err);
+            finishChunk(true);
+            return;
+          }
+
+          // 워치독 타이머: Chrome 15초 일시정지 버그 깨우기 & 모바일 onend 누락 감지
+          currentChunkedTtsTimer = setInterval(() => {
+            if (sessionId !== currentChunkedTtsSessionId) {
+              finishChunk(false);
+              return;
+            }
+            const elapsed = Date.now() - startTime;
+            const synth = window.speechSynthesis;
+
+            if (synth.speaking) {
+              started = true;
+              // Chrome 데스크톱/안드로이드 장문 일시정지 방지
+              if (synth.paused) {
+                try { synth.resume(); } catch (e) {}
+              }
+            } else if (started && !synth.pending && elapsed > 450) {
+              // 발화가 시작되었다가 speaking/pending이 모두 끝났는데 onend가 안 불린 경우
+              finishChunk(true);
+              return;
+            } else if (!started && !synth.pending && elapsed > 1400 && !retried) {
+              // 첫 speak()가 브라우저 큐에서 무시된 경우 1회 재시도
+              retried = true;
+              try {
+                synth.cancel();
+                setTimeout(() => {
+                  if (!settled && sessionId === currentChunkedTtsSessionId) {
+                    synth.speak(utterance);
+                  }
+                }, 60);
+              } catch (e) {}
+            } else if (!started && !synth.pending && elapsed > 3200) {
+              // 재시도 후에도 음성 엔진이 응답하지 않으면 다음 문장으로 진행
+              finishChunk(true);
+              return;
+            }
+
+            if (elapsed > maxDurationMs) {
+              try { synth.cancel(); } catch (e) {}
+              finishChunk(true);
+            }
+          }, 140);
+        });
+
+        if (!ok || sessionId !== currentChunkedTtsSessionId) {
+          return false;
+        }
+      }
+      return true;
+    }
+
     // 심화해설 음성(TTS) 토글 재생
-    function toggleLectureVoice(topicId, mode = 'learn') {
-      // 1. 이미 재생 중인 경우
-      if (currentLectureUtterance && playingLectureTopicId === topicId) {
+    async function toggleLectureVoice(topicId, mode = 'learn') {
+      // 1. 이미 동일 문항 해설 재생 중인 경우 중지
+      if (playingLectureTopicId === topicId) {
         stopLectureVoice();
         showToast('⏹️ 심화해설 음성 재생을 중단했습니다.');
         return;
+      }
+
+      // 연속 자동 듣기 플레이어가 재생 중이면 일시정지
+      if (typeof apIsPlaying !== 'undefined' && apIsPlaying && typeof pauseAutoPlayer === 'function') {
+        pauseAutoPlayer();
       }
 
       // 다른 음성(질문 음성 등)이 돌고 있으면 모두 중지
@@ -9233,19 +9666,6 @@
         return;
       }
 
-      const utterance = new SpeechSynthesisUtterance(cleanText);
-      utterance.lang = 'ko-KR';
-      utterance.rate = 1.05; // 전문 아나운서 호흡 속도
-      utterance.pitch = 1.0;
-
-      // 한국어 음성 탐색
-      const voices = window.speechSynthesis.getVoices();
-      const koVoice = voices.find(v => v.lang === 'ko-KR' || v.lang === 'ko_KR' || (v.lang && v.lang.startsWith('ko')));
-      if (koVoice) {
-        utterance.voice = koVoice;
-      }
-
-      currentLectureUtterance = utterance;
       playingLectureTopicId = topicId;
       playingLectureMode = mode;
 
@@ -9253,32 +9673,28 @@
       updateLectureVoiceButtonUi(topicId, mode, true);
       showToast('🔊 아나운서 심화해설 음성을 재생합니다.');
 
-      utterance.onend = () => {
-        stopLectureVoice();
-      };
-      utterance.onerror = (e) => {
-        console.warn('SpeechSynthesis lecture error:', e);
-        stopLectureVoice();
-      };
-
-      try {
-        window.speechSynthesis.speak(utterance);
-      } catch (err) {
-        console.warn('SpeechSynthesis speak failed:', err);
-        stopLectureVoice();
+      const finished = await speakChunkedTTSAsync(cleanText, { rate: 1.05, pitch: 1.0 });
+      if (playingLectureTopicId === topicId) {
+        updateLectureVoiceButtonUi(topicId, mode, false);
+        currentLectureUtterance = null;
+        playingLectureTopicId = null;
+        playingLectureMode = null;
+        if (finished) {
+          showToast('✅ 심화해설 음성 재생이 완료되었습니다.');
+        }
       }
     }
 
     function stopLectureVoice() {
-      if ('speechSynthesis' in window) {
-        window.speechSynthesis.cancel();
-      }
-      if (playingLectureTopicId) {
-        updateLectureVoiceButtonUi(playingLectureTopicId, playingLectureMode, false);
-      }
-      currentLectureUtterance = null;
+      const prevTopicId = playingLectureTopicId;
+      const prevMode = playingLectureMode;
       playingLectureTopicId = null;
       playingLectureMode = null;
+      currentLectureUtterance = null;
+      cancelChunkedTTS();
+      if (prevTopicId) {
+        updateLectureVoiceButtonUi(prevTopicId, prevMode, false);
+      }
     }
 
     function updateLectureVoiceButtonUi(topicId, mode, isPlaying) {
@@ -9311,12 +9727,13 @@
 
 
     // ==============================================================================
-    // 🎧 모바일 연속 자동 듣기 플레이어 엔진 (Hands-Free Loop Engine)
+    // 🎧 모바일 & PC 연속 자동 듣기 플레이어 엔진 (Hands-Free Loop Engine)
     // ==============================================================================
     let apIsActive = false;             // 플레이어 도크 활성 여부
     let apIsPlaying = false;            // 자동 재생 루프 가동 여부
     let apCurrentStep = 'idle';         // 'idle' | 'question' | 'countdown' | 'answer'
     let apCurrentTopicId = null;
+    let apLoopGeneration = 0;           // 비동기 루프 중복 실행 방지용 세대 번호
 
     // 플레이어 설정
     let apCategory = 'all';             // 'all' | 'personality' | 'tech'
@@ -9324,26 +9741,121 @@
     let apAnswerMode = 'my_model_first';// 'my_model_first' | 'lecture_tts'
     let apWaitSeconds = 10;             // 기본 10초 대기
 
-    // 타이머 및 오디오 객체
+    // 타이머 및 모바일 오디오 잠금 해제용 공유 객체
     let apCountdownInterval = null;
     let apCountdownRemain = 10;
     let apCurrentAudioEl = null;
     let apCurrentUtterance = null;
     let apLoopTimeout = null;
+    let apSharedAudioEl = null;
+    let apSharedAudioCtx = null;
+
+    // 모바일(iOS Safari / Android Chrome) 10초 대기 후 오디오 자동재생 잠금 해제
+    function unlockMobileAudioForAutoPlayer() {
+      try {
+        if (!apSharedAudioEl) {
+          apSharedAudioEl = new Audio();
+          apSharedAudioEl.preload = 'auto';
+          apSharedAudioEl.playsInline = true;
+        }
+        const AudioContextClass = window.AudioContext || window.webkitAudioContext;
+        if (AudioContextClass) {
+          if (!apSharedAudioCtx || apSharedAudioCtx.state === 'closed') {
+            apSharedAudioCtx = new AudioContextClass();
+          }
+          if (apSharedAudioCtx.state === 'suspended') {
+            apSharedAudioCtx.resume().catch(() => {});
+          }
+        }
+      } catch (e) {}
+    }
+
+    // 현재 화면에서 보고 있는 문항 ID 감지 (#t_com01 해시, 면접모드 문항, 사이드바 활성 문항 연동)
+    function detectCurrentActiveTopicId() {
+      if (typeof currentViewMode !== 'undefined' && currentViewMode === 'interview' && typeof currentInterviewTopicId !== 'undefined' && currentInterviewTopicId) {
+        if (currentTopics.some(t => t.id === currentInterviewTopicId)) {
+          return currentInterviewTopicId;
+        }
+      }
+      if (window.location.hash && window.location.hash.length > 1) {
+        const hashId = decodeURIComponent(window.location.hash.substring(1));
+        if (currentTopics.some(t => t.id === hashId)) {
+          return hashId;
+        }
+      }
+      const activeLink = document.querySelector('.nav-link.active');
+      if (activeLink) {
+        const href = activeLink.getAttribute('href') || '';
+        if (href.startsWith('#')) {
+          const linkId = href.substring(1);
+          if (currentTopics.some(t => t.id === linkId)) {
+            return linkId;
+          }
+        }
+      }
+      return null;
+    }
+
+    // 자동 듣기 플레이어 문항이 바뀔 때 배경 화면(학습모드 스크롤 / 면접모드 카드)도 함께 동기화
+    function syncMainViewWithApTopic(topicId) {
+      if (!topicId) return;
+      if (typeof currentViewMode !== 'undefined' && currentViewMode === 'interview') {
+        if (typeof currentInterviewTopicId !== 'undefined' && currentInterviewTopicId !== topicId && typeof loadInterviewTopic === 'function') {
+          const prevAuto = (typeof autoVoiceAndRecordEnabled !== 'undefined') ? autoVoiceAndRecordEnabled : false;
+          autoVoiceAndRecordEnabled = false;
+          loadInterviewTopic(topicId);
+          autoVoiceAndRecordEnabled = prevAuto;
+        }
+      } else {
+        const targetEl = document.getElementById(topicId);
+        if (targetEl) {
+          targetEl.scrollIntoView({ behavior: 'smooth', block: 'start' });
+        }
+        document.querySelectorAll('.nav-link').forEach(link => {
+          link.classList.toggle('active', link.getAttribute('href') === `#${topicId}`);
+        });
+        if (history.replaceState) {
+          history.replaceState(null, null, `#${topicId}`);
+        }
+      }
+    }
+
+    // 카테고리별 실제 문항 수 실시간 반영
+    function updateApCategoryCounts() {
+      const totalCount = currentTopics.length;
+      const pCount = currentTopics.filter(t => t.category === 'personality').length;
+      const tCount = totalCount - pCount;
+      const chipAll = document.getElementById('apChipCatAll');
+      const chipP = document.getElementById('apChipCatP');
+      const chipT = document.getElementById('apChipCatT');
+      if (chipAll) chipAll.textContent = `전체 (${totalCount})`;
+      if (chipP) chipP.textContent = `인성 (${pCount})`;
+      if (chipT) chipT.textContent = `직무·소자 (${tCount})`;
+    }
 
     // 플레이어 도크 열기/닫기
     function toggleAutoPlayerDock() {
       const dock = document.getElementById('autoPlayerDock');
       if (!dock) return;
       apIsActive = !apIsActive;
+      document.body.classList.toggle('ap-dock-open', apIsActive);
+
       if (apIsActive) {
+        updateApCategoryCounts();
         dock.classList.add('active');
-        if (!apCurrentTopicId) {
-          const pool = getApFilteredPool();
+
+        const activeId = detectCurrentActiveTopicId();
+        const pool = getApFilteredPool();
+        if (activeId && pool.some(t => t.id === activeId)) {
+          apCurrentTopicId = activeId;
+        } else if (!apCurrentTopicId || !pool.some(t => t.id === apCurrentTopicId)) {
           if (pool.length > 0) {
             apCurrentTopicId = pool[0].id;
-            updateApTopicHeader(pool[0]);
           }
+        }
+        const currentTopic = currentTopics.find(t => t.id === apCurrentTopicId);
+        if (currentTopic) {
+          updateApTopicHeader(currentTopic);
         }
         showToast('🎧 연속 자동 플레이어가 열렸습니다. [▶️ 연속 재생 시작]을 누르세요.');
       } else {
@@ -9370,12 +9882,12 @@
       else if (cat === 'tech') document.getElementById('apChipCatT')?.classList.add('active');
 
       showToast(`출제 범위가 [${cat === 'all' ? '전체' : cat === 'personality' ? '인성' : '직무·소자'}]로 변경되었습니다.`);
-      if (!apIsPlaying) {
-        const pool = getApFilteredPool();
-        if (pool.length > 0) {
-          apCurrentTopicId = pool[0].id;
-          updateApTopicHeader(pool[0]);
-        }
+      const pool = getApFilteredPool();
+      if (pool.length > 0 && (!apCurrentTopicId || !pool.some(t => t.id === apCurrentTopicId))) {
+        const activeId = detectCurrentActiveTopicId();
+        apCurrentTopicId = (activeId && pool.some(t => t.id === activeId)) ? activeId : pool[0].id;
+        const topic = currentTopics.find(t => t.id === apCurrentTopicId);
+        if (topic) updateApTopicHeader(topic);
       }
     }
 
@@ -9451,16 +9963,22 @@
     }
 
     function startAutoPlayer() {
+      unlockMobileAudioForAutoPlayer();
+
       apIsPlaying = true;
       const btn = document.getElementById('btnApPlayToggle');
       const txt = document.getElementById('txtApPlayToggle');
       if (btn) btn.classList.add('playing');
       if (txt) txt.textContent = '⏸️ 일시정지';
 
-      // 다른 음성 중지
+      // 다른 음성 및 녹음 중지
+      if (typeof isRecording !== 'undefined' && isRecording && typeof stopRecording === 'function') {
+        stopRecording();
+      }
       if (typeof stopSpeakingQuestion === 'function') stopSpeakingQuestion();
       if (typeof stopLectureVoice === 'function') stopLectureVoice();
 
+      updateApCategoryCounts();
       const pool = getApFilteredPool();
       if (pool.length === 0) {
         showToast('출제 대상 문항이 없습니다.');
@@ -9469,7 +9987,8 @@
       }
 
       if (!apCurrentTopicId || !pool.some(t => t.id === apCurrentTopicId)) {
-        apCurrentTopicId = pool[0].id;
+        const activeId = detectCurrentActiveTopicId();
+        apCurrentTopicId = (activeId && pool.some(t => t.id === activeId)) ? activeId : pool[0].id;
       }
 
       runAutoPlayerLoop();
@@ -9477,6 +9996,7 @@
 
     function pauseAutoPlayer() {
       apIsPlaying = false;
+      apLoopGeneration++;
       const btn = document.getElementById('btnApPlayToggle');
       const txt = document.getElementById('txtApPlayToggle');
       if (btn) btn.classList.remove('playing');
@@ -9485,10 +10005,17 @@
       stopAllCurrentApAudio();
       clearInterval(apCountdownInterval);
       clearTimeout(apLoopTimeout);
+      if (countdownResolver) {
+        const res = countdownResolver;
+        countdownResolver = null;
+        res(false);
+      }
 
       updateApBanner('paused', '⏸️ 연속 자동 재생이 일시정지되었습니다.');
-      document.getElementById('btnApSkipWait').style.display = 'none';
-      document.getElementById('apProgressBar').style.width = '0%';
+      const skipBtn = document.getElementById('btnApSkipWait');
+      if (skipBtn) skipBtn.style.display = 'none';
+      const pBar = document.getElementById('apProgressBar');
+      if (pBar) pBar.style.width = '0%';
     }
 
     function stopAutoPlayerLoop() {
@@ -9497,9 +10024,15 @@
     }
 
     function stepAutoPlayer(direction) {
+      apLoopGeneration++;
       stopAllCurrentApAudio();
       clearInterval(apCountdownInterval);
       clearTimeout(apLoopTimeout);
+      if (countdownResolver) {
+        const res = countdownResolver;
+        countdownResolver = null;
+        res(false);
+      }
 
       const pool = getApFilteredPool();
       if (pool.length === 0) return;
@@ -9520,18 +10053,23 @@
 
       const topic = currentTopics.find(t => t.id === apCurrentTopicId);
       updateApTopicHeader(topic);
+      syncMainViewWithApTopic(apCurrentTopicId);
 
       if (apIsPlaying) {
         runAutoPlayerLoop();
+      } else {
+        updateApBanner('', '🎧 문항이 변경되었습니다. [▶️ 연속 재생 시작]을 누르세요.', `${apWaitSeconds}s`);
       }
     }
 
     function stopAllCurrentApAudio() {
-      if ('speechSynthesis' in window) {
-        window.speechSynthesis.cancel();
-      }
+      cancelChunkedTTS();
       if (apCurrentAudioEl) {
-        apCurrentAudioEl.pause();
+        try {
+          apCurrentAudioEl.onended = null;
+          apCurrentAudioEl.onerror = null;
+          apCurrentAudioEl.pause();
+        } catch (e) {}
         apCurrentAudioEl = null;
       }
     }
@@ -9552,6 +10090,7 @@
     // ==============================================================================
     async function runAutoPlayerLoop() {
       if (!apIsPlaying) return;
+      const myGen = ++apLoopGeneration;
 
       const topic = currentTopics.find(t => t.id === apCurrentTopicId);
       if (!topic) {
@@ -9559,6 +10098,7 @@
         return;
       }
       updateApTopicHeader(topic);
+      syncMainViewWithApTopic(topic.id);
 
       // STEP 1: 질문 읽기 (Question TTS)
       apCurrentStep = 'question';
@@ -9567,61 +10107,37 @@
       document.getElementById('apProgressBar').style.width = '0%';
 
       await playQuestionTTSAsync(topic.title);
-      if (!apIsPlaying) return;
+      if (!apIsPlaying || myGen !== apLoopGeneration) return;
 
-      // STEP 2: 대기 카운트다운 (10초 생각/답변 시간)
+      // STEP 2: 대기 카운트다운 (생각/답변 구상 시간)
       apCurrentStep = 'countdown';
       document.getElementById('btnApSkipWait').style.display = 'inline-flex';
       updateApBanner('countdown', `⏳ 답변을 생각해보세요 (${apWaitSeconds}초 후 답변이 재생됩니다)`, `${apWaitSeconds}s`);
 
       const waitPassed = await runCountdownWaitAsync(apWaitSeconds);
-      if (!apIsPlaying) return;
+      if (!apIsPlaying || !waitPassed || myGen !== apLoopGeneration) return;
 
       // STEP 3: 답변 읽기 (Answer Playback)
       apCurrentStep = 'answer';
       document.getElementById('btnApSkipWait').style.display = 'none';
       document.getElementById('apProgressBar').style.width = '100%';
 
-      await playAnswerAudioAsync(topic);
-      if (!apIsPlaying) return;
+      await playAnswerAudioAsync(topic, myGen);
+      if (!apIsPlaying || myGen !== apLoopGeneration) return;
 
       // STEP 4: 다음 문항으로 자동 전환 (1.5초 휴식 후 다음 루프)
       updateApBanner('', '✅ 답변 완료! 다음 문항으로 이동합니다...', '1.5s');
       apLoopTimeout = setTimeout(() => {
-        if (!apIsPlaying) return;
+        if (!apIsPlaying || myGen !== apLoopGeneration) return;
         stepAutoPlayer(1);
       }, 1500);
     }
 
-    // 1) 질문 TTS Promise
-    function playQuestionTTSAsync(title) {
-      return new Promise((resolve) => {
-        if (!('speechSynthesis' in window)) {
-          setTimeout(resolve, 2000);
-          return;
-        }
-        window.speechSynthesis.cancel();
-
-        const cleanQ = cleanTextForAnnouncerTTS(title);
-        const utterance = new SpeechSynthesisUtterance(cleanQ);
-        utterance.lang = 'ko-KR';
-        utterance.rate = 1.0;
-        utterance.pitch = 1.0;
-
-        const voices = window.speechSynthesis.getVoices();
-        const koVoice = voices.find(v => v.lang === 'ko-KR' || v.lang === 'ko_KR' || (v.lang && v.lang.startsWith('ko')));
-        if (koVoice) utterance.voice = koVoice;
-
-        utterance.onend = () => resolve();
-        utterance.onerror = () => resolve();
-
-        apCurrentUtterance = utterance;
-        try {
-          window.speechSynthesis.speak(utterance);
-        } catch (e) {
-          resolve();
-        }
-      });
+    // 1) 질문 TTS Promise (문장 분할 + 워치독 엔진 사용)
+    async function playQuestionTTSAsync(title) {
+      const cleanQ = cleanTextForAnnouncerTTS(title);
+      if (!cleanQ) return;
+      await speakChunkedTTSAsync(cleanQ, { rate: 1.0, pitch: 1.0 });
     }
 
     // 2) 카운트다운 대기 Promise
@@ -9664,19 +10180,19 @@
     // ==============================================================================
     // 3) 답변 재생 및 사람 음성 인식 검출 (VAD Silence Detection)
     // ==============================================================================
-    async function playAnswerAudioAsync(topic) {
-      const isPersonality = (topic.category === 'personality');
-
+    async function playAnswerAudioAsync(topic, myGen) {
       // 모드가 'my_model_first'인 경우: 내 모범답안 녹음 우선 검사
       if (apAnswerMode === 'my_model_first') {
         const recId = getModelAudioRecordId(topic.id);
         const entry = await getAudioEntryForRecord(recId);
+        if (!apIsPlaying || (myGen && myGen !== apLoopGeneration)) return;
 
         let hasValidSpeech = false;
         if (entry && (entry.blob || entry.dataUrl)) {
-          updateApBanner('speaking-ans', '🔍 녹음된 음성의 발화 유효성을 분석하고 있습니다...');
+          updateApBanner('speaking-ans', '🔍 녹음된 음성의 발화 유효성을 분석하고 있습니다...', '분석 중');
           hasValidSpeech = await checkAudioHasHumanSpeech(entry.blob);
         }
+        if (!apIsPlaying || (myGen && myGen !== apLoopGeneration)) return;
 
         if (hasValidSpeech && entry) {
           // 실제 사람 목소리가 감지된 내 녹음 파일 재생!
@@ -9685,16 +10201,19 @@
           return;
         } else {
           // 녹음이 없거나, 녹음은 되었으나 사람이 말하지 않은 무음/타이핑 전용인 경우
-          const fallbackScript = (topic.speech_alt && topic.speech_alt.trim()) 
-            ? topic.speech_alt 
-            : (topic.speech_1m30s || '');
+          // 사용자가 직접 작성/수정한 모범답안 텍스트가 있으면 최우선 활용
+          const savedCustomScript = localStorage.getItem(`aisk_script_${recId}`);
+          const fallbackScript = (savedCustomScript && savedCustomScript.trim())
+            ? savedCustomScript.trim()
+            : ((topic.speech_alt && topic.speech_alt.trim())
+                ? topic.speech_alt
+                : (topic.speech_1m30s || ''));
 
-          const reasonMsg = (entry && (entry.blob || entry.dataUrl)) 
-            ? 'ℹ️ 녹음에서 실제 발화가 감지되지 않아 작성된 모범답안을 아나운서가 읽습니다.' 
-            : 'ℹ️ 녹음된 음성이 없어 모범답안을 아나운서 음성으로 읽습니다.';
+          const reasonMsg = (entry && (entry.blob || entry.dataUrl))
+            ? 'ℹ️ 녹음에서 실제 발화가 감지되지 않아 모범답안/해설을 아나운서가 읽습니다.'
+            : 'ℹ️ 녹음된 음성이 없어 모범답안/해설을 아나운서 음성으로 읽습니다.';
 
           updateApBanner('speaking-ans', `🔊 ${reasonMsg}`, '아나운서');
-          showToast(reasonMsg);
           await playAnnouncerSpeechTTSAsync(fallbackScript);
           return;
         }
@@ -9708,23 +10227,33 @@
 
     // 오디오 파일 내 실제 사람 음성 검출 (Web Audio API RMS & Peak 진폭 분석)
     async function checkAudioHasHumanSpeech(audioBlob) {
-      if (!audioBlob || audioBlob.size < 6000) {
-        console.log('Audio blob too small or missing:', audioBlob ? audioBlob.size : 0);
+      if (!audioBlob || audioBlob.size < 4000) {
         return false;
       }
 
       try {
         const arrayBuffer = await audioBlob.arrayBuffer();
         const AudioContextClass = window.AudioContext || window.webkitAudioContext;
-        if (!AudioContextClass) return true; // AudioContext 미지원 브라우저는 녹음 재생 시도
+        if (!AudioContextClass) return true;
 
-        const audioCtx = new AudioContextClass();
-        const audioBuffer = await audioCtx.decodeAudioData(arrayBuffer);
-        audioCtx.close();
+        const ctx = (apSharedAudioCtx && apSharedAudioCtx.state !== 'closed')
+          ? apSharedAudioCtx
+          : new AudioContextClass();
+        if (ctx.state === 'suspended') {
+          try { await ctx.resume(); } catch (e) {}
+        }
 
-        // 1초 미만이면 사람의 완전한 문장 발화로 보기 어려움
+        // decodeAudioData가 모바일에서 지연될 경우를 대비한 2.5초 타임아웃
+        const audioBuffer = await Promise.race([
+          ctx.decodeAudioData(arrayBuffer.slice(0)),
+          new Promise((_, reject) => setTimeout(() => reject(new Error('decode timeout')), 2500))
+        ]);
+
+        if (ctx !== apSharedAudioCtx) {
+          try { ctx.close(); } catch (e) {}
+        }
+
         if (audioBuffer.duration < 1.0) {
-          console.log(`Audio duration too short: ${audioBuffer.duration.toFixed(2)}s`);
           return false;
         }
 
@@ -9733,25 +10262,20 @@
         let sumSquares = 0;
         let activeSamples = 0;
 
-        // 연산 속도를 위해 20개 간격으로 서브샘플링
         const step = Math.max(1, Math.floor(channelData.length / 8000));
         let count = 0;
         for (let i = 0; i < channelData.length; i += step) {
           const amp = Math.abs(channelData[i]);
           if (amp > maxPeak) maxPeak = amp;
           sumSquares += amp * amp;
-          if (amp >= 0.03) activeSamples++;
+          if (amp >= 0.025) activeSamples++;
           count++;
         }
 
         const rms = Math.sqrt(sumSquares / count);
         const activeRatio = activeSamples / count;
 
-        console.log(`[VAD Analysis] Peak: ${maxPeak.toFixed(4)}, RMS: ${rms.toFixed(4)}, ActiveRatio: ${(activeRatio*100).toFixed(1)}%, Duration: ${audioBuffer.duration.toFixed(1)}s`);
-
-        // 유효 음성 기준:
-        // 사람 발화 시 Peak >= 0.035, RMS >= 0.005, 유효 음성 샘플 비율 >= 3%
-        const isHumanVoice = (maxPeak >= 0.035 && rms >= 0.004 && activeRatio >= 0.02);
+        const isHumanVoice = (maxPeak >= 0.03 && rms >= 0.0035 && activeRatio >= 0.018);
         return isHumanVoice;
       } catch (err) {
         console.warn('Audio decoding for VAD failed, assume valid:', err);
@@ -9759,72 +10283,50 @@
       }
     }
 
-    // HTML5 Audio 엘리먼트 비동기 재생 Promise
+    // HTML5 Audio 엘리먼트 비동기 재생 Promise (모바일 잠금 해제된 Audio 엘리먼트 재사용)
     function playUserAudioElementAsync(src) {
       return new Promise((resolve) => {
-        const audio = new Audio();
+        if (!src) {
+          resolve();
+          return;
+        }
+        const audio = apSharedAudioEl || new Audio();
         audio.src = src;
         audio.preload = 'auto';
+        audio.playsInline = true;
         apCurrentAudioEl = audio;
 
-        audio.onended = () => {
-          apCurrentAudioEl = null;
-          resolve();
-        };
-        audio.onerror = () => {
-          console.warn('User audio playback failed');
-          apCurrentAudioEl = null;
+        let settled = false;
+        const finish = () => {
+          if (settled) return;
+          settled = true;
+          audio.onended = null;
+          audio.onerror = null;
+          if (apCurrentAudioEl === audio) apCurrentAudioEl = null;
           resolve();
         };
 
-        audio.play().catch(err => {
-          console.warn('Audio play interrupted:', err);
-          apCurrentAudioEl = null;
-          resolve();
-        });
+        audio.onended = finish;
+        audio.onerror = () => {
+          console.warn('User audio playback failed');
+          finish();
+        };
+
+        const playPromise = audio.play();
+        if (playPromise && typeof playPromise.catch === 'function') {
+          playPromise.catch(err => {
+            console.warn('Audio play interrupted:', err);
+            finish();
+          });
+        }
       });
     }
 
-    // 아나운서 심화해설/대본 TTS Promise
-    function playAnnouncerSpeechTTSAsync(rawText) {
-      return new Promise((resolve) => {
-        if (!('speechSynthesis' in window)) {
-          setTimeout(resolve, 3000);
-          return;
-        }
-        window.speechSynthesis.cancel();
-
-        const cleanText = cleanTextForAnnouncerTTS(rawText);
-        if (!cleanText) {
-          resolve();
-          return;
-        }
-
-        const utterance = new SpeechSynthesisUtterance(cleanText);
-        utterance.lang = 'ko-KR';
-        utterance.rate = 1.05;
-        utterance.pitch = 1.0;
-
-        const voices = window.speechSynthesis.getVoices();
-        const koVoice = voices.find(v => v.lang === 'ko-KR' || v.lang === 'ko_KR' || (v.lang && v.lang.startsWith('ko')));
-        if (koVoice) utterance.voice = koVoice;
-
-        utterance.onend = () => {
-          apCurrentUtterance = null;
-          resolve();
-        };
-        utterance.onerror = () => {
-          apCurrentUtterance = null;
-          resolve();
-        };
-
-        apCurrentUtterance = utterance;
-        try {
-          window.speechSynthesis.speak(utterance);
-        } catch (e) {
-          resolve();
-        }
-      });
+    // 아나운서 심화해설/대본 TTS Promise (장문 끊김 방지 문장 분할 + 워치독 엔진 사용)
+    async function playAnnouncerSpeechTTSAsync(rawText) {
+      const cleanText = cleanTextForAnnouncerTTS(rawText);
+      if (!cleanText) return;
+      await speakChunkedTTSAsync(cleanText, { rate: 1.05, pitch: 1.0 });
     }
 
 </script>
