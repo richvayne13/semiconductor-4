@@ -556,7 +556,7 @@
               <li><strong>SS 개선(억제) 방법</strong>:
                 <ol>
                   <li><span class="hl-blue">C_ox ↑ (t_ox ↓)</span>: High-k Gate Oxide 적용.</li>
-                  <li><span class="hl-green">C_dep ↓</span>: Shallow junction depth profile 및 FD-SOI 적용 → <code>C_dep = ε(A↓)/d</code> (접합 면적을 낮게 함).</li>
+                  <li><span class="hl-green">C_dep_eff ↓ (Body Factor m ↓)</span>: FD-SOI 적용으로 초박막 채널 완전 공핍 및 두꺼운 매립 산화막(BOX) 직렬 연결(<code>1/C_dep_eff = 1/C_si + 1/C_box</code>) → 실효 <code>C_dep_eff ≈ 0</code>으로 만들어 이상적인 <code>SS ≈ 60mV/dec</code> 달성. (※ USJ는 S/D 접합 커패시턴스 <code>C_j</code>와 전하 공유를 줄여 SCE를 억제함).</li>
                 </ol>
               </li>
             </ul>
@@ -573,8 +573,8 @@
               <li><strong>Punch-through (펀치스루)</strong>:
                 <ul>
                   <li><strong>정의</strong>: 드레인 전압이 증가하면서 Source/Drain 두 공핍층이 <strong>기판(Body) 하부에서 만나</strong> 소스에서 드레인으로 전자가 직접 이동하는 현상.</li>
-                  <li><strong>개선방법</strong>: ① <span class="hl-yellow">Halo implant (p+) / Punch-through stop implantation</span> (S/D 모서리 및 하부에 고농도 불순물 주입), ② <span class="hl-green">FD-SOI</span> (Body와 S/D를 분리하여 기생 Cap 제거), ③ <span class="hl-blue">Shallow junction depth profile</span> (S/D를 얕게 하여 Depletion 확장을 억제).</li>
-                  <li><em>※ 주의: Punch-through는 Body 하부 현상이어서 게이트 용량(C_G)을 높이는 High-k로는 개선 불가능!</em></li>
+                  <li><strong>개선방법</strong>: ① <span class="hl-yellow">Halo implant (p+) / Punch-through stop implantation / Retrograde Well</span> (S/D 모서리 및 기판 하부에 고농도 불순물을 주입하여 하부 공핍층 확장 차단), ② <span class="hl-green">FD-SOI</span> (절연체 BOX 위에 초박막 바디를 형성하여 기판 하부 누설 경로 자체를 원천 제거), ③ <span class="hl-blue">Shallow junction depth profile (USJ)</span> (접합 깊이를 얕게 하여 공핍층의 수평/하부 확장 억제), ④ <span class="hl-rose">3D 멀티게이트(FinFET, GAA)</span> (게이트가 채널을 3면/4면으로 감싸 하부 전위까지 정전기적으로 완벽 제어).</li>
+                  <li><em>※ 참고: 평면(Planar) 구조에서는 게이트 유전율(High-k)을 높여도 표면 전계 제어에 치중되어 기판 깊은 벌크 하부의 펀치스루 경로를 직접 차단하기 어려우므로, Halo 도핑이나 3D 구조(GAA/FinFET), FD-SOI와 같은 구조적/도핑 대책이 필수적입니다.</em></li>
                 </ul>
               </li>
               <li><strong>GIDL (Gate-Induced Drain Leakage)</strong>:
@@ -621,8 +621,8 @@
               <li><strong>Gate Oxide Thickness가 얇아져야 하는 이유</strong>:
                 <ul>
                   <li><code>L ↓</code>에 따라 상대적으로 <code>C_dep ↑</code> → 게이트 전압 결정권(<code>C_ox</code>가 이기길 바라는 바) 확보를 위해 <code>C_ox ↑</code> 시키려면 <code>t_ox</code>를 작게 해야 함.</li>
-                  <li><strong>한계</strong>: <code>t_ox</code>를 줄이다 보니 <strong>Direct Tunneling 및 GIDL</strong>에 의한 Subthreshold current ↑, Leakage current 증가.</li>
-                  <li><strong>해결</strong>: High-k 도입 + <code>C_dep</code>를 줄이기 위해 Shallow junction depth profile 및 <strong>SOI 기술</strong>로 Body와 S/D를 분리하여 기생 Cap을 없애 누설전류 억제.</li>
+                  <li><strong>한계</strong>: <code>t_ox</code>가 2nm 이하로 얇아지면서 양자역학적 <strong>게이트 직접 터널링 누설전류(Gate Direct Tunneling Leakage, I_G)</strong>가 기하급수적으로 증가하고, 게이트-드레인 오버랩 영역의 고전계로 인한 <strong>GIDL(Band-to-Band Tunneling)</strong> 누설전류가 심화됨.</li>
+                  <li><strong>해결</strong>: 물리적 두께를 유지하면서 유효 산화막 두께(EOT)를 줄이는 <strong>High-k Metal Gate(HKMG)</strong> 도입 + 드레인 전계 완화를 위한 <strong>LDD/Spacer</strong> + <strong>FD-SOI 및 3D 게이트(FinFET/GAA)</strong> 구조 도입.</li>
                 </ul>
               </li>
               <li><strong>Body Thickness ↓ 이유와 한계</strong>:
@@ -645,7 +645,7 @@
               <li><strong>SOI (Silicon On Insulator) 도입 이유 및 Cap 특성</strong>:
                 <ul>
                   <li>웨이퍼에 절연 산화막(<strong>BOX</strong>)을 배치하고 그 위로 TR을 구성하는 기술.</li>
-                  <li>하단에 Insulator가 존재하여 <code>C_dep</code>와 GND가 연결된 Path가 끊어짐 → <span class="hl-yellow">C_dep를 0으로 만듦 (Body factor: 1 + C_dep/C_ox → 1)</span>, 게이트 영향력을 극대화하고 Punch-through 차단.</li>
+                  <li>하단에 두꺼운 저유전율 매립 산화막(<strong>BOX</strong>)이 존재하여 초박막 채널의 완전 공핍층 커패시턴스와 직렬 연결됨 → 실효 공핍 커패시턴스가 극소화되어 <span class="hl-yellow">Body factor m = 1 + C_dep_eff / C_ox ≈ 1</span>에 수렴, 이상적인 서브스레숄드 스윙(<code>SS ≈ 60mV/dec</code>) 달성 및 기판 하부 펀치스루 원천 차단.</li>
                 </ul>
               </li>
               <li><strong>PD-SOI vs FD-SOI 차이 및 소자 영향</strong>:
@@ -933,8 +933,8 @@
               </li>
               <li><strong>이온 무게에 따른 분포 특성</strong>:
                 <ul>
-                  <li><strong>가벼운 이온 (B, P)</strong>: <code>R_p</code>(Projected range, 주입 깊이) ↑, 수평 방향 퍼짐 ↓, 후방 산란(Backscattering) 분산.</li>
-                  <li><strong>무거운 이온 (As 등)</strong>: Range(<code>R_p</code>) ↓ (얕은 접합 유리), 폭 방향 퍼짐 ↑.</li>
+                  <li><strong>가벼운 이온 (B 등)</strong>: 실리콘 원자보다 질량이 작아 충돌 시 큰 각도로 굴절되는 핵 저지 산란(Nuclear scattering)을 겪어 <strong>수평 방향 퍼짐(Lateral Straggle, ΔR_⊥)이 매우 큼</strong>, Projected Range(<code>R_p</code>) 깊음, 후방 산란(Backscattering) 큼.</li>
+                  <li><strong>무거운 이온 (As, Sb 등)</strong>: 전방 운동량이 커서 직진성이 우수하고 <strong>수평 방향 퍼짐(ΔR_⊥)이 작음</strong>, Projected Range(<code>R_p</code>)가 얕아 초미세 얕은 접합(USJ) 형성에 매우 유리함.</li>
                 </ul>
               </li>
             </ul>
