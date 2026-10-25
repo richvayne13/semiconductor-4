@@ -9021,7 +9021,7 @@
       apAnswerMode = mode;
       document.getElementById('apChipAnsMyModel')?.classList.toggle('active', mode === 'my_model_first');
       document.getElementById('apChipAnsLecture')?.classList.toggle('active', mode === 'lecture_tts');
-      showToast(mode === 'my_model_first' ? '답변 소스: [내 모범답안 우선]' : '답변 소스: [심화해설 아나운서]');
+      showToast(mode === 'my_model_first' ? '답변 소스: [모범답안 우선 (없으면 심화해설 자동 재생)]' : '답변 소스: [심화해설 전용]');
     }
 
     function setApWaitSeconds(sec) {
@@ -9313,59 +9313,69 @@
     // 3) 답변 재생 및 사람 음성 인식 검출 (VAD Silence Detection)
     // ==============================================================================
     async function playAnswerAudioAsync(topic, myGen) {
-      // 모드가 'my_model_first'인 경우: 내 모범답안 녹음 우선 검사
+      const recId = getModelAudioRecordId(topic.id);
+      const savedCustomScript = localStorage.getItem(`aisk_script_${recId}`);
+      const modelScript = (savedCustomScript && savedCustomScript.trim())
+        ? savedCustomScript.trim()
+        : ((topic.speech_alt && topic.speech_alt.trim())
+            ? topic.speech_alt.trim()
+            : '');
+
+      // 모드가 'my_model_first'인 경우: 모범답안 우선 재생 (없으면 심화해설 자동 전환)
       if (apAnswerMode === 'my_model_first') {
-        const recId = getModelAudioRecordId(topic.id);
+        // 1순위: 직접 녹음한 음성 파일이 있는지 확인
         const entry = await getAudioEntryForRecord(recId);
         if (!apIsPlaying || (myGen && myGen !== apLoopGeneration)) return;
 
         let hasValidSpeech = false;
         if (entry && (entry.blob || entry.dataUrl)) {
-          updateApBanner('speaking-ans', '🔍 녹음된 음성의 발화 유효성을 분석하고 있습니다...', '분석 중');
+          updateApBanner('speaking-ans', '🔍 녹음된 음성의 유효성을 분석하고 있습니다...', '분석 중');
           hasValidSpeech = await checkAudioHasHumanSpeech(entry.blob);
         }
         if (!apIsPlaying || (myGen && myGen !== apLoopGeneration)) return;
 
         if (hasValidSpeech && entry) {
-          // 실제 사람 목소리가 감지된 내 녹음 파일 재생!
-          updateApBanner('speaking-ans', '🎙️ 내가 녹음한 모범답안 음성을 재생합니다...', '내 음성');
+          // 실제 사람 목소리가 감지된 내 녹음본 재생!
+          updateApBanner('speaking-ans', '🎙️ 내가 녹음한 모범답안 음성을 재생합니다...', '내 녹음');
           await playUserAudioElementAsync(entry.objectUrl || entry.dataUrl);
           return;
-        } else {
-          // 녹음이 없거나, 녹음은 되었으나 사람이 말하지 않은 무음/타이핑 전용인 경우
-          // 사용자가 직접 작성/수정한 모범답안 텍스트가 있으면 최우선 활용
-          const savedCustomScript = localStorage.getItem(`aisk_script_${recId}`);
-          const fallbackScript = (savedCustomScript && savedCustomScript.trim())
-            ? savedCustomScript.trim()
-            : ((topic.speech_alt && topic.speech_alt.trim())
-                ? topic.speech_alt
-                : (topic.speech_1m30s || ''));
+        }
 
-          const reasonMsg = (entry && (entry.blob || entry.dataUrl))
-            ? 'ℹ️ 녹음에서 실제 발화가 감지되지 않아 모범답안/해설을 아나운서가 읽습니다.'
-            : 'ℹ️ 녹음된 음성이 없어 모범답안/해설을 아나운서 음성으로 읽습니다.';
-
-          if (typeof CLONED_LECTURE_VOICE_IDS !== 'undefined' && CLONED_LECTURE_VOICE_IDS.has(topic.id)) {
-            updateApBanner('speaking-ans', '🎙️ 복제된 내 목소리로 심화해설을 재생합니다...', '내 목소리');
-            const lectureMp3Url = `voices/lectures/${encodeURIComponent(topic.id)}.mp3`;
-            let playedOk = false;
-            try {
-              await playUserAudioElementAsync(lectureMp3Url);
-              playedOk = true;
-            } catch (e) {
-              playedOk = false;
-            }
-            if (playedOk) return;
-          }
-          updateApBanner('speaking-ans', `🔊 ${reasonMsg}`, '아나운서');
-          await playAnnouncerSpeechTTSAsync(fallbackScript);
+        // 2순위: 녹음본은 없지만 작성된 '모범답안(speech_alt)' 대본이 있는 경우 -> 모범답안 대본 우선 낭독!
+        if (modelScript) {
+          updateApBanner('speaking-ans', '🎙️ [모범답안 우선] 실전 모범답안을 재생합니다...', '모범답안');
+          await playAnnouncerSpeechTTSAsync(modelScript, { rate: 1.08 });
           return;
         }
+
+        // 3순위: 모범답안이 없는 경우 -> '심화해설'로 자동 전환!
+        // 3-1) 복제된 내 목소리 심화해설 MP3가 있으면 내 목소리로 재생
+        if (typeof CLONED_LECTURE_VOICE_IDS !== 'undefined' && CLONED_LECTURE_VOICE_IDS.has(topic.id)) {
+          updateApBanner('speaking-ans', '📘 [심화해설] 복제된 내 목소리로 심화해설을 재생합니다...', '내 목소리');
+          const lectureMp3Url = `voices/lectures/${encodeURIComponent(topic.id)}.mp3`;
+          let playedOk = false;
+          try {
+            await playUserAudioElementAsync(lectureMp3Url);
+            playedOk = true;
+          } catch (e) {
+            playedOk = false;
+          }
+          if (playedOk) return;
+        }
+
+        // 3-2) 전문 심화해설 원문 재생
+        const lectureScript = topic.speech_1m30s ? topic.speech_1m30s.trim() : '';
+        if (lectureScript) {
+          updateApBanner('speaking-ans', '📘 [심화해설] 전문 심화해설을 재생합니다...', '심화해설');
+          await playAnnouncerSpeechTTSAsync(lectureScript, { rate: 1.05 });
+          return;
+        }
+        return;
       }
 
-      // 심화해설 재생: 복제된 내 목소리 MP3가 있으면 내 목소리로 재생!
+      // 모드가 'lecture_tts' (심화해설 전용)인 경우
       if (typeof CLONED_LECTURE_VOICE_IDS !== 'undefined' && CLONED_LECTURE_VOICE_IDS.has(topic.id)) {
-        updateApBanner('speaking-ans', '🎙️ 복제된 내 목소리로 심화해설을 재생합니다...', '내 목소리');
+        updateApBanner('speaking-ans', '📘 [심화해설] 복제된 내 목소리로 심화해설을 재생합니다...', '내 목소리');
         const lectureMp3Url = `voices/lectures/${encodeURIComponent(topic.id)}.mp3`;
         let playedOk = false;
         try {
@@ -9377,10 +9387,10 @@
         if (playedOk) return;
       }
 
-      // 모드가 'lecture_tts'인 경우 또는 폴백: 심화해설 아나운서 낭독
-      updateApBanner('speaking-ans', '📘 전문 아나운서 심화해설을 재생합니다...', '심화해설');
+      // 심화해설 원문 재생
+      updateApBanner('speaking-ans', '📘 전문 심화해설을 재생합니다...', '심화해설');
       const lectureScript = topic.speech_1m30s || topic.speech_alt || '';
-      await playAnnouncerSpeechTTSAsync(lectureScript);
+      await playAnnouncerSpeechTTSAsync(lectureScript, { rate: 1.05 });
     }
 
     // 오디오 파일 내 실제 사람 음성 검출 (Web Audio API RMS & Peak 진폭 분석)
@@ -9481,10 +9491,12 @@
     }
 
     // 아나운서 심화해설/대본 TTS Promise (장문 끊김 방지 문장 분할 + 워치독 엔진 사용)
-    async function playAnnouncerSpeechTTSAsync(rawText) {
+    async function playAnnouncerSpeechTTSAsync(rawText, options = {}) {
       const cleanText = cleanTextForAnnouncerTTS(rawText);
       if (!cleanText) return;
-      await speakChunkedTTSAsync(cleanText, { rate: 1.05, pitch: 1.0 });
+      const rate = options.rate || 1.05;
+      const pitch = options.pitch || 1.0;
+      await speakChunkedTTSAsync(cleanText, { rate, pitch });
     }
 
 </script>
@@ -9568,11 +9580,11 @@
       <div class="ap-setting-row">
         <span class="ap-setting-label">3. 답변 음성 재생 소스</span>
         <div class="ap-chip-group">
-          <button class="ap-chip active" id="apChipAnsMyModel" onclick="setApAnswerMode('my_model_first')" title="내가 말하는 버전(구어체 실전대본 또는 내 육성 녹음)을 우선 재생합니다">
-            🎙️ 내가 말하는 버전 우선 (구어체 대본 / 내 녹음본)
+          <button class="ap-chip active" id="apChipAnsMyModel" onclick="setApAnswerMode('my_model_first')" title="모범답안(녹음본 또는 작성 대본)이 있으면 모범답안을 우선 재생하고, 없으면 심화해설을 자동으로 재생합니다">
+            🎙️ 모범답안 우선 (없으면 심화해설 자동 전환)
           </button>
-          <button class="ap-chip" id="apChipAnsLecture" onclick="setApAnswerMode('lecture_tts')" title="전문 아나운서의 심화해설 음성으로 낭독">
-            📘 심화해설 아나운서 전용
+          <button class="ap-chip" id="apChipAnsLecture" onclick="setApAnswerMode('lecture_tts')" title="모범답안 여부와 상관없이 3분 심화해설을 전용으로 재생합니다">
+            📘 심화해설 전용
           </button>
         </div>
       </div>
