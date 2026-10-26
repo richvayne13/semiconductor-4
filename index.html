@@ -8763,19 +8763,30 @@
     let apSharedAudioEl = null;
     let apSharedAudioCtx = null;
 
-    // 모바일(iOS Safari / Android Chrome) 10초 대기 후 오디오 자동재생 잠금 해제
+    let apMobileAudioUnlocked = false;
+    const SILENT_WAV_BASE64 = 'data:audio/wav;base64,UklGRigAAABXQVZFZm10IBIAAAABAAEARKwAAIhYAQACABAAAABkYXRhAgAAAAEA';
+
+    // 모바일(iOS Safari / Android Chrome) 오디오 자동재생 잠금 해제 (Silent WAV 재생 연동)
     function unlockMobileAudioForAutoPlayer() {
       try {
         if (!apSharedAudioEl) {
           apSharedAudioEl = new Audio();
           apSharedAudioEl.preload = 'auto';
           apSharedAudioEl.playsInline = true;
+          apSharedAudioEl.setAttribute('playsinline', '');
+          apSharedAudioEl.setAttribute('webkit-playsinline', '');
         }
-        // 🌟 핵심 1: 유저 직접 터치 이벤트 컨텍스트에서 무음 WAV를 직접 play()하여 모바일(iOS Safari/Android Chrome) HTML5 Audio 완전 언락!
-        apSharedAudioEl.src = 'data:audio/wav;base64,UklGRigAAABXQVZFZm10IBIAAAABAAEARKwAAIhYAQACABAAAABkYXRhAgAAAAEA';
-        const p = apSharedAudioEl.play();
-        if (p && typeof p.catch === 'function') {
-          p.catch(() => {});
+
+        // 모바일 브라우저(iOS Safari / Android Chrome) 자동재생 제약 해제:
+        // 사용자 인터랙션 핸들러 내에서 무음 오디오를 재생하여 오디오 파이프라인 잠금 해제
+        if (!apMobileAudioUnlocked) {
+          apSharedAudioEl.src = SILENT_WAV_BASE64;
+          const playPromise = apSharedAudioEl.play();
+          if (playPromise && typeof playPromise.then === 'function') {
+            playPromise.then(() => {
+              apMobileAudioUnlocked = true;
+            }).catch(() => {});
+          }
         }
 
         const AudioContextClass = window.AudioContext || window.webkitAudioContext;
@@ -8786,16 +8797,6 @@
           if (apSharedAudioCtx.state === 'suspended') {
             apSharedAudioCtx.resume().catch(() => {});
           }
-        }
-        // 🌟 핵심 2: Web Speech API 모바일 정책 언락 (무음 발화 1회)
-        if ('speechSynthesis' in window) {
-          try {
-            window.speechSynthesis.resume();
-            const dummy = new SpeechSynthesisUtterance(' ');
-            dummy.volume = 0.01;
-            dummy.rate = 10.0;
-            window.speechSynthesis.speak(dummy);
-          } catch (e) {}
         }
       } catch (e) {}
     }
@@ -9273,81 +9274,14 @@
     // 3) 답변 재생 및 사람 음성 인식 검출 (VAD Silence Detection)
     // ==============================================================================
     async function playAnswerAudioAsync(topic, myGen) {
-      const recId = getModelAudioRecordId(topic.id);
-      const savedCustomScript = localStorage.getItem(`aisk_script_${recId}`);
-      const modelScript = (savedCustomScript && savedCustomScript.trim())
-        ? savedCustomScript.trim()
-        : ((topic.speech_alt && topic.speech_alt.trim())
-            ? topic.speech_alt.trim()
-            : '');
+      if (!apIsPlaying || (myGen && myGen !== apLoopGeneration)) return;
 
-      const lectureScript = (topic.speech_1m30s && topic.speech_1m30s.trim())
-        ? topic.speech_1m30s.trim()
-        : (topic.speech_alt ? topic.speech_alt.trim() : '');
+      const lectureMp3Url = `voices/lectures/${encodeURIComponent(topic.id)}.mp3`;
 
-      // 모바일/PC 오디오 엔진 깨우기
-      if ('speechSynthesis' in window && window.speechSynthesis.paused) {
-        try { window.speechSynthesis.resume(); } catch (e) {}
-      }
-
-      // 모드가 'my_model_first'인 경우: 모범답안 우선 재생 (없으면 심화해설 자동 전환)
-      if (apAnswerMode === 'my_model_first') {
-        // 1순위: 직접 녹음한 음성 파일이 있는지 확인
-        try {
-          const entry = await getAudioEntryForRecord(recId);
-          if (!apIsPlaying || (myGen && myGen !== apLoopGeneration)) return;
-
-          let hasValidSpeech = false;
-          if (entry && (entry.blob || entry.dataUrl)) {
-            updateApBanner('speaking-ans', '🔍 녹음된 음성의 유효성을 분석하고 있습니다...', '분석 중');
-            hasValidSpeech = await checkAudioHasHumanSpeech(entry.blob);
-          }
-          if (!apIsPlaying || (myGen && myGen !== apLoopGeneration)) return;
-
-          if (hasValidSpeech && entry) {
-            updateApBanner('speaking-ans', '🎙️ 내가 녹음한 모범답안 음성을 재생합니다...', '내 녹음');
-            const playedOk = await playUserAudioElementAsync(entry.objectUrl || entry.dataUrl);
-            if (playedOk) return;
-          }
-        } catch (e) {
-          console.warn('Record check/play failed, falling back to script:', e);
-        }
-        if (!apIsPlaying || (myGen && myGen !== apLoopGeneration)) return;
-
-        // 2순위: 녹음본은 없지만 작성된 '모범답안(speech_alt)' 대본이 있는 경우 -> 모범답안 대본 우선 낭독!
-        if (modelScript) {
-          updateApBanner('speaking-ans', '🎙️ [모범답안 우선] 실전 모범답안을 재생합니다...', '모범답안');
-          await playAnnouncerSpeechTTSAsync(modelScript, { rate: 1.08 });
-          return;
-        }
-
-        // 3순위: 모범답안이 없는 경우 -> '심화해설'로 자동 전환!
-        // 3-1) 복제된 내 목소리 심화해설 MP3가 있으면 내 목소리로 재생
-        if (typeof CLONED_LECTURE_VOICE_IDS !== 'undefined' && CLONED_LECTURE_VOICE_IDS.has(topic.id)) {
-          updateApBanner('speaking-ans', '📘 [심화해설] 복제된 내 목소리로 심화해설을 재생합니다...', '내 목소리');
-          const lectureMp3Url = `voices/lectures/${encodeURIComponent(topic.id)}.mp3`;
-          let playedOk = false;
-          try {
-            playedOk = await playUserAudioElementAsync(lectureMp3Url);
-          } catch (e) {
-            playedOk = false;
-          }
-          if (playedOk) return;
-        }
-
-        // 3-2) 전문 심화해설 원문 재생
-        if (lectureScript) {
-          updateApBanner('speaking-ans', '📘 [심화해설] 전문 심화해설을 재생합니다...', '심화해설');
-          await playAnnouncerSpeechTTSAsync(lectureScript, { rate: 1.05 });
-          return;
-        }
-        return;
-      }
-
-      // 모드가 'lecture_tts' (심화해설 전용)인 경우
-      if (typeof CLONED_LECTURE_VOICE_IDS !== 'undefined' && CLONED_LECTURE_VOICE_IDS.has(topic.id)) {
+      // 1순위: 복제된 내 목소리 심화해설 MP3가 등록되어 있는 경우
+      const hasClonedLecture = (typeof CLONED_LECTURE_VOICE_IDS !== 'undefined' && CLONED_LECTURE_VOICE_IDS.has(topic.id));
+      if (hasClonedLecture) {
         updateApBanner('speaking-ans', '📘 [심화해설] 복제된 내 목소리로 심화해설을 재생합니다...', '내 목소리');
-        const lectureMp3Url = `voices/lectures/${encodeURIComponent(topic.id)}.mp3`;
         let playedOk = false;
         try {
           playedOk = await playUserAudioElementAsync(lectureMp3Url);
@@ -9357,11 +9291,22 @@
         if (playedOk) return;
       }
 
-      // 심화해설 원문 재생 (심화해설이 없으면 모범답안 대체)
-      const targetScript = lectureScript || modelScript;
-      if (targetScript) {
-        updateApBanner('speaking-ans', '📘 전문 심화해설을 재생합니다...', '심화해설');
-        await playAnnouncerSpeechTTSAsync(targetScript, { rate: 1.05 });
+      // 2순위: 혹시 CLONED_LECTURE_VOICE_IDS에 누락되었더라도 voices/lectures 폴더에 파일이 존재하는지 HEAD 요청 검사
+      try {
+        const headCheck = await fetch(lectureMp3Url, { method: 'HEAD' });
+        if (headCheck.ok) {
+          updateApBanner('speaking-ans', '📘 [심화해설] 복제된 내 목소리로 심화해설을 재생합니다...', '내 목소리');
+          const playedOk = await playUserAudioElementAsync(lectureMp3Url);
+          if (playedOk) return;
+        }
+      } catch (e) {}
+
+      // 3순위: 복제 음성 MP3가 아직 없는 문항인 경우 원문 심화해설 텍스트로 재생
+      const lectureScript = topic.speech_1m30s ? topic.speech_1m30s.trim() : (topic.speech_alt ? topic.speech_alt.trim() : '');
+      if (lectureScript) {
+        updateApBanner('speaking-ans', '📘 [심화해설] 전문 심화해설을 재생합니다...', '심화해설');
+        await playAnnouncerSpeechTTSAsync(lectureScript, { rate: 1.05 });
+        return;
       }
     }
 
@@ -9423,76 +9368,52 @@
       }
     }
 
-    // HTML5 Audio 엘리먼트 비동기 재생 Promise (모바일 절대 경로 보장 + load() 및 canplay 자동 재시도)
+    // HTML5 Audio 엘리먼트 비동기 재생 Promise (모바일 잠금 해제된 Audio 엘리먼트 재사용 & 결과 boolean 반환)
     function playUserAudioElementAsync(src) {
       return new Promise((resolve) => {
         if (!src) {
           resolve(false);
           return;
         }
-
-        // 상대 경로 안전 변환 (GitHub Pages 절대 URL 완벽 보장)
-        let resolvedSrc = src;
+        if (!apSharedAudioEl) {
+          apSharedAudioEl = new Audio();
+          apSharedAudioEl.preload = 'auto';
+          apSharedAudioEl.playsInline = true;
+          apSharedAudioEl.setAttribute('playsinline', '');
+          apSharedAudioEl.setAttribute('webkit-playsinline', '');
+        }
+        const audio = apSharedAudioEl;
         try {
-          resolvedSrc = new URL(src, window.location.href).href;
+          audio.pause();
         } catch (e) {}
-
-        const audio = apSharedAudioEl || new Audio();
+        audio.currentTime = 0;
+        audio.src = src;
         audio.preload = 'auto';
         audio.playsInline = true;
         apCurrentAudioEl = audio;
 
         let settled = false;
-        let playTimeout = null;
-
         const finish = (ok) => {
           if (settled) return;
           settled = true;
-          if (playTimeout) clearTimeout(playTimeout);
           audio.onended = null;
           audio.onerror = null;
-          audio.oncanplay = null;
-          try { audio.pause(); } catch (e) {}
           if (apCurrentAudioEl === audio) apCurrentAudioEl = null;
-          resolve(Boolean(ok));
+          resolve(ok !== false);
         };
 
         audio.onended = () => finish(true);
         audio.onerror = (e) => {
-          console.warn('User audio error on:', resolvedSrc, e);
+          console.warn('User audio playback failed or file not found:', src, e);
           finish(false);
         };
 
-        // 안전 타임아웃 (네트워크 지연 대비 20초)
-        playTimeout = setTimeout(() => {
-          if (!settled) {
-            console.warn('User audio playback timeout:', resolvedSrc);
+        const playPromise = audio.play();
+        if (playPromise && typeof playPromise.catch === 'function') {
+          playPromise.catch(err => {
+            console.warn('Audio play interrupted or rejected:', err);
             finish(false);
-          }
-        }, 20000);
-
-        try {
-          audio.pause();
-          audio.src = resolvedSrc;
-          audio.load();
-
-          const playPromise = audio.play();
-          if (playPromise && typeof playPromise.catch === 'function') {
-            playPromise.catch(err => {
-              console.warn('Audio play() initial rejected, retrying on canplay:', err);
-              // 모바일에서 버퍼링 지연으로 reject된 경우 canplay 시점에 1회 자동 재시도
-              audio.oncanplay = () => {
-                audio.oncanplay = null;
-                audio.play().catch(retryErr => {
-                  console.warn('Audio play() retry also failed:', retryErr);
-                  finish(false);
-                });
-              };
-            });
-          }
-        } catch (err) {
-          console.warn('Audio play exception:', err);
-          finish(false);
+          });
         }
       });
     }
@@ -9506,7 +9427,18 @@
       await speakChunkedTTSAsync(cleanText, { rate, pitch });
     }
 
-</script>
+
+    // 모바일 터치 및 클릭 시 오디오 파이프라인 자동 잠금 해제
+    window.addEventListener('DOMContentLoaded', () => {
+      const unlock = () => {
+        unlockMobileAudioForAutoPlayer();
+      };
+      document.addEventListener('touchstart', unlock, { passive: true });
+      document.addEventListener('touchend', unlock, { passive: true });
+      document.addEventListener('click', unlock, { passive: true });
+    });
+
+  </script>
 
   <!-- ==========================================================================
        🎧 모바일 연속 자동 듣기 플레이어 (Hands-Free Loop Dock)
@@ -9585,14 +9517,11 @@
       </div>
 
       <div class="ap-setting-row">
-        <span class="ap-setting-label">3. 답변 음성 재생 소스</span>
+        <span class="ap-setting-label">3. 답변 오디오</span>
         <div class="ap-chip-group">
-          <button class="ap-chip active" id="apChipAnsLecture" onclick="setApAnswerMode('lecture_tts')" title="전문 심화해설을 우선으로 재생합니다">
-            📘 심화해설 우선 (기본)
-          </button>
-          <button class="ap-chip" id="apChipAnsMyModel" onclick="setApAnswerMode('my_model_first')" title="모범답안(녹음본 또는 작성 대본)이 있으면 모범답안을 우선 재생합니다">
-            🎙️ 모범답안 우선
-          </button>
+          <span style="display:inline-flex; align-items:center; gap:6px; font-size:0.83rem; color:#38bdf8; font-weight:600; padding:4px 10px; background:rgba(56,189,248,0.1); border-radius:6px; border:1px solid rgba(56,189,248,0.25);">
+            🎙️ 복제된 내 목소리 심화해설 자동 재생
+          </span>
         </div>
       </div>
 
