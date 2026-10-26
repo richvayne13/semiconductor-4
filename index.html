@@ -1379,26 +1379,75 @@
         padding: 10px 12px !important;
       }
 
-      /* 카드 내부 반응형 */
+/* 📱 모바일 한 화면 뷰어 최적화 (한 화면에 질문과 답변 전체 표시) */
       .topic-section {
-        padding: 18px 14px !important;
-        margin-bottom: 20px !important;
-        border-radius: 14px !important;
+        padding: 12px 10px !important;
+        margin-bottom: 14px !important;
+        border-radius: 10px !important;
+        border: 1px solid var(--border) !important;
+        scroll-margin-top: 56px !important;
       }
-
+      .topic-header {
+        margin-bottom: 6px !important;
+        padding-bottom: 6px !important;
+        gap: 6px !important;
+      }
+      .topic-badge {
+        font-size: 0.74rem !important;
+        padding: 2px 6px !important;
+      }
+      .category-chip {
+        font-size: 0.70rem !important;
+      }
+      .kw-container {
+        margin-top: 2px !important;
+        gap: 3px !important;
+      }
+      .kw-pill {
+        font-size: 0.68rem !important;
+        padding: 1px 5px !important;
+      }
+      .card-actions {
+        gap: 4px !important;
+      }
+      .card-actions .speech-len-tag {
+        font-size: 0.70rem !important;
+      }
+      .card-actions .btn-card-action {
+        padding: 2px 6px !important;
+        font-size: 0.70rem !important;
+      }
+      .save-status-badge, .speech-click-hint, .mobile-hide-hint {
+        display: none !important;
+      }
       .topic-title {
-        font-size: 1.15rem !important;
-        line-height: 1.45 !important;
+        font-size: 1.02rem !important;
+        line-height: 1.35 !important;
+        margin-bottom: 6px !important;
+        font-weight: 800 !important;
+        color: #f8fafc !important;
       }
-
       .speech-card {
-        padding: 16px 14px !important;
-        border-radius: 12px !important;
+        padding: 8px 10px !important;
+        margin-top: 4px !important;
+        border-radius: 8px !important;
       }
-
+      .speech-card-header {
+        margin-bottom: 4px !important;
+        padding-bottom: 4px !important;
+        gap: 4px !important;
+      }
+      .speech-card-title {
+        font-size: 0.78rem !important;
+        font-weight: 700 !important;
+      }
       .speech-body {
-        font-size: 0.94rem !important;
-        line-height: 1.8 !important;
+        font-size: 0.88rem !important;
+        line-height: 1.58 !important;
+        letter-spacing: -0.015em !important;
+      }
+      .model-script-card.is-empty-script {
+        display: none !important;
       }
 
       .card-actions {
@@ -2328,6 +2377,35 @@
       color: #fff;
       animation: slideUpDock 0.3s cubic-bezier(0.16, 1, 0.3, 1);
     }
+    
+    /* 🎧 미니 플레이어 바 및 서랍(도크) 접기/올리기 스타일 */
+    .ap-mini-bar {
+      display: none;
+      align-items: center;
+      justify-content: space-between;
+      gap: 10px;
+      width: 100%;
+      cursor: pointer;
+      user-select: none;
+    }
+    .auto-player-dock.minimized {
+      padding: 7px 14px max(8px, env(safe-area-inset-bottom, 8px)) 14px !important;
+      gap: 0 !important;
+      background: rgba(15, 23, 42, 0.96) !important;
+      border-top: 1.5px solid #38bdf8 !important;
+      box-shadow: 0 -4px 20px rgba(0, 0, 0, 0.75) !important;
+      min-height: auto !important;
+    }
+    .auto-player-dock.minimized .ap-mini-bar {
+      display: flex !important;
+    }
+    .auto-player-dock.minimized .ap-full-dock-content {
+      display: none !important;
+    }
+    body.ap-dock-minimized {
+      padding-bottom: 54px !important;
+    }
+
     .auto-player-dock.active {
       display: flex !important;
     }
@@ -4446,9 +4524,10 @@
           </div>
         `;
 
-        // 직무·소자(tech) 문항일 때: 심화해설 바로 위에 배치되는 [🎙️ 내 모범답안 음성과 대본] 카드 (초기값 비움)
+        // 직무·소자(tech) 문항일 때: 심화해설 바로 위에 배치되는 [🎙️ 내 모범답안 음성과 대본] 카드 (작성 내용 없을 시 모바일에서 컴팩트 숨김)
+        const hasAltText = Boolean(speechAlt && speechAlt.trim());
         const techTopModelScriptCardHtml = !isPersonality ? `
-              <div class="speech-card model-script-card">
+              <div class="speech-card model-script-card ${hasAltText ? '' : 'is-empty-script'}">
                 <div class="speech-card-header" style="flex-wrap:wrap; gap:8px;">
                   <div class="speech-card-title">
                     <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 2a3 3 0 0 0-3 3v7a3 3 0 0 0 6 0V5a3 3 0 0 0-3-3Z"></path><path d="M19 10v2a7 7 0 0 1-14 0v-2"></path><line x1="12" y1="19" x2="12" y2="22"></line></svg>
@@ -4516,7 +4595,7 @@
               </div>
 
               <!-- 제목 (클릭 시 즉시 수정) -->
-              <div style="font-size: 0.74rem; color: var(--text-muted); margin-bottom: 4px; display: flex; align-items: center; gap: 4px;">
+              <div class="mobile-hide-hint" style="font-size: 0.74rem; color: var(--text-muted); margin-bottom: 4px; display: flex; align-items: center; gap: 4px;">
                 <span>✏️ 질문 내용 (클릭하여 직접 수정 가능 · 실시간 자동 저장)</span>
               </div>
               <h2 class="topic-title editable-field" contenteditable="true" data-field="title" data-id="${t.id}" title="클릭하여 질문 내용 바로 수정 (실시간 자동 저장)">${title}</h2>
@@ -8864,17 +8943,47 @@
       if (chipT) chipT.textContent = `직무·소자 (${tCount})`;
     }
 
-    // 플레이어 도크 열기/닫기
+    // 🎧 플레이어 서랍 내리기 (오디오 끊김 없이 미니 바로 축소)
+    function minimizeAutoPlayerDock() {
+      const dock = document.getElementById('autoPlayerDock');
+      if (!dock) return;
+      dock.classList.add('minimized');
+      document.body.classList.remove('ap-dock-open');
+      document.body.classList.add('ap-dock-minimized');
+      showToast('🎧 서랍을 내렸습니다. (백그라운드에서 소리는 계속 재생됩니다)');
+    }
+
+    // 🎧 플레이어 서랍 올리기 (풀 컨트롤 패널 펼치기)
+    function expandAutoPlayerDock() {
+      const dock = document.getElementById('autoPlayerDock');
+      if (!dock) return;
+      dock.classList.remove('minimized');
+      dock.classList.add('active');
+      document.body.classList.remove('ap-dock-minimized');
+      document.body.classList.add('ap-dock-open');
+    }
+
+    // 🎧 플레이어 완전 종료 (재생 중단 및 서랍 닫기)
+    function closeAutoPlayerCompletely() {
+      const dock = document.getElementById('autoPlayerDock');
+      if (!dock) return;
+      apIsActive = false;
+      dock.classList.remove('active', 'minimized');
+      document.body.classList.remove('ap-dock-open', 'ap-dock-minimized');
+      stopAutoPlayerLoop();
+      showToast('⏹️ 연속 자동 플레이어가 완전히 종료되었습니다.');
+    }
+
+    // 플레이어 도크 열기/토글 (상단 바 및 메뉴 버튼 연동)
     function toggleAutoPlayerDock() {
       const dock = document.getElementById('autoPlayerDock');
       if (!dock) return;
-      apIsActive = !apIsActive;
-      document.body.classList.toggle('ap-dock-open', apIsActive);
 
-      if (apIsActive) {
+      if (!apIsActive) {
+        apIsActive = true;
+        expandAutoPlayerDock();
         initAutoPlayerSettingsFromStorage();
         updateApCategoryCounts();
-        dock.classList.add('active');
 
         const activeId = detectCurrentActiveTopicId();
         const pool = getApFilteredPool();
@@ -8889,11 +8998,11 @@
         if (currentTopic) {
           updateApTopicHeader(currentTopic);
         }
-        showToast('🎧 연속 자동 플레이어가 열렸습니다. [▶️ 연속 재생 시작]을 누르세요.');
+        showToast('🎧 연속 자동 플레이어가 열렸습니다.');
+      } else if (dock.classList.contains('minimized')) {
+        expandAutoPlayerDock();
       } else {
-        dock.classList.remove('active');
-        stopAutoPlayerLoop();
-        showToast('🎧 연속 자동 플레이어가 종료되었습니다.');
+        minimizeAutoPlayerDock();
       }
     }
 
@@ -9031,6 +9140,24 @@
       if (titleEl) {
         titleEl.textContent = topic.title;
       }
+
+      // 미니 플레이어 바 정보 동기화
+      const miniBadge = document.getElementById('apMiniBadge');
+      const miniTitle = document.getElementById('apMiniTitle');
+      if (miniBadge && badgeEl) {
+        miniBadge.textContent = badgeEl.textContent;
+        miniBadge.className = badgeEl.className;
+        miniBadge.style.background = badgeEl.style.background;
+      }
+      if (miniTitle) {
+        miniTitle.textContent = topic.title;
+      }
+
+      // 모바일 뷰어: 재생 중인 문항 위치로 부드럽게 스크롤 자동 이동
+      const topicEl = document.getElementById(topic.id);
+      if (topicEl) {
+        topicEl.scrollIntoView({ behavior: 'smooth', block: 'start' });
+      }
     }
 
     // 재생/일시정지 토글
@@ -9050,6 +9177,8 @@
       const txt = document.getElementById('txtApPlayToggle');
       if (btn) btn.classList.add('playing');
       if (txt) txt.textContent = '⏸️ 일시정지';
+      const miniBtn = document.getElementById('btnApMiniPlayToggle');
+      if (miniBtn) miniBtn.textContent = '⏸️';
 
       // 다른 음성 및 녹음 중지
       if (typeof isRecording !== 'undefined' && isRecording && typeof stopRecording === 'function') {
@@ -9081,6 +9210,8 @@
       const txt = document.getElementById('txtApPlayToggle');
       if (btn) btn.classList.remove('playing');
       if (txt) txt.textContent = '▶️ 연속 재생 시작';
+      const miniBtn = document.getElementById('btnApMiniPlayToggle');
+      if (miniBtn) miniBtn.textContent = '▶️';
 
       stopAllCurrentApAudio();
       clearInterval(apCountdownInterval);
@@ -9163,6 +9294,10 @@
       }
       if (statusText) statusText.textContent = text;
       if (timerNoticeEl) timerNoticeEl.textContent = timerNotice;
+      const miniStatus = document.getElementById('apMiniStatus');
+      if (miniStatus) {
+        miniStatus.textContent = timerNotice ? ('🎧 ' + timerNotice) : (text ? ('🎧 ' + text.substring(0, 18) + '...') : '🎧 재생 중');
+      }
     }
 
     // ==============================================================================
@@ -9444,21 +9579,40 @@
        🎧 모바일 연속 자동 듣기 플레이어 (Hands-Free Loop Dock)
        ========================================================================== -->
   <div class="auto-player-dock" id="autoPlayerDock">
-    <!-- 상단: 문항 정보 & 닫기/설정 토글 -->
-    <div class="ap-dock-top">
-      <div class="ap-topic-info">
-        <span class="ap-badge" id="apBadge">인성-01</span>
-        <span class="ap-title" id="apTitle">지원동기 및 직무 포부</span>
+    <!-- 1) 미니 플레이어 바 (서랍을 내렸을 때 표시되는 슬림 컨트롤러: 높이 36px) -->
+    <div class="ap-mini-bar" id="apMiniBar" onclick="expandAutoPlayerDock()" title="클릭하면 서랍을 다시 올립니다">
+      <div style="display:flex; align-items:center; gap:8px; flex:1; min-width:0; overflow:hidden;">
+        <span class="ap-badge" id="apMiniBadge" style="font-size:0.72rem; padding:2px 6px;">공통-01</span>
+        <span id="apMiniTitle" style="font-size:0.83rem; font-weight:700; color:#f1f5f9; white-space:nowrap; overflow:hidden; text-overflow:ellipsis;">질문 제목</span>
+        <span id="apMiniStatus" style="font-size:0.72rem; font-weight:800; color:#38bdf8; background:rgba(56,189,248,0.15); padding:2px 6px; border-radius:4px; white-space:nowrap;">🎧 재생 중</span>
       </div>
-      <div style="display: flex; align-items: center; gap: 6px;">
-        <button class="ap-btn" onclick="toggleApSettingsPanel()" style="padding: 4px 8px; font-size: 0.74rem;" title="플레이어 설정">
-          ⚙️ 설정
-        </button>
-        <button class="ap-btn" onclick="toggleAutoPlayerDock()" style="padding: 4px 8px; font-size: 0.74rem; color: #ef4444;" title="플레이어 닫기">
-          ✕
-        </button>
+      <div style="display:flex; align-items:center; gap:6px;" onclick="event.stopPropagation()">
+        <button class="ap-btn" id="btnApMiniPlayToggle" onclick="toggleAutoPlayerPlay()" style="padding:4px 8px; font-size:0.75rem;" title="재생/일시정지">⏸️</button>
+        <button class="ap-btn" onclick="expandAutoPlayerDock()" style="padding:4px 9px; font-size:0.75rem; background:#0284c7; color:#fff;" title="서랍 올리기">🔼 서랍 올리기</button>
+        <button class="ap-btn" onclick="closeAutoPlayerCompletely()" style="padding:4px 7px; font-size:0.75rem; color:#ef4444;" title="완전 종료">✕</button>
       </div>
     </div>
+
+    <!-- 2) 풀 도크 내용 (서랍을 펼쳤을 때 표시) -->
+    <div class="ap-full-dock-content" id="apFullDockContent">
+      <!-- 상단: 문항 정보 & 서랍 내리기(접기) / 설정 / 완전 종료 -->
+      <div class="ap-dock-top">
+        <div class="ap-topic-info">
+          <span class="ap-badge" id="apBadge">인성-01</span>
+          <span class="ap-title" id="apTitle">지원동기 및 직무 포부</span>
+        </div>
+        <div style="display: flex; align-items: center; gap: 6px;">
+          <button class="ap-btn" onclick="toggleApSettingsPanel()" style="padding: 4px 8px; font-size: 0.74rem;" title="플레이어 설정">
+            ⚙️ 설정
+          </button>
+          <button class="ap-btn" onclick="minimizeAutoPlayerDock()" style="padding: 4px 10px; font-size: 0.74rem; background: #0284c7; color: #fff; font-weight:700;" title="서랍 내리기 (소리는 끊김 없이 계속 재생됩니다)">
+            🔽 서랍 내리기
+          </button>
+          <button class="ap-btn" onclick="closeAutoPlayerCompletely()" style="padding: 4px 8px; font-size: 0.74rem; color: #ef4444;" title="플레이어 완전 종료">
+            ✕
+          </button>
+        </div>
+      </div>
 
     <!-- 진행 상태 알림 배너 -->
     <div class="ap-status-banner" id="apStatusBanner">
@@ -9536,6 +9690,7 @@
         </div>
       </div>
     </div>
+    </div><!-- /apFullDockContent -->
   </div>
 
 </body>
