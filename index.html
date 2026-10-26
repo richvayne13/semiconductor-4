@@ -8874,6 +8874,13 @@
           apSharedAudioEl.preload = 'auto';
           apSharedAudioEl.playsInline = true;
         }
+        // 🌟 핵심 1: 유저 직접 터치 이벤트 컨텍스트에서 무음 WAV를 직접 play()하여 모바일(iOS Safari/Android Chrome) HTML5 Audio 완전 언락!
+        apSharedAudioEl.src = 'data:audio/wav;base64,UklGRigAAABXQVZFZm10IBIAAAABAAEARKwAAIhYAQACABAAAABkYXRhAgAAAAEA';
+        const p = apSharedAudioEl.play();
+        if (p && typeof p.catch === 'function') {
+          p.catch(() => {});
+        }
+
         const AudioContextClass = window.AudioContext || window.webkitAudioContext;
         if (AudioContextClass) {
           if (!apSharedAudioCtx || apSharedAudioCtx.state === 'closed') {
@@ -8883,15 +8890,13 @@
             apSharedAudioCtx.resume().catch(() => {});
           }
         }
-        // 🌟 모바일(iOS Safari / Android Chrome) SpeechSynthesis 정책 사전 언락 (사용자 터치 제스처 시점 발화)
+        // 🌟 핵심 2: Web Speech API 모바일 정책 언락 (무음 발화 1회)
         if ('speechSynthesis' in window) {
           try {
             window.speechSynthesis.resume();
             const dummy = new SpeechSynthesisUtterance(' ');
             dummy.volume = 0.01;
             dummy.rate = 10.0;
-            dummy.onend = () => {};
-            dummy.onerror = () => {};
             window.speechSynthesis.speak(dummy);
           } catch (e) {}
         }
@@ -8969,6 +8974,7 @@
       document.body.classList.toggle('ap-dock-open', apIsActive);
 
       if (apIsActive) {
+        initAutoPlayerSettingsFromStorage();
         updateApCategoryCounts();
         dock.classList.add('active');
 
@@ -8998,9 +9004,10 @@
       if (panel) panel.classList.toggle('open');
     }
 
-    // 설정 변경 함수들
+    // 설정 변경 함수들 (localStorage 영구 저장으로 모바일 재접속 시에도 완벽 유지)
     function setApCategory(cat) {
       apCategory = cat;
+      localStorage.setItem('aisk_ap_category', cat);
       ['All', 'P', 'T'].forEach(k => {
         const chip = document.getElementById(`apChipCat${k}`);
         if (chip) chip.classList.remove('active');
@@ -9021,6 +9028,7 @@
 
     function setApOrder(order) {
       apOrder = order;
+      localStorage.setItem('aisk_ap_order', order);
       document.getElementById('apChipOrderRandom')?.classList.toggle('active', order === 'random');
       document.getElementById('apChipOrderSeq')?.classList.toggle('active', order === 'sequential');
       showToast(`출제 순서가 [${order === 'random' ? '랜덤' : '순서대로'}]로 변경되었습니다.`);
@@ -9028,6 +9036,7 @@
 
     function setApQuestionVoiceMode(mode) {
       apQuestionVoiceMode = mode;
+      localStorage.setItem('aisk_ap_q_voice', mode);
       document.getElementById('apChipQVoiceMy')?.classList.toggle('active', mode === 'my_voice');
       document.getElementById('apChipQVoiceTts')?.classList.toggle('active', mode === 'tts');
       showToast(mode === 'my_voice' ? '질문 음성: [🎙️ 내 목소리 (AI 클로닝)]' : '질문 음성: [🔊 기본 아나운서 (TTS)]');
@@ -9035,6 +9044,7 @@
 
     function setApAnswerMode(mode) {
       apAnswerMode = mode;
+      localStorage.setItem('aisk_ap_ans_mode', mode);
       document.getElementById('apChipAnsMyModel')?.classList.toggle('active', mode === 'my_model_first');
       document.getElementById('apChipAnsLecture')?.classList.toggle('active', mode === 'lecture_tts');
       showToast(mode === 'my_model_first' ? '답변 소스: [모범답안 우선 (없으면 심화해설 자동 재생)]' : '답변 소스: [심화해설 전용]');
@@ -9042,10 +9052,49 @@
 
     function setApWaitSeconds(sec) {
       apWaitSeconds = sec;
+      localStorage.setItem('aisk_ap_wait_sec', String(sec));
       [3, 5, 10, 15, 20].forEach(s => {
         document.getElementById(`apChipWait${s}`)?.classList.toggle('active', s === sec);
       });
       showToast(`답변 구상 대기 시간이 [${sec}초]로 설정되었습니다.`);
+    }
+
+    // 플레이어 저장된 설정 불러오기
+    function initAutoPlayerSettingsFromStorage() {
+      const savedQVoice = localStorage.getItem('aisk_ap_q_voice');
+      if (savedQVoice) {
+        apQuestionVoiceMode = savedQVoice;
+        document.getElementById('apChipQVoiceMy')?.classList.toggle('active', savedQVoice === 'my_voice');
+        document.getElementById('apChipQVoiceTts')?.classList.toggle('active', savedQVoice === 'tts');
+      }
+      const savedAnsMode = localStorage.getItem('aisk_ap_ans_mode');
+      if (savedAnsMode) {
+        apAnswerMode = savedAnsMode;
+        document.getElementById('apChipAnsMyModel')?.classList.toggle('active', savedAnsMode === 'my_model_first');
+        document.getElementById('apChipAnsLecture')?.classList.toggle('active', savedAnsMode === 'lecture_tts');
+      }
+      const savedOrder = localStorage.getItem('aisk_ap_order');
+      if (savedOrder) {
+        apOrder = savedOrder;
+        document.getElementById('apChipOrderRandom')?.classList.toggle('active', savedOrder === 'random');
+        document.getElementById('apChipOrderSeq')?.classList.toggle('active', savedOrder === 'sequential');
+      }
+      const savedCat = localStorage.getItem('aisk_ap_category');
+      if (savedCat) {
+        apCategory = savedCat;
+        ['All', 'P', 'T'].forEach(k => document.getElementById(`apChipCat${k}`)?.classList.remove('active'));
+        if (savedCat === 'all') document.getElementById('apChipCatAll')?.classList.add('active');
+        else if (savedCat === 'personality') document.getElementById('apChipCatP')?.classList.add('active');
+        else if (savedCat === 'tech') document.getElementById('apChipCatT')?.classList.add('active');
+      }
+      const savedWait = localStorage.getItem('aisk_ap_wait_sec');
+      if (savedWait) {
+        const sec = parseInt(savedWait, 10) || 3;
+        apWaitSeconds = sec;
+        [3, 5, 10, 15, 20].forEach(s => {
+          document.getElementById(`apChipWait${s}`)?.classList.toggle('active', s === sec);
+        });
+      }
     }
 
     // 대상 문항 풀 추출
@@ -9276,9 +9325,13 @@
         try {
           const playedOk = await playUserAudioElementAsync(mp3Url);
           if (playedOk) return;
-        } catch (e) {}
+        } catch (e) {
+          console.warn('Play my voice mp3 failed:', e);
+        }
+        console.warn('Fallback to browser TTS because mp3 failed or not supported');
       }
 
+      // my_voice가 실패했거나 tts 모드인 경우 기본 아나운서 TTS 발화
       const cleanQ = cleanTextForAnnouncerTTS(title);
       if (!cleanQ) return;
       await speakChunkedTTSAsync(cleanQ, { rate: 1.0, pitch: 1.0 });
@@ -9475,42 +9528,76 @@
       }
     }
 
-    // HTML5 Audio 엘리먼트 비동기 재생 Promise (모바일 잠금 해제된 Audio 엘리먼트 재사용, 성공 여부 boolean 반환)
+    // HTML5 Audio 엘리먼트 비동기 재생 Promise (모바일 절대 경로 보장 + load() 및 canplay 자동 재시도)
     function playUserAudioElementAsync(src) {
       return new Promise((resolve) => {
         if (!src) {
           resolve(false);
           return;
         }
+
+        // 상대 경로 안전 변환 (GitHub Pages 절대 URL 완벽 보장)
+        let resolvedSrc = src;
+        try {
+          resolvedSrc = new URL(src, window.location.href).href;
+        } catch (e) {}
+
         const audio = apSharedAudioEl || new Audio();
-        audio.src = src;
         audio.preload = 'auto';
         audio.playsInline = true;
         apCurrentAudioEl = audio;
 
         let settled = false;
+        let playTimeout = null;
+
         const finish = (ok) => {
           if (settled) return;
           settled = true;
+          if (playTimeout) clearTimeout(playTimeout);
           audio.onended = null;
           audio.onerror = null;
+          audio.oncanplay = null;
           try { audio.pause(); } catch (e) {}
           if (apCurrentAudioEl === audio) apCurrentAudioEl = null;
           resolve(Boolean(ok));
         };
 
         audio.onended = () => finish(true);
-        audio.onerror = () => {
-          console.warn('User audio playback failed or not found, falling back to TTS');
+        audio.onerror = (e) => {
+          console.warn('User audio error on:', resolvedSrc, e);
           finish(false);
         };
 
-        const playPromise = audio.play();
-        if (playPromise && typeof playPromise.catch === 'function') {
-          playPromise.catch(err => {
-            console.warn('Audio play interrupted/blocked:', err);
+        // 안전 타임아웃 (네트워크 지연 대비 20초)
+        playTimeout = setTimeout(() => {
+          if (!settled) {
+            console.warn('User audio playback timeout:', resolvedSrc);
             finish(false);
-          });
+          }
+        }, 20000);
+
+        try {
+          audio.pause();
+          audio.src = resolvedSrc;
+          audio.load();
+
+          const playPromise = audio.play();
+          if (playPromise && typeof playPromise.catch === 'function') {
+            playPromise.catch(err => {
+              console.warn('Audio play() initial rejected, retrying on canplay:', err);
+              // 모바일에서 버퍼링 지연으로 reject된 경우 canplay 시점에 1회 자동 재시도
+              audio.oncanplay = () => {
+                audio.oncanplay = null;
+                audio.play().catch(retryErr => {
+                  console.warn('Audio play() retry also failed:', retryErr);
+                  finish(false);
+                });
+              };
+            });
+          }
+        } catch (err) {
+          console.warn('Audio play exception:', err);
+          finish(false);
         }
       });
     }
