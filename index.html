@@ -8854,7 +8854,7 @@
     let apCategory = 'all';             // 'all' | 'personality' | 'tech'
     let apOrder = 'random';             // 'random' | 'sequential'
     let apQuestionVoiceMode = 'my_voice'; // 'my_voice' | 'tts' (기본값: AI 복제 내 목소리)
-    let apAnswerMode = 'my_model_first';// 'my_model_first' | 'lecture_tts'
+    let apAnswerMode = 'lecture_tts'; // 'lecture_tts' | 'my_model_first' (심화해설 우선 기본 세팅)
     let apWaitSeconds = 3;              // 기본 3초 대기 (빠른 연속 답변)
 
     // 타이머 및 모바일 오디오 잠금 해제용 공유 객체
@@ -9067,12 +9067,10 @@
         document.getElementById('apChipQVoiceMy')?.classList.toggle('active', savedQVoice === 'my_voice');
         document.getElementById('apChipQVoiceTts')?.classList.toggle('active', savedQVoice === 'tts');
       }
-      const savedAnsMode = localStorage.getItem('aisk_ap_ans_mode');
-      if (savedAnsMode) {
-        apAnswerMode = savedAnsMode;
-        document.getElementById('apChipAnsMyModel')?.classList.toggle('active', savedAnsMode === 'my_model_first');
-        document.getElementById('apChipAnsLecture')?.classList.toggle('active', savedAnsMode === 'lecture_tts');
-      }
+      const savedAnsMode = localStorage.getItem('aisk_ap_ans_mode') || 'lecture_tts';
+      apAnswerMode = savedAnsMode;
+      document.getElementById('apChipAnsMyModel')?.classList.toggle('active', savedAnsMode === 'my_model_first');
+      document.getElementById('apChipAnsLecture')?.classList.toggle('active', savedAnsMode === 'lecture_tts');
       const savedOrder = localStorage.getItem('aisk_ap_order');
       if (savedOrder) {
         apOrder = savedOrder;
@@ -9692,11 +9690,11 @@
       <div class="ap-setting-row">
         <span class="ap-setting-label">3. 답변 음성 재생 소스</span>
         <div class="ap-chip-group">
-          <button class="ap-chip active" id="apChipAnsMyModel" onclick="setApAnswerMode('my_model_first')" title="모범답안(녹음본 또는 작성 대본)이 있으면 모범답안을 우선 재생하고, 없으면 심화해설을 자동으로 재생합니다">
-            🎙️ 모범답안 우선 (없으면 심화해설 자동 전환)
+          <button class="ap-chip active" id="apChipAnsLecture" onclick="setApAnswerMode('lecture_tts')" title="전문 심화해설을 우선으로 재생합니다">
+            📘 심화해설 우선 (기본)
           </button>
-          <button class="ap-chip" id="apChipAnsLecture" onclick="setApAnswerMode('lecture_tts')" title="모범답안 여부와 상관없이 3분 심화해설을 전용으로 재생합니다">
-            📘 심화해설 전용
+          <button class="ap-chip" id="apChipAnsMyModel" onclick="setApAnswerMode('my_model_first')" title="모범답안(녹음본 또는 작성 대본)이 있으면 모범답안을 우선 재생합니다">
+            🎙️ 모범답안 우선
           </button>
         </div>
       </div>
