@@ -2320,7 +2320,7 @@
       -webkit-backdrop-filter: blur(16px);
       border-top: 1.5px solid rgba(56, 189, 248, 0.5);
       box-shadow: 0 -10px 40px rgba(0, 0, 0, 0.7);
-      padding: 10px 16px 14px 16px;
+      padding: 10px 16px max(14px, env(safe-area-inset-bottom, 14px)) 16px;
       display: none;
       flex-direction: column;
       gap: 8px;
@@ -8851,11 +8851,11 @@
     let apOrder = 'random';             // 'random' | 'sequential'
     let apQuestionVoiceMode = 'my_voice'; // 'my_voice' | 'tts' (기본값: AI 복제 내 목소리)
     let apAnswerMode = 'my_model_first';// 'my_model_first' | 'lecture_tts'
-    let apWaitSeconds = 10;             // 기본 10초 대기
+    let apWaitSeconds = 3;              // 기본 3초 대기 (빠른 연속 답변)
 
     // 타이머 및 모바일 오디오 잠금 해제용 공유 객체
     let apCountdownInterval = null;
-    let apCountdownRemain = 10;
+    let apCountdownRemain = 3;
     let apCurrentAudioEl = null;
     let apCurrentUtterance = null;
     let apLoopTimeout = null;
@@ -9026,7 +9026,7 @@
 
     function setApWaitSeconds(sec) {
       apWaitSeconds = sec;
-      [5, 10, 15, 20].forEach(s => {
+      [3, 5, 10, 15, 20].forEach(s => {
         document.getElementById(`apChipWait${s}`)?.classList.toggle('active', s === sec);
       });
       showToast(`답변 구상 대기 시간이 [${sec}초]로 설정되었습니다.`);
@@ -9257,14 +9257,10 @@
     async function playQuestionTTSAsync(title, topicId) {
       if (apQuestionVoiceMode === 'my_voice' && topicId) {
         const mp3Url = `voices/questions/${encodeURIComponent(topicId)}.mp3`;
-        let playedOk = false;
         try {
-          await playUserAudioElementAsync(mp3Url);
-          playedOk = true;
-        } catch (e) {
-          playedOk = false;
-        }
-        if (playedOk) return;
+          const playedOk = await playUserAudioElementAsync(mp3Url);
+          if (playedOk) return;
+        } catch (e) {}
       }
 
       const cleanQ = cleanTextForAnnouncerTTS(title);
@@ -9451,11 +9447,11 @@
       }
     }
 
-    // HTML5 Audio 엘리먼트 비동기 재생 Promise (모바일 잠금 해제된 Audio 엘리먼트 재사용)
+    // HTML5 Audio 엘리먼트 비동기 재생 Promise (모바일 잠금 해제된 Audio 엘리먼트 재사용, 성공 여부 boolean 반환)
     function playUserAudioElementAsync(src) {
       return new Promise((resolve) => {
         if (!src) {
-          resolve();
+          resolve(false);
           return;
         }
         const audio = apSharedAudioEl || new Audio();
@@ -9465,26 +9461,26 @@
         apCurrentAudioEl = audio;
 
         let settled = false;
-        const finish = () => {
+        const finish = (ok) => {
           if (settled) return;
           settled = true;
           audio.onended = null;
           audio.onerror = null;
           if (apCurrentAudioEl === audio) apCurrentAudioEl = null;
-          resolve();
+          resolve(Boolean(ok));
         };
 
-        audio.onended = finish;
+        audio.onended = () => finish(true);
         audio.onerror = () => {
-          console.warn('User audio playback failed');
-          finish();
+          console.warn('User audio playback failed or not found, falling back to TTS');
+          finish(false);
         };
 
         const playPromise = audio.play();
         if (playPromise && typeof playPromise.catch === 'function') {
           playPromise.catch(err => {
-            console.warn('Audio play interrupted:', err);
-            finish();
+            console.warn('Audio play interrupted/blocked:', err);
+            finish(false);
           });
         }
       });
@@ -9524,7 +9520,7 @@
     <!-- 진행 상태 알림 배너 -->
     <div class="ap-status-banner" id="apStatusBanner">
       <span id="apStatusText">🎧 연속 자동 재생 대기 중 (재생 버튼을 누르면 시작됩니다)</span>
-      <span id="apTimerNotice" style="font-family: var(--font-mono); font-weight: 800;">10s</span>
+      <span id="apTimerNotice" style="font-family: var(--font-mono); font-weight: 800;">3s</span>
     </div>
 
     <!-- 카운트다운 게이지 바 -->
@@ -9592,8 +9588,9 @@
       <div class="ap-setting-row">
         <span class="ap-setting-label">4. 질문 후 생각/답변 대기 시간</span>
         <div class="ap-chip-group">
+          <button class="ap-chip active" id="apChipWait3" onclick="setApWaitSeconds(3)">3초 (기본)</button>
           <button class="ap-chip" id="apChipWait5" onclick="setApWaitSeconds(5)">5초</button>
-          <button class="ap-chip active" id="apChipWait10" onclick="setApWaitSeconds(10)">10초 (기본)</button>
+          <button class="ap-chip" id="apChipWait10" onclick="setApWaitSeconds(10)">10초</button>
           <button class="ap-chip" id="apChipWait15" onclick="setApWaitSeconds(15)">15초</button>
           <button class="ap-chip" id="apChipWait20" onclick="setApWaitSeconds(20)">20초</button>
         </div>
