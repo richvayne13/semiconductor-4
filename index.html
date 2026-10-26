@@ -8457,7 +8457,10 @@
       }
       if ('speechSynthesis' in window) {
         try {
-          window.speechSynthesis.cancel();
+          // 불필요한 cancel() 남발 방지: 실제 발화 중이거나 큐에 대기 중일 때만 취소
+          if (window.speechSynthesis.speaking || window.speechSynthesis.pending) {
+            window.speechSynthesis.cancel();
+          }
         } catch (e) {}
       }
       window._activeChunkUtterance = null;
@@ -8479,13 +8482,14 @@
       const sessionId = ++currentChunkedTtsSessionId;
       const rate = options.rate || 1.04;
       const pitch = options.pitch || 1.0;
-      const chunks = splitTextIntoTTSChunks(cleanText, 135);
+      const chunks = splitTextIntoTTSChunks(cleanText, 110);
       if (chunks.length === 0) return false;
 
-      // 이전 cancel() IPC가 새 speak()를 삼키지 않도록 짧게 대기
-      await new Promise(r => setTimeout(r, 45));
+      // 이전 cancel() IPC가 새 speak()를 삼키지 않도록 여유 있게 대기
+      await new Promise(r => setTimeout(r, 100));
       if (sessionId !== currentChunkedTtsSessionId) return false;
 
+      // 한국어 보이스 선택
       const koVoice = (typeof getKoreanVoice === 'function')
         ? getKoreanVoice()
         : (window.speechSynthesis.getVoices().find(v => v.lang && v.lang.toLowerCase().startsWith('ko')) || null);
@@ -8497,9 +8501,8 @@
           currentChunkedTtsResolve = resolve;
           let settled = false;
           let started = false;
-          let retried = false;
           const startTime = Date.now();
-          const maxDurationMs = Math.max(8000, chunkText.length * 260);
+          const maxDurationMs = Math.max(12000, chunkText.length * 350);
 
           const finishChunk = (result) => {
             if (settled) return;
@@ -8518,7 +8521,9 @@
           utterance.lang = 'ko-KR';
           utterance.rate = rate;
           utterance.pitch = pitch;
-          if (koVoice) utterance.voice = koVoice;
+          if (koVoice) {
+            try { utterance.voice = koVoice; } catch (e) {}
+          }
 
           // GC 수거 방지용 전역 참조 유지
           window._activeChunkUtterance = utterance;
@@ -8551,7 +8556,7 @@
             return;
           }
 
-          // 워치독 타이머: Chrome 15초 일시정지 버그 깨우기 & 모바일 onend 누락 감지
+          // 워치독 타이머: Chrome/Android/iOS 안정화 (조기 cancel 방지 및 resume 시도)
           currentChunkedTtsTimer = setInterval(() => {
             if (sessionId !== currentChunkedTtsSessionId) {
               finishChunk(false);
@@ -8562,40 +8567,39 @@
 
             if (synth.speaking) {
               started = true;
-              // Chrome 데스크톱/안드로이드 장문 일시정지 방지
               if (synth.paused) {
                 try { synth.resume(); } catch (e) {}
               }
-            } else if (started && !synth.pending && elapsed > 450) {
-              // 발화가 시작되었다가 speaking/pending이 모두 끝났는데 onend가 안 불린 경우
+            } else if (started && !synth.pending && elapsed > 600) {
+              // 정상 발화 후 speaking/pending이 모두 끝났는데 onend 누락된 경우
               finishChunk(true);
               return;
-            } else if (!started && !synth.pending && elapsed > 1400 && !retried) {
-              // 첫 speak()가 브라우저 큐에서 무시된 경우 1회 재시도
-              retried = true;
-              try {
-                synth.cancel();
-                setTimeout(() => {
-                  if (!settled && sessionId === currentChunkedTtsSessionId) {
-                    synth.speak(utterance);
-                  }
-                }, 60);
-              } catch (e) {}
-            } else if (!started && !synth.pending && elapsed > 3200) {
-              // 재시도 후에도 음성 엔진이 응답하지 않으면 다음 문장으로 진행
+            } else if (!started && !synth.pending && elapsed > 2500) {
+              // 2.5초 이상 시작되지 않고 대기 중일 때 깨우기 시도 (cancel 날리지 않고 resume)
+              if (synth.paused) {
+                try { synth.resume(); } catch (e) {}
+              }
+            } else if (!started && !synth.pending && elapsed > 6000) {
+              // 6초가 지나도 브라우저가 응답하지 않을 때만 다음 문장으로 스킵
               finishChunk(true);
               return;
             }
 
+            // 문장 전체 최대 허용 시간 초과 시 다음으로
             if (elapsed > maxDurationMs) {
-              try { synth.cancel(); } catch (e) {}
+              try { if (synth.speaking || synth.pending) synth.cancel(); } catch (e) {}
               finishChunk(true);
             }
-          }, 140);
+          }, 150);
         });
 
         if (!ok || sessionId !== currentChunkedTtsSessionId) {
           return false;
+        }
+
+        // 청크 간 자연스러운 발화 호흡 (80ms 간격)
+        if (i < chunks.length - 1) {
+          await new Promise(r => setTimeout(r, 80));
         }
       }
       return true;
@@ -8878,6 +8882,18 @@
           if (apSharedAudioCtx.state === 'suspended') {
             apSharedAudioCtx.resume().catch(() => {});
           }
+        }
+        // 🌟 모바일(iOS Safari / Android Chrome) SpeechSynthesis 정책 사전 언락 (사용자 터치 제스처 시점 발화)
+        if ('speechSynthesis' in window) {
+          try {
+            window.speechSynthesis.resume();
+            const dummy = new SpeechSynthesisUtterance(' ');
+            dummy.volume = 0.01;
+            dummy.rate = 10.0;
+            dummy.onend = () => {};
+            dummy.onerror = () => {};
+            window.speechSynthesis.speak(dummy);
+          } catch (e) {}
         }
       } catch (e) {}
     }
@@ -9317,25 +9333,38 @@
             ? topic.speech_alt.trim()
             : '');
 
+      const lectureScript = (topic.speech_1m30s && topic.speech_1m30s.trim())
+        ? topic.speech_1m30s.trim()
+        : (topic.speech_alt ? topic.speech_alt.trim() : '');
+
+      // 모바일/PC 오디오 엔진 깨우기
+      if ('speechSynthesis' in window && window.speechSynthesis.paused) {
+        try { window.speechSynthesis.resume(); } catch (e) {}
+      }
+
       // 모드가 'my_model_first'인 경우: 모범답안 우선 재생 (없으면 심화해설 자동 전환)
       if (apAnswerMode === 'my_model_first') {
         // 1순위: 직접 녹음한 음성 파일이 있는지 확인
-        const entry = await getAudioEntryForRecord(recId);
-        if (!apIsPlaying || (myGen && myGen !== apLoopGeneration)) return;
+        try {
+          const entry = await getAudioEntryForRecord(recId);
+          if (!apIsPlaying || (myGen && myGen !== apLoopGeneration)) return;
 
-        let hasValidSpeech = false;
-        if (entry && (entry.blob || entry.dataUrl)) {
-          updateApBanner('speaking-ans', '🔍 녹음된 음성의 유효성을 분석하고 있습니다...', '분석 중');
-          hasValidSpeech = await checkAudioHasHumanSpeech(entry.blob);
+          let hasValidSpeech = false;
+          if (entry && (entry.blob || entry.dataUrl)) {
+            updateApBanner('speaking-ans', '🔍 녹음된 음성의 유효성을 분석하고 있습니다...', '분석 중');
+            hasValidSpeech = await checkAudioHasHumanSpeech(entry.blob);
+          }
+          if (!apIsPlaying || (myGen && myGen !== apLoopGeneration)) return;
+
+          if (hasValidSpeech && entry) {
+            updateApBanner('speaking-ans', '🎙️ 내가 녹음한 모범답안 음성을 재생합니다...', '내 녹음');
+            const playedOk = await playUserAudioElementAsync(entry.objectUrl || entry.dataUrl);
+            if (playedOk) return;
+          }
+        } catch (e) {
+          console.warn('Record check/play failed, falling back to script:', e);
         }
         if (!apIsPlaying || (myGen && myGen !== apLoopGeneration)) return;
-
-        if (hasValidSpeech && entry) {
-          // 실제 사람 목소리가 감지된 내 녹음본 재생!
-          updateApBanner('speaking-ans', '🎙️ 내가 녹음한 모범답안 음성을 재생합니다...', '내 녹음');
-          await playUserAudioElementAsync(entry.objectUrl || entry.dataUrl);
-          return;
-        }
 
         // 2순위: 녹음본은 없지만 작성된 '모범답안(speech_alt)' 대본이 있는 경우 -> 모범답안 대본 우선 낭독!
         if (modelScript) {
@@ -9351,8 +9380,7 @@
           const lectureMp3Url = `voices/lectures/${encodeURIComponent(topic.id)}.mp3`;
           let playedOk = false;
           try {
-            await playUserAudioElementAsync(lectureMp3Url);
-            playedOk = true;
+            playedOk = await playUserAudioElementAsync(lectureMp3Url);
           } catch (e) {
             playedOk = false;
           }
@@ -9360,7 +9388,6 @@
         }
 
         // 3-2) 전문 심화해설 원문 재생
-        const lectureScript = topic.speech_1m30s ? topic.speech_1m30s.trim() : '';
         if (lectureScript) {
           updateApBanner('speaking-ans', '📘 [심화해설] 전문 심화해설을 재생합니다...', '심화해설');
           await playAnnouncerSpeechTTSAsync(lectureScript, { rate: 1.05 });
@@ -9375,18 +9402,19 @@
         const lectureMp3Url = `voices/lectures/${encodeURIComponent(topic.id)}.mp3`;
         let playedOk = false;
         try {
-          await playUserAudioElementAsync(lectureMp3Url);
-          playedOk = true;
+          playedOk = await playUserAudioElementAsync(lectureMp3Url);
         } catch (e) {
           playedOk = false;
         }
         if (playedOk) return;
       }
 
-      // 심화해설 원문 재생
-      updateApBanner('speaking-ans', '📘 전문 심화해설을 재생합니다...', '심화해설');
-      const lectureScript = topic.speech_1m30s || topic.speech_alt || '';
-      await playAnnouncerSpeechTTSAsync(lectureScript, { rate: 1.05 });
+      // 심화해설 원문 재생 (심화해설이 없으면 모범답안 대체)
+      const targetScript = lectureScript || modelScript;
+      if (targetScript) {
+        updateApBanner('speaking-ans', '📘 전문 심화해설을 재생합니다...', '심화해설');
+        await playAnnouncerSpeechTTSAsync(targetScript, { rate: 1.05 });
+      }
     }
 
     // 오디오 파일 내 실제 사람 음성 검출 (Web Audio API RMS & Peak 진폭 분석)
@@ -9466,6 +9494,7 @@
           settled = true;
           audio.onended = null;
           audio.onerror = null;
+          try { audio.pause(); } catch (e) {}
           if (apCurrentAudioEl === audio) apCurrentAudioEl = null;
           resolve(Boolean(ok));
         };
