@@ -319,8 +319,8 @@ header {
       <div class="stats-subtitle">사용자 답변 분석 및 누락 핵심 키워드 실시간 오답노트 (41제 중 진행 중)</div>
     </div>
     <div class="stats-pills">
-      <span class="pill pill-green">진행 문항: 4 / 41</span>
-      <span class="pill pill-amber">평균 적중률: 92%</span>
+      <span class="pill pill-green">진행 문항: 5 / 41 (Q5 스킵)</span>
+      <span class="pill pill-amber">평균 적중률: 93%</span>
     </div>
   </div>
 
@@ -483,6 +483,43 @@ header {
       <div class="cheat-sheet">
         <div class="cheat-title">🎯 심화해설 1:1 암기 Cheat-Sheet</div>
         <div><strong>ALD 핵심 4+1 공식</strong>: ① <strong>시분할 주입 + 자기포화반응(Self-Limiting)</strong> → 옹스트롬(Å) 제어 & 100% Step Coverage ② 4대 적용: <strong>High-k 게이트(HfO₂)</strong> + <strong>DRAM ZAZ 캐패시터</strong> + <strong>3D NAND ONO 채널홀</strong> + <strong>Spacer Lithography(SADP/SAQP)</strong></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ==================== Q6 ==================== -->
+  <div class="note-card" id="q6">
+    <div class="card-header">
+      <span class="q-badge">직무 Q06 · 산화</span>
+      <div class="card-title">열산화에서 건식 산화와 습식 산화의 반응 메커니즘 및 특성 비교</div>
+      <a href="index.html#t_o01" class="link-origin">AISK 원문 보기 ↗</a>
+    </div>
+    <div class="card-body">
+      <!-- 내가 답변한 내용 -->
+      <div class="ans-section user-ans">
+        <div class="section-title user">🎙️ 내가 답변한 내용 (심화해설 일치 키워드)</div>
+        <div class="user-content">
+          "산화는 <span class="hl-hit">수증기나 산소 분위기에서 열반응시켜 SiO2를 만드는 공정</span>으로, 습식은 <span class="hl-hit">용해도가 높아 속도가 빠르지만</span> 계면결함밀도가 높아 <span class="hl-hit">마스킹이나 필드산화막(STI)에 사용</span>됩니다. 건식은 <span class="hl-hit">속도가 느리지만 계면결함밀도가 낮아 게이트절연막에 사용</span>됩니다."
+        </div>
+      </div>
+
+      <!-- 심화해설 기준 누락된 핵심 포인트 -->
+      <div class="missed-box">
+        <div class="section-title missed">💡 심화해설 원문 기준 내가 빠뜨린 핵심 포인트 (오답 체크)</div>
+        <ul class="missed-list">
+          <li>
+            <span class="hl-miss">확산 계수 및 5~10배 속도 수치</span>: 물 분자(H₂O)가 산소 분자(O₂)보다 용해도뿐만 아니라 <strong>확산 계수(Diffusivity) 또한 훨씬 커서</strong> 습식의 성장 속도가 <strong>건식 대비 약 5~10배 이상 빠르다</strong>는 정량적 원인 수치 누락.
+          </li>
+          <li>
+            <span class="hl-miss">치밀한 사면체 네트워크 vs 수소/수산기(OH) 잔류</span>: 건식이 결함이 적은 이유는 <strong>완만한 반응으로 치밀한 사면체(SiO₄) 네트워크 형성(절연파괴전계 10 MV/cm)</strong> 때문이며, 습식이 결함이 많은 이유는 <strong>급격한 반응과 수소·수산기(OH) 결합의 잔류</strong> 때문이라는 미시적 메커니즘 설명 누락.
+          </li>
+        </ul>
+      </div>
+
+      <!-- 100점 심화해설 암기 치트키 -->
+      <div class="cheat-sheet">
+        <div class="cheat-title">🎯 심화해설 1:1 암기 Cheat-Sheet</div>
+        <div><strong>건식 vs 습식 비교 공식</strong>: ① <strong>속도</strong>: H₂O의 높은 용해도 & 확산계수 → 습식이 5~10배 빠름 ② <strong>막질</strong>: 건식은 치밀한 사면체(10 MV/cm 내압) vs 습식은 수소/수산기(OH) 잔류 결함 ③ <strong>적용</strong>: <strong>건식=게이트/터널 산화막</strong> vs <strong>습식=STI 라이너/마스킹/희생막</strong></div>
       </div>
     </div>
   </div>
