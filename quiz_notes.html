@@ -319,7 +319,7 @@ header {
       <div class="stats-subtitle">사용자 답변 분석 및 누락 핵심 키워드 실시간 오답노트 (41제 중 진행 중)</div>
     </div>
     <div class="stats-pills">
-      <span class="pill pill-green">진행 문항: 6 / 41 (Q5 스킵)</span>
+      <span class="pill pill-green">진행 문항: 7 / 41 (Q5 스킵)</span>
       <span class="pill pill-amber">평균 적중률: 93%</span>
     </div>
   </div>
@@ -560,6 +560,48 @@ header {
       <div class="cheat-sheet">
         <div class="cheat-title">🎯 심화해설 1:1 암기 Cheat-Sheet</div>
         <div><strong>HKMG 3대 배경 공식</strong>: ① $t_{ox} < 1.5$\text{nm}$에서 <strong>직접 양자 터널링</strong> 누설전류 폭발 ② <strong>EOT 원리($C=\epsilon A/t_{ox}$)</strong>: 고유전율 <strong>$$\text{HfO}_2(k=25)$</strong>로 물리적 두께 확보 ③ Metal Gate: <strong>폴리실리콘 공핍화 & 페르미 피닝</strong> 극복 + <strong>일함수(Work Function) 조절</strong></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ==================== Q8 ==================== -->
+  <div class="note-card" id="q8">
+    <div class="card-header">
+      <span class="q-badge">직무 Q08 · 산화</span>
+      <div class="card-title">열산화막(Thermal Oxide)과 증착 산화막(CVD Oxide)의 물성 및 적용 차이 비교</div>
+      <a href="index.html#t_o06" class="link-origin">AISK 원문 보기 ↗</a>
+    </div>
+    <div class="card-body">
+      <!-- 내가 답변한 내용 -->
+      <div class="ans-section user-ans">
+        <div class="section-title user">🎙️ 내가 답변한 내용 (심화해설 일치 키워드)</div>
+        <div class="user-content">
+          "<span class="hl-hit">열산화막은 실리콘을 희생(기판 소모)하여 산화막을 만들고</span>, <span class="hl-hit">증착 산화막은 CVD로 증착함</span>(기판 비소모)."
+        </div>
+      </div>
+
+      <!-- 심화해설 기준 누락된 핵심 포인트 -->
+      <div class="missed-box">
+        <div class="section-title missed">💡 심화해설 원문 기준 내가 빠뜨린 핵심 포인트 (오답 체크)</div>
+        <ul class="missed-list">
+          <li>
+            <span class="hl-miss">기판 소모 정량 수치 (44%) & 온도 차이</span>: 열산화막은 고온(800~1,100℃)에서 생성되어 <strong>산화막 두께의 약 44%에 해당하는 실리콘 기판이 소모</strong>되는 반면, CVD 산화막은 400~700℃ 저온에서 외부 주입 가스(실란 또는 TEOS) 반응으로 형성되어 기판 소모가 전혀 없다는 정량적 수치 누락.
+          </li>
+          <li>
+            <span class="hl-miss">박막 밀도 & 절연 파괴 강도 (10 MV/cm)</span>: 열산화막은 원자 결합이 치밀하고 계면 결함 밀도(Dit)가 극도로 낮아 <strong>절연 파괴 전계가 10 MV/cm 이상</strong>인 반면, CVD 산화막은 빠른 증착으로 <strong>내부에 미반응 수소나 공극이 존재해 밀도가 낮고 누설전류가 상대적으로 높다</strong>는 물성 차이 누락.
+          </li>
+          <li>
+            <span class="hl-miss">양산 적용처의 철저한 역할 분담</span>: 
+            극세 절연 신뢰성이 요구되는 <strong>게이트 산화막, 터널 산화막, STI 트렌치 라이너 = 열산화막</strong> / 
+            실리콘이 노출되지 않은 <strong>금속 배선 사이(ILD, IMD), 두꺼운 희생막 평탄화 = CVD 산화막</strong> 적용 분담 설명 누락.
+          </li>
+        </ul>
+      </div>
+
+      <!-- 100점 심화해설 암기 치트키 -->
+      <div class="cheat-sheet">
+        <div class="cheat-title">🎯 심화해설 1:1 암기 Cheat-Sheet</div>
+        <div><strong>열산화막 vs CVD 산화막 공식</strong>: ① <strong>기판 소모</strong>: 열산화는 Si 44% 소모(800~1100℃) vs CVD는 기판 소모 제로(400~700℃) ② <strong>막질</strong>: 열산화는 치밀한 결합(10 MV/cm 내압) vs CVD는 공극/수소 잔류로 낮은 밀도 ③ <strong>적용</strong>: <strong>열산화=게이트/터널/트렌치라이너</strong> vs <strong>CVD=배선 층간(ILD/IMD)/희생막</strong></div>
       </div>
     </div>
   </div>
