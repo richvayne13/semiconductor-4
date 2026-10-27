@@ -1,0 +1,407 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>📝 AISK 실전 면접 퀴즈 & 오답노트 (직무 41제)</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Pretendard:wght@400;600;700;800;900&display=swap" rel="stylesheet">
+<style>
+:root {
+  --bg: #0b1120;
+  --surface: #1e293b;
+  --surface-hover: #27354f;
+  --border: #334155;
+  --text: #f8fafc;
+  --text-muted: #94a3b8;
+  --accent: #38bdf8;
+  --green: #34d399;
+  --green-bg: rgba(52, 211, 153, 0.12);
+  --amber: #fbbf24;
+  --amber-bg: rgba(251, 191, 36, 0.12);
+  --rose: #fb7185;
+  --rose-bg: rgba(251, 113, 133, 0.12);
+  --purple: #c084fc;
+}
+
+* { box-sizing: border-box; margin: 0; padding: 0; }
+body {
+  font-family: 'Pretendard', -apple-system, sans-serif;
+  background-color: var(--bg);
+  color: var(--text);
+  line-height: 1.75;
+  padding-bottom: 90px;
+}
+
+header {
+  position: sticky;
+  top: 0;
+  z-index: 100;
+  background: rgba(11, 17, 32, 0.92);
+  backdrop-filter: blur(12px);
+  border-bottom: 1px solid var(--border);
+  padding: 14px 20px;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.brand {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  text-decoration: none;
+  color: var(--text);
+}
+.brand-badge {
+  background: linear-gradient(135deg, #f59e0b, #ef4444);
+  color: #fff;
+  font-size: 0.72rem;
+  font-weight: 900;
+  padding: 3px 8px;
+  border-radius: 6px;
+  letter-spacing: 0.5px;
+}
+.brand-title {
+  font-size: 1.05rem;
+  font-weight: 800;
+  background: linear-gradient(135deg, #38bdf8, #818cf8);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+}
+
+.nav-actions {
+  display: flex;
+  gap: 8px;
+}
+.btn-nav {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  background: var(--surface);
+  color: var(--text);
+  border: 1px solid var(--border);
+  padding: 6px 14px;
+  border-radius: 8px;
+  font-size: 0.82rem;
+  font-weight: 700;
+  text-decoration: none;
+  transition: all 0.2s ease;
+}
+.btn-nav:hover {
+  background: var(--surface-hover);
+  border-color: var(--accent);
+}
+.btn-nav.primary {
+  background: linear-gradient(135deg, #0284c7, #2563eb);
+  border: none;
+  color: #fff;
+}
+
+.container {
+  max-width: 960px;
+  margin: 0 auto;
+  padding: 24px 18px;
+}
+
+.stats-banner {
+  background: linear-gradient(135deg, rgba(30, 41, 59, 0.8), rgba(15, 23, 42, 0.9));
+  border: 1px solid var(--border);
+  border-radius: 14px;
+  padding: 18px 22px;
+  margin-bottom: 28px;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 12px;
+}
+.stats-title {
+  font-size: 1.1rem;
+  font-weight: 800;
+  color: var(--accent);
+}
+.stats-subtitle {
+  font-size: 0.84rem;
+  color: var(--text-muted);
+}
+.stats-pills {
+  display: flex;
+  gap: 10px;
+}
+.pill {
+  padding: 5px 12px;
+  border-radius: 20px;
+  font-size: 0.8rem;
+  font-weight: 800;
+}
+.pill-green { background: var(--green-bg); color: var(--green); border: 1px solid rgba(52, 211, 153, 0.3); }
+.pill-amber { background: var(--amber-bg); color: var(--amber); border: 1px solid rgba(251, 191, 36, 0.3); }
+
+/* Note Card */
+.note-card {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: 14px;
+  margin-bottom: 24px;
+  overflow: hidden;
+  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.2);
+  transition: transform 0.2s ease, border-color 0.2s ease;
+}
+.note-card:hover {
+  border-color: #475569;
+}
+
+.card-header {
+  padding: 16px 20px;
+  background: rgba(15, 23, 42, 0.5);
+  border-bottom: 1px solid var(--border);
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+.q-badge {
+  background: linear-gradient(135deg, #0284c7, #38bdf8);
+  color: #fff;
+  font-size: 0.76rem;
+  font-weight: 900;
+  padding: 4px 10px;
+  border-radius: 6px;
+}
+.card-title {
+  font-size: 1.05rem;
+  font-weight: 800;
+  color: var(--text);
+  flex: 1;
+  margin: 0 12px;
+}
+.link-origin {
+  font-size: 0.78rem;
+  color: var(--accent);
+  text-decoration: none;
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  padding: 4px 10px;
+  border-radius: 6px;
+  background: rgba(56, 189, 248, 0.1);
+  border: 1px solid rgba(56, 189, 248, 0.2);
+}
+.link-origin:hover {
+  background: rgba(56, 189, 248, 0.2);
+}
+
+.card-body {
+  padding: 20px;
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+/* User Answer Section */
+.ans-section {
+  border-radius: 10px;
+  padding: 14px 16px;
+}
+.ans-section.user-ans {
+  background: rgba(15, 23, 42, 0.6);
+  border-left: 4px solid var(--green);
+}
+.section-title {
+  font-size: 0.82rem;
+  font-weight: 800;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  margin-bottom: 8px;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+.section-title.user { color: var(--green); }
+.section-title.missed { color: var(--rose); }
+.section-title.model { color: var(--accent); }
+
+.user-content {
+  font-size: 0.94rem;
+  line-height: 1.7;
+}
+
+/* Highlight Tokens */
+.hl-hit {
+  background: rgba(52, 211, 153, 0.2);
+  color: #6ee7b7;
+  font-weight: 700;
+  padding: 1px 6px;
+  border-radius: 4px;
+  border-bottom: 2px solid var(--green);
+}
+.hl-miss {
+  background: rgba(251, 113, 133, 0.2);
+  color: #fda4af;
+  font-weight: 800;
+  padding: 2px 7px;
+  border-radius: 4px;
+  border: 1px dashed rgba(251, 113, 133, 0.6);
+  display: inline-block;
+  margin: 2px 0;
+}
+
+/* Missed Points Box */
+.missed-box {
+  background: rgba(251, 113, 133, 0.08);
+  border: 1px solid rgba(251, 113, 133, 0.25);
+  border-radius: 10px;
+  padding: 14px 16px;
+}
+.missed-list {
+  list-style: none;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  font-size: 0.92rem;
+}
+.missed-list li {
+  position: relative;
+  padding-left: 20px;
+}
+.missed-list li::before {
+  content: '⚠️';
+  position: absolute;
+  left: 0;
+  top: 1px;
+  font-size: 0.82rem;
+}
+
+/* Perfect Cheat Sheet */
+.cheat-sheet {
+  background: rgba(56, 189, 248, 0.06);
+  border: 1px solid rgba(56, 189, 248, 0.2);
+  border-radius: 10px;
+  padding: 14px 16px;
+  font-size: 0.92rem;
+}
+.cheat-title {
+  color: var(--accent);
+  font-weight: 800;
+  margin-bottom: 6px;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+@media (max-width: 640px) {
+  header { padding: 12px 14px; }
+  .card-title { font-size: 0.96rem; margin: 8px 0; width: 100%; }
+}
+</style>
+</head>
+<body>
+
+<header>
+  <a href="index.html" class="brand">
+    <span class="brand-badge">AISK</span>
+    <span class="brand-title">실전 면접 퀴즈 & 오답노트</span>
+  </a>
+  <div class="nav-actions">
+    <a href="index.html" class="btn-nav">🏠 메인 대시보드</a>
+    <a href="index.html#t_com01" class="btn-nav primary">🎧 연속 듣기</a>
+  </div>
+</header>
+
+<div class="container">
+
+  <div class="stats-banner">
+    <div>
+      <div class="stats-title">📊 실전 면접 퀴즈 점검 현황</div>
+      <div class="stats-subtitle">사용자 답변 분석 및 누락 핵심 키워드 실시간 오답노트 (41제 중 진행 중)</div>
+    </div>
+    <div class="stats-pills">
+      <span class="pill pill-green">진행 문항: 2 / 41</span>
+      <span class="pill pill-amber">평균 적중률: 92%</span>
+    </div>
+  </div>
+
+  <!-- ==================== Q1 ==================== -->
+  <div class="note-card" id="q1">
+    <div class="card-header">
+      <span class="q-badge">직무 Q01 · 공통</span>
+      <div class="card-title">반도체 핵심 절연막 SiO₂(옥사이드)의 정의, 4대 역할 및 주요 적용 레이어</div>
+      <a href="index.html#t_com01" class="link-origin">AISK 원문 보기 ↗</a>
+    </div>
+    <div class="card-body">
+      <!-- 내가 답변한 내용 -->
+      <div class="ans-section user-ans">
+        <div class="section-title user">🎙️ 내가 답변한 내용 (적중 키워드 분석)</div>
+        <div class="user-content">
+          "SiO2는 <span class="hl-hit">우수한 절연물질</span>로서 <span class="hl-hit">소자간 격리</span>와 <span class="hl-hit">누설전류를 막는 절연역할</span>을 함. <span class="hl-hit">GIPHP</span> 먼저 게이트모듈로서 <span class="hl-hit">게이트스페이서</span>와 <span class="hl-hit">게이트산화막</span>으로서 절연역할을 하고 ISOLATION은 <span class="hl-hit">STI</span>에 사용되는데 <span class="hl-hit">트렌치를 파서 SiO2를 채워 소자간 격리</span> 역할을 함. 그리고 <span class="hl-hit">PASSIVATION</span>으로서 공기나 외부물질로부터 소자를 보호하는 역할을 함. 그리고 <span class="hl-hit">HARD MASK</span>로서 이온주입 디퓨전 에칭에서 마스크역할을 함. 그리고 PHOTO LITHOGRAPHY에서 피치를 2분의 1로 줄이는 기술인 <span class="hl-hit">SADP기술에서 마스킹(스페이서) 역할</span>을 함."
+        </div>
+      </div>
+
+      <!-- 답변에서 누락된 핵심 포인트 -->
+      <div class="missed-box">
+        <div class="section-title missed">💡 내가 답변에서 빠뜨린 핵심 포인트 (면접관 가산점 영역)</div>
+        <ul class="missed-list">
+          <li>
+            <span class="hl-miss">ILD / IMD (층간 절연막)</span>: 금속 배선(Cu, Al) 사이를 절연하여 기생 커패시턴스와 신호 간섭(Crosstalk) 및 쇼트를 방지하는 층간 절연막 역할 언급 누락.
+          </li>
+          <li>
+            <span class="hl-miss">물리적 수치 (절연 파괴 전계 10 MV/cm)</span>: SiO₂의 유전율($k \approx 3.9$)과 매우 높은 절연 파괴 강도($10\text{ MV/cm}$) 및 Si와의 열역학적 안정성(자연산화막 계면 우수성) 미언급.
+          </li>
+        </ul>
+      </div>
+
+      <!-- 100점 공략 암기 치트키 -->
+      <div class="cheat-sheet">
+        <div class="cheat-title">🎯 100점 실전 키워드 Cheat-Sheet</div>
+        <div><strong>G-I-P-H-P + ILD 공식</strong>: Gate(게이트산화막/스페이서) + Isolation(STI 트렌치 매립) + Passivation(외부 보호) + Hardmask(식각/이온주입/SADP 스페이서) + <strong>ILD/IMD(배선 층간 절연막)</strong> + <strong>10 MV/cm 고내압</strong></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ==================== Q2 ==================== -->
+  <div class="note-card" id="q2">
+    <div class="card-header">
+      <span class="q-badge">직무 Q02 · 공통</span>
+      <div class="card-title">CVD(화학기상증착)의 메커니즘 원리·특징 및 주요 적용 레이어</div>
+      <a href="index.html#t_com02" class="link-origin">AISK 원문 보기 ↗</a>
+    </div>
+    <div class="card-body">
+      <!-- 내가 답변한 내용 -->
+      <div class="ans-section user-ans">
+        <div class="section-title user">🎙️ 내가 답변한 내용 (적중 키워드 분석)</div>
+        <div class="user-content">
+          "CVD는 <span class="hl-hit">반응가스를 챔버에 주입</span>하여 <span class="hl-hit">표면에서 반응종이 화학적반응</span>하는 증착으로 비교적 <span class="hl-hit">우수한 STEP COVERAGE</span>를 갖는다. <span class="hl-hit">부산물이 독성/부식성</span>이라는 단점이 있음. <span class="hl-hit">LPCVD는 STI 갭필옥사이드</span> 형성할 때 사용, <span class="hl-hit">PECVD는 IMD, ILD, PSG 등 패시베이션</span>에 사용."
+        </div>
+      </div>
+
+      <!-- 답변에서 누락된 핵심 포인트 -->
+      <div class="missed-box">
+        <div class="section-title missed">💡 내가 답변에서 빠뜨린 핵심 포인트 (면접관 가산점 영역)</div>
+        <ul class="missed-list">
+          <li>
+            <span class="hl-miss">RDS (반응 속도 결정 단계: 표면 반응 vs 물질 전달)</span>: CVD를 결정짓는 핵심 이론인 <strong>저온 표면 반응 제어(Surface Reaction Limited, 온도 민감·단차피복성 우수)</strong>와 <strong>고온 물질 전달 제어(Mass Transfer Limited, 가스 유량 민감·증착속도 빠름)</strong>의 구분 설명 누락.
+          </li>
+          <li>
+            <span class="hl-miss">텅스텐(W) 콘택트 플러그 금속 CVD</span>: 산화막/절연막뿐만 아니라 트랜지스터와 금속 배선을 수직 연결하는 <strong>텅스텐(W) 콘택트/비아 플러그 CVD($\text{WF}_6$ 환원 반응)</strong> 적용 사례 누락.
+          </li>
+          <li>
+            <span class="hl-miss">3D NAND ON(Oxide/Nitride) 스택</span>: 3D NAND 고단화에서 채널 홀을 뚫기 위해 옥사이드와 나이트라이드를 수백 단 교대로 쌓아 올리는 핵심 기술이 CVD라는 점 미언급.
+          </li>
+        </ul>
+      </div>
+
+      <!-- 100점 공략 암기 치트키 -->
+      <div class="cheat-sheet">
+        <div class="cheat-title">🎯 100점 실전 키워드 Cheat-Sheet</div>
+        <div><strong>CVD 3대 핵심</strong>: ① 표면 흡착 및 화학 반응(Byproduct 배출) ② <strong>RDS 메커니즘(표면반응 제어 vs 물질전달 제어)</strong> ③ 주요 적용: STI & ILD/IMD + <strong>텅스텐(W) 수직 플러그</strong> + <strong>3D NAND ON 스택 수백단 적층</strong></div>
+      </div>
+    </div>
+  </div>
+
+</div>
+
+</body>
+</html>

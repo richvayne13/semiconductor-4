@@ -2633,7 +2633,7 @@
     <button class="mobile-menu-btn" onclick="openDrawer()" aria-label="목차 열기">
       <span style="font-size:1.1rem; line-height:1;">☰</span> <span>목차 (23)</span>
     </button>
-    <div class="mobile-header-title">AISK 마스터</div><button class="mobile-top-btn" id="mobAutoPlayBtn" onclick="toggleAutoPlayerDock()" style="font-size:0.78rem; font-weight:800; min-width:82px; margin-right:6px; background:linear-gradient(135deg, #f59e0b 0%, #ef4444 100%); color:#fff; border:none; box-shadow:0 0 10px rgba(245,158,11,0.4);" title="모바일 핸즈프리 연속 자동 듣기">🎧 연속듣기</button><button class="mobile-top-btn" id="mobModeBtn" onclick="toggleViewMode(currentViewMode === 'learn' ? 'interview' : 'learn')" style="font-size:0.8rem; font-weight:800; min-width:64px; margin-right:6px;" title="면접 모드 토글">🎙️ 면접</button>
+    <div class="mobile-header-title">AISK 마스터</div><button class="mobile-top-btn" id="mobAutoPlayBtn" onclick="toggleAutoPlayerDock()" style="font-size:0.78rem; font-weight:800; min-width:82px; margin-right:6px; background:linear-gradient(135deg, #f59e0b 0%, #ef4444 100%); color:#fff; border:none; box-shadow:0 0 10px rgba(245,158,11,0.4);" title="모바일 핸즈프리 연속 자동 듣기">🎧 연속듣기</button><a href="quiz_notes.html" class="mobile-top-btn" style="font-size:0.78rem; font-weight:800; min-width:68px; margin-right:6px; background:linear-gradient(135deg, #0284c7 0%, #2563eb 100%); color:#fff; text-decoration:none; display:inline-flex; align-items:center; justify-content:center;" title="실전 오답노트">📝 오답</a><button class="mobile-top-btn" id="mobModeBtn" onclick="toggleViewMode(currentViewMode === 'learn' ? 'interview' : 'learn')" style="font-size:0.8rem; font-weight:800; min-width:64px; margin-right:6px;" title="면접 모드 토글">🎙️ 면접</button>
     <button class="mobile-top-btn" onclick="scrollToTop()" aria-label="맨 위로">
       <span>⬆</span>
     </button>
@@ -2784,6 +2784,10 @@
           <button class="btn-voice-toggle" onclick="toggleAutoPlayerDock()" style="margin-left: 8px; background: linear-gradient(135deg, #f59e0b 0%, #ef4444 100%); color: #fff; border: none; padding: 7px 15px; font-size: 0.84rem; font-weight: 800; border-radius: 8px; box-shadow: 0 4px 14px rgba(245, 158, 11, 0.35); cursor: pointer; display: inline-flex; align-items: center; gap: 6px;" title="질문 읽고 10초 후 답변 읽기를 무한 자동 반복하는 핸즈프리 모드">
             <span>🎧 연속 자동 듣기</span>
           </button>
+          <!-- 📝 실전 퀴즈 오답노트 연동 버튼 -->
+          <a href="quiz_notes.html" class="btn-voice-toggle" style="margin-left: 8px; background: linear-gradient(135deg, #0284c7 0%, #2563eb 100%); color: #fff; border: none; padding: 7px 15px; font-size: 0.84rem; font-weight: 800; border-radius: 8px; box-shadow: 0 4px 14px rgba(37, 99, 235, 0.35); text-decoration: none; display: inline-flex; align-items: center; gap: 6px;" title="사용자 답변 분석 및 누락 키워드 실시간 오답노트 열기">
+            <span>📝 실전 오답노트</span>
+          </a>
         </div>
 <div class="header-btn-group">
           <button class="btn-header primary" onclick="openAddModal()">
