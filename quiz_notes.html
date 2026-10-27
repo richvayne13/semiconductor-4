@@ -319,7 +319,7 @@ header {
       <div class="stats-subtitle">사용자 답변 분석 및 누락 핵심 키워드 실시간 오답노트 (41제 중 진행 중)</div>
     </div>
     <div class="stats-pills">
-      <span class="pill pill-green">진행 문항: 5 / 41 (Q5 스킵)</span>
+      <span class="pill pill-green">진행 문항: 6 / 41 (Q5 스킵)</span>
       <span class="pill pill-amber">평균 적중률: 93%</span>
     </div>
   </div>
@@ -520,6 +520,46 @@ header {
       <div class="cheat-sheet">
         <div class="cheat-title">🎯 심화해설 1:1 암기 Cheat-Sheet</div>
         <div><strong>건식 vs 습식 비교 공식</strong>: ① <strong>속도</strong>: H₂O의 높은 용해도 & 확산계수 → 습식이 5~10배 빠름 ② <strong>막질</strong>: 건식은 치밀한 사면체(10 MV/cm 내압) vs 습식은 수소/수산기(OH) 잔류 결함 ③ <strong>적용</strong>: <strong>건식=게이트/터널 산화막</strong> vs <strong>습식=STI 라이너/마스킹/희생막</strong></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ==================== Q7 ==================== -->
+  <div class="note-card" id="q7">
+    <div class="card-header">
+      <span class="q-badge">직무 Q07 · 산화/소자</span>
+      <div class="card-title">미세화에 따른 게이트 산화막의 물리적 한계와 High-k / Metal Gate (HKMG) 도입 배경</div>
+      <a href="index.html#t_o05" class="link-origin">AISK 원문 보기 ↗</a>
+    </div>
+    <div class="card-body">
+      <!-- 내가 답변한 내용 -->
+      <div class="ans-section user-ans">
+        <div class="section-title user">🎙️ 내가 답변한 내용 (심화해설 일치 키워드)</div>
+        <div class="user-content">
+          "소자 미세화에 따라 <span class="hl-hit">게이트 커패시턴스를 키우기 위해 게이트 산화막을 줄였고</span> 줄이다 보니 <span class="hl-hit">산화막을 전자가 뚫는 터널링 현상이 발생</span>함. 이를 억제하기 위해 <span class="hl-hit">물리적 두께는 비교적 두껍게 하고 HIGH-K 절연체를 도입</span>하였음. 근데 <span class="hl-hit">Poly-Si과 접합 시 결함이 생겨 오히려 게이트 커패시턴스가 낮아지는 현상이 발생</span>함. 그래서 <span class="hl-hit">METAL GATE를 도입</span>하였음."
+        </div>
+      </div>
+
+      <!-- 심화해설 기준 누락된 핵심 포인트 -->
+      <div class="missed-box">
+        <div class="section-title missed">💡 심화해설 원문 기준 내가 빠뜨린 핵심 포인트 (오답 체크)</div>
+        <ul class="missed-list">
+          <li>
+            <span class="hl-miss">⚠️ 용어 주의: 직접 터널링 (Direct Tunneling)</span>: 답변에서 '밴드투밴드 터널링(BTBT)'이라고 하셨으나, 게이트 산화막 절연체를 전자가 직접 뚫고 지나가는 현상은 <strong>'양자역학적 직접 터널링(Direct Quantum Tunneling)'</strong>입니다. (BTBT는 드레인-바디 접합 계면의 밴드 간 전이 현상)
+          </li>
+          <li>
+            <span class="hl-miss">등가 산화막 두께 (EOT) 공식 & HfO₂ 대표 물질</span>: 게이트 커패시턴스 공식 $C = \epsilon \cdot A / t_{ox}$와, $$\text{SiO}_2(k=3.9)$ 대신 유전율이 20~25인 <strong>하프늄 옥사이드($$\text{HfO}_2$)</strong>를 써서 물리적 두께는 두껍게 하면서도 전기적으로 얇은 효과를 내는 <strong>EOT(등가 산화막 두께)</strong> 용어 누락.
+          </li>
+          <li>
+            <span class="hl-miss">폴리실리콘 공핍화 (Poly Depletion) & 페르미 준위 피닝</span>: Poly-Si 사용 시 커패시턴스가 떨어지는 정확한 메커니즘인 <strong>'폴리실리콘 공핍화(게이트 쪽 공핍층 형성으로 유효 Tox 증가)'</strong>와 <strong>'페르미 준위 피닝'</strong>, 그리고 이를 해결하기 위한 <strong>'금속 일함수(Work Function) 조절'</strong> 전문 키워드 누락.
+          </li>
+        </ul>
+      </div>
+
+      <!-- 100점 심화해설 암기 치트키 -->
+      <div class="cheat-sheet">
+        <div class="cheat-title">🎯 심화해설 1:1 암기 Cheat-Sheet</div>
+        <div><strong>HKMG 3대 배경 공식</strong>: ① $t_{ox} < 1.5$\text{nm}$에서 <strong>직접 양자 터널링</strong> 누설전류 폭발 ② <strong>EOT 원리($C=\epsilon A/t_{ox}$)</strong>: 고유전율 <strong>$$\text{HfO}_2(k=25)$</strong>로 물리적 두께 확보 ③ Metal Gate: <strong>폴리실리콘 공핍화 & 페르미 피닝</strong> 극복 + <strong>일함수(Work Function) 조절</strong></div>
       </div>
     </div>
   </div>
