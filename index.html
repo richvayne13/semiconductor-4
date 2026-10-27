@@ -3071,6 +3071,16 @@
   <div class="toast" id="toast">알림</div>
 
   <script>
+    // 🚫 [사용자 절대 원칙] 브라우저 기본 여성 아나운서 TTS (SpeechSynthesis) 영구 비활성화 (내 복제 음성 전용)
+    if (typeof window !== 'undefined' && 'speechSynthesis' in window) {
+      try {
+        window.speechSynthesis.cancel();
+        window.speechSynthesis.speak = function(u) {
+          console.warn('[Announcer TTS Blocked] 브라우저 기본 아나운서 TTS 발화가 영구 차단되었습니다.', u ? u.text : '');
+        };
+      } catch (e) {}
+    }
+
     // 원천 기본 데이터 (JSON)
     const DEFAULT_TOPICS = [
   {
@@ -6125,8 +6135,8 @@
         }
       };
 
-      const useMyClonedVoice = (typeof apQuestionVoiceMode === 'undefined' || apQuestionVoiceMode === 'my_voice');
-      if (useMyClonedVoice && topic && topic.id) {
+      // 🎙️ 질문 낭독: 내 복제 음성 MP3 전용 (아나운서 TTS 완전 제거)
+      if (topic && topic.id) {
         const qAudio = new Audio(`voices/questions/${encodeURIComponent(topic.id)}.mp3`);
         qAudio.preload = 'auto';
         qAudio.playsInline = true;
@@ -6138,7 +6148,7 @@
         qAudio.onerror = () => {
           if (myTtsSession !== speechTtsSessionId || finished) return;
           currentQuestionAudioEl = null;
-          fallbackToBrowserTts();
+          handleFinish();
         };
 
         const playProm = qAudio.play();
@@ -6146,97 +6156,13 @@
           playProm.catch(() => {
             if (myTtsSession !== speechTtsSessionId || finished) return;
             currentQuestionAudioEl = null;
-            fallbackToBrowserTts();
+            handleFinish();
           });
         }
         return;
       }
 
-      fallbackToBrowserTts();
-
-      function fallbackToBrowserTts() {
-        if (myTtsSession !== speechTtsSessionId || finished) return;
-        if (!('speechSynthesis' in window)) {
-          handleFinish();
-          return;
-        }
-
-        const buildAndSpeakUtterance = () => {
-          if (myTtsSession !== speechTtsSessionId || finished) return null;
-          try {
-            if (window.speechSynthesis.paused) {
-              window.speechSynthesis.resume();
-            }
-          } catch (e) {}
-
-          const utterance = new SpeechSynthesisUtterance(text);
-          utterance.lang = 'ko-KR';
-          utterance.rate = 1.03;
-          utterance.pitch = 1.0;
-
-          const koVoice = getKoreanVoice();
-          if (koVoice) {
-            utterance.voice = koVoice;
-          }
-
-          questionUtterance = utterance;
-          window._activeQuestionUtterance = utterance;
-
-          utterance.onend = handleFinish;
-          utterance.onerror = (e) => {
-            if (myTtsSession !== speechTtsSessionId) return;
-            console.warn('SpeechSynthesis error:', e ? e.error : e);
-            handleFinish();
-          };
-
-          try {
-            window.speechSynthesis.speak(utterance);
-          } catch (err) {
-            console.warn('SpeechSynthesis speak failed:', err);
-            handleFinish();
-          }
-          return utterance;
-        };
-
-        buildAndSpeakUtterance();
-
-        const startTickMs = Date.now();
-        const maxDurationMs = Math.min(24000, Math.max(7000, text.length * 220));
-        let startedSpeaking = false;
-        let retriedSpeak = false;
-
-        ttsWatchdogTimer = setInterval(() => {
-          if (myTtsSession !== speechTtsSessionId || finished) {
-            clearInterval(ttsWatchdogTimer);
-            ttsWatchdogTimer = null;
-            return;
-          }
-          const elapsed = Date.now() - startTickMs;
-
-          try {
-            if (window.speechSynthesis.paused) {
-              window.speechSynthesis.resume();
-            }
-          } catch (e) {}
-
-          if (window.speechSynthesis.speaking) {
-            startedSpeaking = true;
-          } else if (startedSpeaking && !window.speechSynthesis.speaking && !window.speechSynthesis.pending) {
-            handleFinish();
-            return;
-          } else if (!startedSpeaking && elapsed >= 380 && !retriedSpeak) {
-            retriedSpeak = true;
-            buildAndSpeakUtterance();
-          } else if (!startedSpeaking && elapsed >= 1800) {
-            handleFinish();
-            return;
-          }
-
-          if (elapsed >= maxDurationMs) {
-            handleFinish();
-          }
-        }, 140);
-      }
+      handleFinish();
     }
 
     // 질문 다시 듣기 (수동 버튼)
@@ -8683,23 +8609,9 @@
             stopLectureVoice();
             showToast('✅ 내 목소리 심화해설 재생이 완료되었습니다.');
           };
-          const fallbackToTTS = () => {
-            if (currentLectureAudioEl === audio) currentLectureAudioEl = null;
-            const clean = cleanTextForAnnouncerTTS(rawScript);
-            if (!clean) { stopLectureVoice(); return; }
-            speakChunkedTTSAsync(clean, { rate: 1.05, pitch: 1.0 }).then(finished => {
-              if (playingLectureTopicId === topicId && playingLectureVersion === version) {
-                updateLectureVoiceButtonUi(topicId, mode, false, version);
-                playingLectureTopicId = null;
-                playingLectureMode = null;
-                playingLectureVersion = null;
-                if (finished) showToast('✅ 심화해설 음성 재생이 완료되었습니다.');
-              }
-            });
-          };
-
           audio.onerror = () => {
-            fallbackToTTS();
+            stopLectureVoice();
+            showToast('⚠️ 내 목소리 음성 파일을 재생할 수 없습니다.');
           };
 
           const p = audio.play();
@@ -8710,35 +8622,9 @@
         }
       }
 
-      const cleanText = cleanTextForAnnouncerTTS(rawScript);
-      if (!cleanText) return;
-
-      if (!('speechSynthesis' in window)) {
-        showToast('현재 브라우저는 음성 합성(TTS) 기능을 지원하지 않습니다.');
-        return;
-      }
-
-      playingLectureTopicId = topicId;
-      playingLectureMode = mode;
-      playingLectureVersion = version;
-
-      // UI 상태 반영 (재생 중 버튼 전환)
-      updateLectureVoiceButtonUi(topicId, mode, true, version);
-      showToast(isSpokenVersion ? '🎙️ 내가 말하는 버전(구어체 모범답안)을 재생합니다.' : '📘 3분 심층 마스터 심화해설을 재생합니다.');
-
-      const rate = isSpokenVersion ? 1.08 : 1.05; // 구어체는 자연스러운 말하기 템포
-      const finished = await speakChunkedTTSAsync(cleanText, { rate: rate, pitch: 1.0 });
-
-      if (playingLectureTopicId === topicId && playingLectureVersion === version) {
-        updateLectureVoiceButtonUi(topicId, mode, false, version);
-        currentLectureUtterance = null;
-        playingLectureTopicId = null;
-        playingLectureMode = null;
-        playingLectureVersion = null;
-        if (finished) {
-          showToast(isSpokenVersion ? '✅ 내가 말하는 버전 듣기가 완료되었습니다.' : '✅ 심화해설 음성 재생이 완료되었습니다.');
-        }
-      }
+      // 복제 음성이 아직 없는 문항: 아나운서 음성 발화 차단
+      showToast('🎙️ 해당 문항의 내 목소리 심화해설 음성이 준비 중입니다.');
+      stopLectureVoice();
     }
 
     function stopLectureVoice() {
@@ -9355,21 +9241,17 @@
 
     // 1) 질문 재생 Promise (내 목소리 AI 클로닝 MP3 우선, 미존재 시 TTS 워치독 엔진으로 폴백)
     async function playQuestionTTSAsync(title, topicId) {
-      if (apQuestionVoiceMode === 'my_voice' && topicId) {
+      if (topicId) {
         const mp3Url = `voices/questions/${encodeURIComponent(topicId)}.mp3`;
+        let playedOk = false;
         try {
-          const playedOk = await playUserAudioElementAsync(mp3Url);
-          if (playedOk) return;
+          playedOk = await playUserAudioElementAsync(mp3Url);
         } catch (e) {
-          console.warn('Play my voice mp3 failed:', e);
+          playedOk = false;
         }
-        console.warn('Fallback to browser TTS because mp3 failed or not supported');
+        if (playedOk) return;
       }
-
-      // my_voice가 실패했거나 tts 모드인 경우 기본 아나운서 TTS 발화
-      const cleanQ = cleanTextForAnnouncerTTS(title);
-      if (!cleanQ) return;
-      await speakChunkedTTSAsync(cleanQ, { rate: 1.0, pitch: 1.0 });
+      console.warn('내 목소리 질문 음성 파일 없음:', topicId);
     }
 
     // 2) 카운트다운 대기 Promise
@@ -9417,7 +9299,7 @@
 
       const lectureMp3Url = `voices/lectures/${encodeURIComponent(topic.id)}.mp3`;
 
-      // 1순위: 복제된 내 목소리 심화해설 MP3가 등록되어 있는 경우
+      // 1순위: 복제된 내 목소리 심화해설 MP3 재생
       const hasClonedLecture = (typeof CLONED_LECTURE_VOICE_IDS !== 'undefined' && CLONED_LECTURE_VOICE_IDS.has(topic.id));
       if (hasClonedLecture) {
         updateApBanner('speaking-ans', '📘 [심화해설] 복제된 내 목소리로 심화해설을 재생합니다...', '내 목소리');
@@ -9430,7 +9312,7 @@
         if (playedOk) return;
       }
 
-      // 2순위: 혹시 CLONED_LECTURE_VOICE_IDS에 누락되었더라도 voices/lectures 폴더에 파일이 존재하는지 HEAD 요청 검사
+      // 2순위: 혹시 목록 외 파일이 존재하는지 HEAD 요청 검사
       try {
         const headCheck = await fetch(lectureMp3Url, { method: 'HEAD' });
         if (headCheck.ok) {
@@ -9440,13 +9322,9 @@
         }
       } catch (e) {}
 
-      // 3순위: 복제 음성 MP3가 아직 없는 문항인 경우 원문 심화해설 텍스트로 재생
-      const lectureScript = topic.speech_1m30s ? topic.speech_1m30s.trim() : (topic.speech_alt ? topic.speech_alt.trim() : '');
-      if (lectureScript) {
-        updateApBanner('speaking-ans', '📘 [심화해설] 전문 심화해설을 재생합니다...', '심화해설');
-        await playAnnouncerSpeechTTSAsync(lectureScript, { rate: 1.05 });
-        return;
-      }
+      // 3순위: 복제 음성이 아직 준비되지 않은 문항 (아나운서 목소리 발화 차단)
+      updateApBanner('speaking-ans', '📘 [심화해설] 내 목소리 해설 음성 준비 중...', '준비 중');
+      await new Promise(r => setTimeout(r, 2000));
     }
 
     // 오디오 파일 내 실제 사람 음성 검출 (Web Audio API RMS & Peak 진폭 분석)
@@ -9559,11 +9437,13 @@
 
     // 아나운서 심화해설/대본 TTS Promise (장문 끊김 방지 문장 분할 + 워치독 엔진 사용)
     async function playAnnouncerSpeechTTSAsync(rawText, options = {}) {
-      const cleanText = cleanTextForAnnouncerTTS(rawText);
-      if (!cleanText) return;
-      const rate = options.rate || 1.05;
-      const pitch = options.pitch || 1.0;
-      await speakChunkedTTSAsync(cleanText, { rate, pitch });
+      console.warn('[Announcer TTS Blocked] 아나운서 음성이 차단되었습니다.');
+      return false;
+    }
+
+    async function speakChunkedTTSAsync(cleanText, options = {}) {
+      console.warn('[Announcer TTS Blocked] 아나운서 음성이 차단되었습니다.');
+      return false;
     }
 
 
@@ -9648,12 +9528,9 @@
       <div class="ap-setting-row">
         <span class="ap-setting-label">0. 질문 낭독 음성 (출제자)</span>
         <div class="ap-chip-group">
-          <button class="ap-chip active" id="apChipQVoiceMy" onclick="setApQuestionVoiceMode('my_voice')" title="내 목소리 AI 클로닝으로 문제를 출제합니다">
-            🎙️ 내 목소리 (AI 클로닝)
-          </button>
-          <button class="ap-chip" id="apChipQVoiceTts" onclick="setApQuestionVoiceMode('tts')" title="브라우저 기본 아나운서 음성(TTS)으로 문제를 읽습니다">
-            🔊 기본 아나운서 (TTS)
-          </button>
+          <span style="display:inline-flex; align-items:center; gap:6px; font-size:0.83rem; color:#38bdf8; font-weight:600; padding:4px 10px; background:rgba(56,189,248,0.1); border-radius:6px; border:1px solid rgba(56,189,248,0.25);">
+            🎙️ 내 목소리 (AI 클로닝 전용)
+          </span>
         </div>
       </div>
 
