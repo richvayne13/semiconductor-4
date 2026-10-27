@@ -4278,7 +4278,8 @@
     const STORAGE_KEY = 'aisk_master_topics_custom_v34_user_58topics_curated';
     // 🎙️ 내 복제 음성(Qwen3-TTS)으로 제작된 심화해설 MP3 보유 문항 목록 (voices/lectures/${id}.mp3)
     const CLONED_LECTURE_VOICE_IDS = new Set([
-      't_com01', 't_com02', 't_com03', 't_com04'
+      't_com01', 't_com02', 't_com03', 't_com04',
+      'p_01', 'p_02', 't_01', 't_02'
     ]);
     let currentTopics = [];
 
@@ -5950,27 +5951,7 @@
 
     // 한국어 TTS 음성 선택 및 사전 로드 (PC/모바일 브라우저 호환)
     function getKoreanVoice() {
-      if (!('speechSynthesis' in window)) return null;
-      const voices = window.speechSynthesis.getVoices();
-      if (!voices || voices.length === 0) return cachedKoreanVoice;
-      const koVoices = voices.filter(v => v.lang && (v.lang.includes('ko') || v.lang.includes('KR')));
-      if (koVoices.length === 0) return null;
-      cachedKoreanVoice = koVoices.find(v =>
-        v.name.includes('Google') ||
-        v.name.includes('Natural') ||
-        v.name.includes('SunHi') ||
-        v.name.includes('InJoon') ||
-        v.name.includes('Yuna') ||
-        v.name.includes('Sora')
-      ) || koVoices[0];
-      return cachedKoreanVoice;
-    }
-
-    if ('speechSynthesis' in window) {
-      getKoreanVoice();
-      window.speechSynthesis.onvoiceschanged = () => {
-        getKoreanVoice();
-      };
+      return null;
     }
 
     // 질문 음성 및 자동 녹음 토글
@@ -6915,46 +6896,8 @@
         return;
       }
 
-      // 2) 오디오 파일이 없는 기록인 경우 TTS 음성으로 읽어주기
-      const textEl = document.getElementById(`text-${recId}`);
-      const text = textEl ? textEl.innerText.trim() : '';
-      if (!text) return;
-
-      if ('speechSynthesis' in window) {
-        if (activeSpeakingRecordId === recId && window.speechSynthesis.speaking) {
-          window.speechSynthesis.cancel();
-          activeSpeakingRecordId = null;
-          if (btnEl) {
-            btnEl.classList.remove('playing');
-            btnEl.innerHTML = '▶️ 녹음 재생';
-          }
-          return;
-        }
-        window.speechSynthesis.cancel();
-        const utter = new SpeechSynthesisUtterance(text);
-        utter.lang = 'ko-KR';
-        activeSpeakingRecordId = recId;
-        if (btnEl) {
-          btnEl.classList.add('playing');
-          btnEl.innerHTML = '⏹️ 재생 중지';
-        }
-        utter.onend = () => {
-          activeSpeakingRecordId = null;
-          if (btnEl) {
-            btnEl.classList.remove('playing');
-            btnEl.innerHTML = '▶️ 녹음 재생';
-          }
-        };
-        utter.onerror = () => {
-          activeSpeakingRecordId = null;
-          if (btnEl) {
-            btnEl.classList.remove('playing');
-            btnEl.innerHTML = '▶️ 녹음 재생';
-          }
-        };
-        window.speechSynthesis.speak(utter);
-        showToast('🔊 저장된 답변 텍스트를 음성(TTS)으로 재생합니다.');
-      }
+      // 2) 🚫 [사용자 절대 원칙] 브라우저 TTS 아나운서 목소리 완전 차단
+      showToast('⚠️ 녹음된 음성 파일이 없습니다.');
     }
 
     // 녹음된 음성 파일 다운로드 함수
@@ -8379,136 +8322,9 @@
 
     // PC & 모바일 완벽 호환 문장 분할 + 워치독(Watchdog) 비동기 TTS 재생기
     async function speakChunkedTTSAsync(cleanText, options = {}) {
-      if (!cleanText || !('speechSynthesis' in window)) {
-        await new Promise(r => setTimeout(r, 1200));
-        return false;
-      }
-
+      // 🚫 [사용자 절대 원칙] 브라우저 기본 여성 아나운서 TTS 완전 영구 차단 (내 복제 음성 전용)
       cancelChunkedTTS();
-      const sessionId = ++currentChunkedTtsSessionId;
-      const rate = options.rate || 1.04;
-      const pitch = options.pitch || 1.0;
-      const chunks = splitTextIntoTTSChunks(cleanText, 110);
-      if (chunks.length === 0) return false;
-
-      // 이전 cancel() IPC가 새 speak()를 삼키지 않도록 여유 있게 대기
-      await new Promise(r => setTimeout(r, 100));
-      if (sessionId !== currentChunkedTtsSessionId) return false;
-
-      // 한국어 보이스 선택
-      const koVoice = (typeof getKoreanVoice === 'function')
-        ? getKoreanVoice()
-        : (window.speechSynthesis.getVoices().find(v => v.lang && v.lang.toLowerCase().startsWith('ko')) || null);
-
-      for (let i = 0; i < chunks.length; i++) {
-        if (sessionId !== currentChunkedTtsSessionId) return false;
-        const chunkText = chunks[i];
-        const ok = await new Promise((resolve) => {
-          currentChunkedTtsResolve = resolve;
-          let settled = false;
-          let started = false;
-          const startTime = Date.now();
-          const maxDurationMs = Math.max(12000, chunkText.length * 350);
-
-          const finishChunk = (result) => {
-            if (settled) return;
-            settled = true;
-            if (currentChunkedTtsTimer) {
-              clearInterval(currentChunkedTtsTimer);
-              currentChunkedTtsTimer = null;
-            }
-            if (currentChunkedTtsResolve === resolve) {
-              currentChunkedTtsResolve = null;
-            }
-            resolve(result);
-          };
-
-          const utterance = new SpeechSynthesisUtterance(chunkText);
-          utterance.lang = 'ko-KR';
-          utterance.rate = rate;
-          utterance.pitch = pitch;
-          if (koVoice) {
-            try { utterance.voice = koVoice; } catch (e) {}
-          }
-
-          // GC 수거 방지용 전역 참조 유지
-          window._activeChunkUtterance = utterance;
-          currentLectureUtterance = utterance;
-          apCurrentUtterance = utterance;
-
-          utterance.onstart = () => {
-            started = true;
-          };
-          utterance.onend = () => {
-            finishChunk(true);
-          };
-          utterance.onerror = (e) => {
-            if (e && (e.error === 'interrupted' || e.error === 'canceled')) {
-              finishChunk(false);
-              return;
-            }
-            console.warn('TTS chunk error:', e ? e.error : e);
-            finishChunk(true);
-          };
-
-          try {
-            if (window.speechSynthesis.paused) {
-              window.speechSynthesis.resume();
-            }
-            window.speechSynthesis.speak(utterance);
-          } catch (err) {
-            console.warn('TTS speak exception:', err);
-            finishChunk(true);
-            return;
-          }
-
-          // 워치독 타이머: Chrome/Android/iOS 안정화 (조기 cancel 방지 및 resume 시도)
-          currentChunkedTtsTimer = setInterval(() => {
-            if (sessionId !== currentChunkedTtsSessionId) {
-              finishChunk(false);
-              return;
-            }
-            const elapsed = Date.now() - startTime;
-            const synth = window.speechSynthesis;
-
-            if (synth.speaking) {
-              started = true;
-              if (synth.paused) {
-                try { synth.resume(); } catch (e) {}
-              }
-            } else if (started && !synth.pending && elapsed > 600) {
-              // 정상 발화 후 speaking/pending이 모두 끝났는데 onend 누락된 경우
-              finishChunk(true);
-              return;
-            } else if (!started && !synth.pending && elapsed > 2500) {
-              // 2.5초 이상 시작되지 않고 대기 중일 때 깨우기 시도 (cancel 날리지 않고 resume)
-              if (synth.paused) {
-                try { synth.resume(); } catch (e) {}
-              }
-            } else if (!started && !synth.pending && elapsed > 6000) {
-              // 6초가 지나도 브라우저가 응답하지 않을 때만 다음 문장으로 스킵
-              finishChunk(true);
-              return;
-            }
-
-            // 문장 전체 최대 허용 시간 초과 시 다음으로
-            if (elapsed > maxDurationMs) {
-              try { if (synth.speaking || synth.pending) synth.cancel(); } catch (e) {}
-              finishChunk(true);
-            }
-          }, 150);
-        });
-
-        if (!ok || sessionId !== currentChunkedTtsSessionId) {
-          return false;
-        }
-
-        // 청크 간 자연스러운 발화 호흡 (80ms 간격)
-        if (i < chunks.length - 1) {
-          await new Promise(r => setTimeout(r, 80));
-        }
-      }
-      return true;
+      return false;
     }
 
     // 심화해설 및 내가 말하는 버전(구어체 모범답안) 토글 재생
