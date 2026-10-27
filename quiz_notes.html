@@ -319,8 +319,8 @@ header {
       <div class="stats-subtitle">사용자 답변 분석 및 누락 핵심 키워드 실시간 오답노트 (41제 중 진행 중)</div>
     </div>
     <div class="stats-pills">
-      <span class="pill pill-green">진행 문항: 7 / 41 (Q5 스킵)</span>
-      <span class="pill pill-amber">평균 적중률: 93%</span>
+      <span class="pill pill-green">진행 문항: 8 / 41 (Q5, Q9 스킵)</span>
+      <span class="pill pill-amber">평균 적중률: 94%</span>
     </div>
   </div>
 
@@ -602,6 +602,46 @@ header {
       <div class="cheat-sheet">
         <div class="cheat-title">🎯 심화해설 1:1 암기 Cheat-Sheet</div>
         <div><strong>열산화막 vs CVD 산화막 공식</strong>: ① <strong>기판 소모</strong>: 열산화는 Si 44% 소모(800~1100℃) vs CVD는 기판 소모 제로(400~700℃) ② <strong>막질</strong>: 열산화는 치밀한 결합(10 MV/cm 내압) vs CVD는 공극/수소 잔류로 낮은 밀도 ③ <strong>적용</strong>: <strong>열산화=게이트/터널/트렌치라이너</strong> vs <strong>CVD=배선 층간(ILD/IMD)/희생막</strong></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ==================== Q10 ==================== -->
+  <div class="note-card" id="q10">
+    <div class="card-header">
+      <span class="q-badge">직무 Q10 · 포토</span>
+      <div class="card-title">포토 공정에서 Positive PR과 Negative PR의 메커니즘 차이 및 공정별 적용 기준</div>
+      <a href="index.html#t_06" class="link-origin">AISK 원문 보기 ↗</a>
+    </div>
+    <div class="card-body">
+      <!-- 내가 답변한 내용 -->
+      <div class="ans-section user-ans">
+        <div class="section-title user">🎙️ 내가 답변한 내용 (심화해설 일치 키워드)</div>
+        <div class="user-content">
+          "Positive PR은 <span class="hl-hit">빛을 받은 부분의 결합이 끊어져 연화되어 Develop 시 사라지고</span>, Negative는 <span class="hl-hit">빛을 받은 부분의 결합이 경화되어 빛을 받지 않은 부분이 Develop 시 사라집니다</span>. Positive PR은 <span class="hl-hit">레졸루션(해상도)이 우수하고</span> 현상 시 잔류 감광막인 <span class="hl-hit">스컴(Scum) 현상이 적습니다</span>. <span class="hl-hit">Step Coverage가 우수하고 열적 안정성도 우수하여 양산에 주로 사용</span>됩니다. Negative PR은 현상 시 부푸는 현상인 <span class="hl-hit">스웰링(Swelling) 현상</span>으로 양산에 사용되지 않으며 <span class="hl-miss">?(미답변)</span>에 사용됩니다."
+        </div>
+      </div>
+
+      <!-- 심화해설 기준 누락된 핵심 포인트 -->
+      <div class="missed-box">
+        <div class="section-title missed">💡 심화해설 원문 기준 내가 빠뜨린 핵심 포인트 (오답 체크)</div>
+        <ul class="missed-list">
+          <li>
+            <span class="hl-miss">물음표(?) 정답: Negative PR의 양산 적용처</span>: 심화해설 원문에 기술된 Negative PR의 실제 적용처는 <strong>TSV(실리콘 관통 전극) 형성</strong>이나 <strong>하드마스크 패터닝</strong>입니다.
+          </li>
+          <li>
+            <span class="hl-miss">Negative PR의 장점 (산화막 접착력) & 단점 (스컴 발생)</span>: Negative PR은 스웰링 외에도 <strong>'스컴(Scum, 잔류막) 발생이 심하다'</strong>는 단점이 있는 반면, <strong>'산화막에 대한 접착력(Adhesion)이 우수하다'</strong>는 장점이 있습니다.
+          </li>
+          <li>
+            <span class="hl-miss">Positive PR의 단점 (높은 비용)</span>: Positive PR은 해상도·스컴·열안정성 모두 우수하지만 <strong>'비용(원가)이 높다'</strong>는 특징 누락.
+          </li>
+        </ul>
+      </div>
+
+      <!-- 100점 심화해설 암기 치트키 -->
+      <div class="cheat-sheet">
+        <div class="cheat-title">🎯 심화해설 1:1 암기 Cheat-Sheet</div>
+        <div><strong>Positive vs Negative PR 공식</strong>: ① <strong>Positive</strong>: 노광부 제거(광분해) / <strong>고해상도·스컴적음·열안정성 우수</strong> but 높은 비용 → <strong>주력 미세 양산</strong> ② <strong>Negative</strong>: 비노광부 제거(광가교) / 접착력 우수 but <strong>스컴·스웰링(Swelling) 심함</strong> → <strong>TSV 관통전극 & 하드마스크 패터닝</strong></div>
       </div>
     </div>
   </div>
