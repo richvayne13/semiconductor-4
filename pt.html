@@ -1,0 +1,1749 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>SK하이닉스 문제해결 PT 면접 마스터 : DHVD 프레임워크 시뮬레이터</title>
+  
+  <!-- Fonts -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Pretendard:wght@400;500;600;700;800;900&family=JetBrains+Mono:wght@500;700;800&display=swap" rel="stylesheet">
+  
+  <style>
+    :root {
+      --bg-main: #0a0f1d;
+      --bg-card: #111827;
+      --bg-elevated: #1e293b;
+      --bg-subtle: #0f172a;
+      --border-color: #1e293b;
+      --border-accent: #38bdf8;
+      
+      --text-main: #f8fafc;
+      --text-sub: #cbd5e1;
+      --text-muted: #64748b;
+      
+      --accent-blue: #38bdf8;
+      --accent-indigo: #6366f1;
+      --accent-violet: #8b5cf6;
+      --accent-rose: #f43f5e;
+      --accent-emerald: #10b981;
+      --accent-amber: #f59e0b;
+      
+      --radius-sm: 8px;
+      --radius-md: 12px;
+      --radius-lg: 18px;
+      
+      --shadow-sm: 0 2px 8px rgba(0, 0, 0, 0.3);
+      --shadow-md: 0 8px 24px rgba(0, 0, 0, 0.45);
+      --shadow-lg: 0 16px 36px rgba(0, 0, 0, 0.6);
+    }
+
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+    }
+
+    body {
+      font-family: 'Pretendard', -apple-system, BlinkMacSystemFont, sans-serif;
+      background-color: var(--bg-main);
+      color: var(--text-main);
+      line-height: 1.6;
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+    }
+
+    /* Top Navigation Header */
+    .top-header {
+      background: rgba(15, 23, 42, 0.95);
+      border-bottom: 1px solid var(--border-color);
+      backdrop-filter: blur(12px);
+      position: sticky;
+      top: 0;
+      z-index: 100;
+      padding: 12px 24px;
+    }
+    .header-inner {
+      max-width: 1720px;
+      margin: 0 auto;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      flex-wrap: wrap;
+      gap: 16px;
+    }
+    .brand-group {
+      display: flex;
+      align-items: center;
+      gap: 14px;
+    }
+    .brand-logo {
+      background: linear-gradient(135deg, #f43f5e 0%, #e11d48 100%);
+      color: #fff;
+      font-weight: 900;
+      font-size: 1.05rem;
+      padding: 6px 12px;
+      border-radius: var(--radius-sm);
+      letter-spacing: 0.5px;
+      box-shadow: 0 0 14px rgba(244, 63, 94, 0.4);
+    }
+    .brand-title-wrap h1 {
+      font-size: 1.18rem;
+      font-weight: 800;
+      color: var(--text-main);
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+    .brand-title-wrap p {
+      font-size: 0.78rem;
+      color: var(--text-muted);
+    }
+    .header-tools {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+    }
+    
+    /* Timer Widget */
+    .timer-widget {
+      background: var(--bg-elevated);
+      border: 1px solid var(--border-color);
+      padding: 6px 14px;
+      border-radius: var(--radius-md);
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+    .timer-display {
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 1.15rem;
+      font-weight: 800;
+      color: var(--accent-blue);
+      min-width: 60px;
+      text-align: center;
+    }
+    .timer-btn {
+      background: transparent;
+      border: 1px solid rgba(255, 255, 255, 0.15);
+      color: var(--text-sub);
+      padding: 4px 8px;
+      border-radius: 6px;
+      font-size: 0.74rem;
+      font-weight: 700;
+      cursor: pointer;
+      transition: all 0.2s;
+    }
+    .timer-btn:hover {
+      background: rgba(255, 255, 255, 0.1);
+      color: #fff;
+    }
+
+    .btn-guide-modal {
+      background: linear-gradient(135deg, #6366f1 0%, #4f46e5 100%);
+      color: #fff;
+      border: none;
+      padding: 8px 16px;
+      border-radius: var(--radius-md);
+      font-weight: 700;
+      font-size: 0.84rem;
+      cursor: pointer;
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      transition: all 0.2s;
+      box-shadow: 0 4px 12px rgba(99, 102, 241, 0.35);
+    }
+    .btn-guide-modal:hover {
+      transform: translateY(-1px);
+      box-shadow: 0 6px 16px rgba(99, 102, 241, 0.5);
+    }
+
+    /* Main Container */
+    .main-layout {
+      max-width: 1720px;
+      margin: 20px auto;
+      padding: 0 24px;
+      flex: 1;
+      width: 100%;
+      display: flex;
+      flex-direction: column;
+      gap: 20px;
+    }
+
+    /* Scenario Select Bar */
+    .scenario-nav-bar {
+      background: var(--bg-card);
+      border: 1px solid var(--border-color);
+      border-radius: var(--radius-lg);
+      padding: 14px 18px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 16px;
+      flex-wrap: wrap;
+    }
+    .scenario-tabs {
+      display: flex;
+      gap: 8px;
+      flex-wrap: wrap;
+    }
+    .scenario-tab-btn {
+      padding: 8px 16px;
+      border-radius: var(--radius-sm);
+      border: 1px solid var(--border-color);
+      background: var(--bg-elevated);
+      color: var(--text-sub);
+      font-size: 0.85rem;
+      font-weight: 700;
+      cursor: pointer;
+      transition: all 0.2s;
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+    }
+    .scenario-tab-btn:hover {
+      background: #334155;
+      color: #fff;
+    }
+    .scenario-tab-btn.active {
+      background: linear-gradient(135deg, #0284c7 0%, #0369a1 100%);
+      border-color: var(--accent-blue);
+      color: #fff;
+      box-shadow: 0 0 12px rgba(56, 189, 248, 0.35);
+    }
+    
+    .badge-process {
+      font-size: 0.68rem;
+      padding: 2px 6px;
+      border-radius: 4px;
+      font-weight: 800;
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+    }
+    .badge-etch { background: rgba(244, 63, 94, 0.2); color: #fb7185; border: 1px solid rgba(244, 63, 94, 0.4); }
+    .badge-film { background: rgba(56, 189, 248, 0.2); color: #38bdf8; border: 1px solid rgba(56, 189, 248, 0.4); }
+    .badge-metal { background: rgba(245, 158, 11, 0.2); color: #fbbf24; border: 1px solid rgba(245, 158, 11, 0.4); }
+    .badge-photo { background: rgba(168, 85, 247, 0.2); color: #c084fc; border: 1px solid rgba(168, 85, 247, 0.4); }
+    .badge-nand { background: rgba(16, 185, 129, 0.2); color: #34d399; border: 1px solid rgba(16, 185, 129, 0.4); }
+    .badge-pkg { background: rgba(236, 72, 153, 0.2); color: #f472b6; border: 1px solid rgba(236, 72, 153, 0.4); }
+
+    /* Two-Column Grid */
+    .dashboard-grid {
+      display: grid;
+      grid-template-columns: 520px 1fr;
+      gap: 22px;
+      align-items: start;
+    }
+
+    @media (max-width: 1200px) {
+      .dashboard-grid {
+        grid-template-columns: 1fr;
+      }
+    }
+
+    /* Left Panel: Problem Card */
+    .problem-panel {
+      display: flex;
+      flex-direction: column;
+      gap: 18px;
+    }
+    .card-box {
+      background: var(--bg-card);
+      border: 1px solid var(--border-color);
+      border-radius: var(--radius-lg);
+      padding: 22px;
+      box-shadow: var(--shadow-md);
+    }
+    .problem-header {
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+      margin-bottom: 16px;
+      padding-bottom: 14px;
+      border-bottom: 1px solid var(--border-color);
+    }
+    .problem-title {
+      font-size: 1.25rem;
+      font-weight: 800;
+      color: #fff;
+      line-height: 1.4;
+    }
+    .problem-sub {
+      font-size: 0.82rem;
+      color: var(--accent-blue);
+      font-weight: 600;
+    }
+    .problem-desc {
+      font-size: 0.92rem;
+      color: var(--text-sub);
+      background: var(--bg-subtle);
+      padding: 12px 14px;
+      border-radius: var(--radius-sm);
+      border-left: 3px solid var(--accent-blue);
+      line-height: 1.55;
+      margin-bottom: 18px;
+    }
+
+    /* Visual Comparison Area (Wafer Map / Charts) */
+    .visual-section {
+      background: var(--bg-subtle);
+      border-radius: var(--radius-md);
+      padding: 16px;
+      border: 1px solid var(--border-color);
+      margin-bottom: 18px;
+    }
+    .visual-title {
+      font-size: 0.82rem;
+      font-weight: 700;
+      color: var(--text-muted);
+      margin-bottom: 12px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+    .wafer-maps-row {
+      display: flex;
+      justify-content: space-around;
+      align-items: center;
+      gap: 16px;
+    }
+    .wafer-map-col {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 6px;
+    }
+    .wafer-canvas-wrap {
+      width: 140px;
+      height: 140px;
+      border-radius: 50%;
+      background: #020617;
+      border: 2px solid #334155;
+      position: relative;
+      overflow: hidden;
+      box-shadow: inset 0 0 20px rgba(0, 0, 0, 0.8);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+    .wafer-notch {
+      position: absolute;
+      bottom: 0;
+      width: 10px;
+      height: 6px;
+      background: #334155;
+      clip-path: polygon(0 100%, 50% 0, 100% 100%);
+    }
+    .wafer-badge {
+      font-size: 0.74rem;
+      font-weight: 700;
+      padding: 3px 8px;
+      border-radius: 4px;
+    }
+    .wafer-badge.good { background: rgba(16, 185, 129, 0.2); color: #34d399; }
+    .wafer-badge.bad { background: rgba(244, 63, 94, 0.2); color: #fb7185; }
+
+    /* Parameter Table */
+    .param-table {
+      width: 100%;
+      border-collapse: collapse;
+      font-size: 0.82rem;
+      margin-top: 10px;
+    }
+    .param-table th {
+      text-align: left;
+      padding: 8px 10px;
+      background: var(--bg-elevated);
+      color: var(--text-muted);
+      font-weight: 700;
+      border-bottom: 1px solid var(--border-color);
+    }
+    .param-table td {
+      padding: 9px 10px;
+      border-bottom: 1px solid var(--border-color);
+      color: var(--text-sub);
+    }
+    .param-table tr:hover td {
+      background: rgba(255, 255, 255, 0.02);
+    }
+    .val-before {
+      font-family: 'JetBrains Mono', monospace;
+      color: var(--text-muted);
+    }
+    .val-after {
+      font-family: 'JetBrains Mono', monospace;
+      font-weight: 700;
+    }
+    .val-after.danger { color: var(--accent-rose); }
+    .val-after.warning { color: var(--accent-amber); }
+    .val-after.normal { color: var(--accent-emerald); }
+
+    /* Naive vs DHVD Comparison Box */
+    .naive-compare-box {
+      background: rgba(239, 68, 68, 0.07);
+      border: 1px solid rgba(239, 68, 68, 0.25);
+      border-radius: var(--radius-md);
+      padding: 16px;
+    }
+    .naive-header {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      color: #f87171;
+      font-size: 0.86rem;
+      font-weight: 800;
+      margin-bottom: 10px;
+    }
+    .naive-question {
+      font-size: 0.85rem;
+      color: #fca5a5;
+      margin-bottom: 8px;
+      padding: 6px 10px;
+      background: rgba(0, 0, 0, 0.3);
+      border-radius: 6px;
+    }
+    .naive-reply {
+      font-size: 0.84rem;
+      color: var(--text-sub);
+      margin-bottom: 10px;
+      padding: 8px 10px;
+      background: rgba(255, 255, 255, 0.03);
+      border-left: 2px solid #ef4444;
+    }
+    .naive-limits-list {
+      padding-left: 18px;
+      font-size: 0.78rem;
+      color: var(--text-muted);
+    }
+    .naive-limits-list li {
+      margin-bottom: 4px;
+    }
+
+    /* Right Panel: DHVD Framework Explorer */
+    .dhvd-panel {
+      display: flex;
+      flex-direction: column;
+      gap: 18px;
+    }
+
+    /* DHVD Step Navigation Tabs */
+    .dhvd-nav-tabs {
+      display: grid;
+      grid-template-columns: repeat(4, 1fr);
+      gap: 8px;
+      background: var(--bg-card);
+      padding: 8px;
+      border-radius: var(--radius-lg);
+      border: 1px solid var(--border-color);
+    }
+    .dhvd-step-btn {
+      padding: 12px 10px;
+      border-radius: var(--radius-md);
+      border: 1px solid transparent;
+      background: var(--bg-elevated);
+      color: var(--text-sub);
+      font-family: inherit;
+      cursor: pointer;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 4px;
+      transition: all 0.2s;
+    }
+    .dhvd-step-btn:hover {
+      background: #334155;
+      color: #fff;
+    }
+    .step-char {
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 1.35rem;
+      font-weight: 900;
+      line-height: 1;
+    }
+    .step-label {
+      font-size: 0.82rem;
+      font-weight: 700;
+    }
+    .dhvd-step-btn.btn-d1.active {
+      background: linear-gradient(135deg, rgba(56, 189, 248, 0.25) 0%, rgba(14, 165, 233, 0.3) 100%);
+      border-color: #38bdf8;
+      color: #38bdf8;
+      box-shadow: 0 0 16px rgba(56, 189, 248, 0.35);
+    }
+    .dhvd-step-btn.btn-h.active {
+      background: linear-gradient(135deg, rgba(245, 158, 11, 0.25) 0%, rgba(217, 119, 6, 0.3) 100%);
+      border-color: #f59e0b;
+      color: #fbbf24;
+      box-shadow: 0 0 16px rgba(245, 158, 11, 0.35);
+    }
+    .dhvd-step-btn.btn-v.active {
+      background: linear-gradient(135deg, rgba(16, 185, 129, 0.25) 0%, rgba(5, 150, 105, 0.3) 100%);
+      border-color: #10b981;
+      color: #34d399;
+      box-shadow: 0 0 16px rgba(16, 185, 129, 0.35);
+    }
+    .dhvd-step-btn.btn-d2.active {
+      background: linear-gradient(135deg, rgba(168, 85, 247, 0.25) 0%, rgba(147, 51, 234, 0.3) 100%);
+      border-color: #a855f7;
+      color: #c084fc;
+      box-shadow: 0 0 16px rgba(168, 85, 247, 0.35);
+    }
+
+    /* Step Content Area */
+    .step-content-card {
+      background: var(--bg-card);
+      border: 1px solid var(--border-color);
+      border-radius: var(--radius-lg);
+      padding: 24px;
+      display: flex;
+      flex-direction: column;
+      gap: 20px;
+      box-shadow: var(--shadow-md);
+    }
+    .step-header-banner {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      flex-wrap: wrap;
+      gap: 12px;
+      padding-bottom: 14px;
+      border-bottom: 1px solid var(--border-color);
+    }
+    .step-header-left {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+    }
+    .step-pill-badge {
+      font-size: 0.8rem;
+      font-weight: 800;
+      padding: 4px 10px;
+      border-radius: 6px;
+    }
+    .step-title-text {
+      font-size: 1.15rem;
+      font-weight: 800;
+      color: #fff;
+    }
+    .step-goal-text {
+      font-size: 0.85rem;
+      color: var(--text-muted);
+    }
+
+    /* Core Prompts Highlight Box */
+    .prompts-box {
+      background: linear-gradient(135deg, rgba(30, 41, 59, 0.8) 0%, rgba(15, 23, 42, 0.9) 100%);
+      border: 1px solid rgba(56, 189, 248, 0.35);
+      border-radius: var(--radius-md);
+      padding: 18px 20px;
+      display: flex;
+      flex-direction: column;
+      gap: 12px;
+      position: relative;
+    }
+    .prompts-title {
+      font-size: 0.85rem;
+      font-weight: 800;
+      color: var(--accent-blue);
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+    }
+    .prompt-item {
+      background: rgba(0, 0, 0, 0.35);
+      border: 1px solid var(--border-color);
+      border-radius: var(--radius-sm);
+      padding: 10px 14px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      gap: 12px;
+      transition: all 0.2s;
+    }
+    .prompt-item:hover {
+      border-color: rgba(56, 189, 248, 0.5);
+      background: rgba(0, 0, 0, 0.5);
+    }
+    .prompt-num {
+      font-family: 'JetBrains Mono', monospace;
+      font-weight: 800;
+      color: var(--accent-blue);
+      font-size: 0.88rem;
+      min-width: 20px;
+    }
+    .prompt-text {
+      font-size: 0.92rem;
+      color: #f1f5f9;
+      font-weight: 600;
+      flex: 1;
+    }
+    .btn-copy-prompt {
+      background: var(--bg-elevated);
+      border: 1px solid var(--border-color);
+      color: var(--text-sub);
+      font-size: 0.74rem;
+      font-weight: 700;
+      padding: 6px 10px;
+      border-radius: 6px;
+      cursor: pointer;
+      display: inline-flex;
+      align-items: center;
+      gap: 4px;
+      transition: all 0.2s;
+    }
+    .btn-copy-prompt:hover {
+      background: var(--accent-blue);
+      color: #0f172a;
+    }
+
+    /* AI Analysis Result Output Box */
+    .ai-output-box {
+      background: var(--bg-subtle);
+      border: 1px solid var(--border-color);
+      border-radius: var(--radius-md);
+      padding: 20px;
+      display: flex;
+      flex-direction: column;
+      gap: 16px;
+    }
+    .ai-output-header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      font-size: 0.86rem;
+      font-weight: 800;
+      color: #fff;
+    }
+    .ai-tag {
+      background: rgba(99, 102, 241, 0.2);
+      color: #818cf8;
+      border: 1px solid rgba(99, 102, 241, 0.4);
+      padding: 2px 8px;
+      border-radius: 4px;
+      font-size: 0.72rem;
+      font-weight: 700;
+    }
+
+    /* Define Card */
+    .define-grid {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 12px;
+    }
+    .define-card {
+      background: var(--bg-elevated);
+      border: 1px solid var(--border-color);
+      padding: 14px;
+      border-radius: var(--radius-sm);
+    }
+    .define-card-lbl {
+      font-size: 0.74rem;
+      color: var(--text-muted);
+      font-weight: 800;
+      text-transform: uppercase;
+      margin-bottom: 6px;
+    }
+    .define-card-val {
+      font-size: 0.88rem;
+      color: var(--text-main);
+      font-weight: 600;
+      line-height: 1.45;
+    }
+    .required-info-box {
+      background: rgba(56, 189, 248, 0.05);
+      border: 1px solid rgba(56, 189, 248, 0.2);
+      padding: 12px 14px;
+      border-radius: var(--radius-sm);
+      margin-top: 10px;
+    }
+    .required-info-title {
+      font-size: 0.8rem;
+      font-weight: 800;
+      color: var(--accent-blue);
+      margin-bottom: 6px;
+    }
+    .required-info-list {
+      padding-left: 18px;
+      font-size: 0.84rem;
+      color: var(--text-sub);
+    }
+
+    /* Hypotheses Cards */
+    .hypo-grid {
+      display: flex;
+      flex-direction: column;
+      gap: 12px;
+    }
+    .hypo-item-card {
+      background: var(--bg-elevated);
+      border: 1px solid var(--border-color);
+      border-radius: var(--radius-md);
+      padding: 16px;
+      transition: all 0.2s;
+    }
+    .hypo-item-card:hover {
+      border-color: rgba(245, 158, 11, 0.5);
+    }
+    .hypo-title-row {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 8px;
+    }
+    .hypo-title {
+      font-size: 0.95rem;
+      font-weight: 800;
+      color: #fbbf24;
+    }
+    .hypo-mech {
+      font-size: 0.88rem;
+      color: var(--text-sub);
+      margin-bottom: 10px;
+      line-height: 1.5;
+    }
+    .hypo-procon-row {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 10px;
+      font-size: 0.82rem;
+    }
+    .hypo-pro {
+      background: rgba(16, 185, 129, 0.1);
+      border: 1px solid rgba(16, 185, 129, 0.25);
+      padding: 8px 10px;
+      border-radius: 6px;
+      color: #34d399;
+    }
+    .hypo-con {
+      background: rgba(244, 63, 94, 0.1);
+      border: 1px solid rgba(244, 63, 94, 0.25);
+      padding: 8px 10px;
+      border-radius: 6px;
+      color: #fb7185;
+    }
+
+    /* Verify Plans Table */
+    .verify-table {
+      width: 100%;
+      border-collapse: collapse;
+      font-size: 0.84rem;
+    }
+    .verify-table th {
+      padding: 10px 12px;
+      background: var(--bg-elevated);
+      color: var(--text-muted);
+      text-align: left;
+      font-weight: 800;
+      border-bottom: 1px solid var(--border-color);
+    }
+    .verify-table td {
+      padding: 12px;
+      border-bottom: 1px solid var(--border-color);
+      color: var(--text-sub);
+      vertical-align: top;
+    }
+
+    /* Trap Checklist Box */
+    .trap-box {
+      background: rgba(245, 158, 11, 0.08);
+      border: 1px solid rgba(245, 158, 11, 0.35);
+      border-radius: var(--radius-md);
+      padding: 16px;
+      margin-top: 14px;
+    }
+    .trap-header {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      font-size: 0.86rem;
+      font-weight: 800;
+      color: #fbbf24;
+      margin-bottom: 8px;
+    }
+    .trap-list {
+      padding-left: 20px;
+      font-size: 0.82rem;
+      color: var(--text-sub);
+    }
+    .trap-list li {
+      margin-bottom: 6px;
+    }
+
+    /* Decide Action Priorities */
+    .priority-list {
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+    }
+    .priority-item {
+      background: var(--bg-elevated);
+      border: 1px solid var(--border-color);
+      border-radius: var(--radius-md);
+      padding: 14px 16px;
+      display: flex;
+      align-items: flex-start;
+      gap: 14px;
+    }
+    .priority-badge {
+      font-size: 0.74rem;
+      font-weight: 800;
+      padding: 4px 8px;
+      border-radius: 6px;
+      white-space: nowrap;
+    }
+    .p-1 { background: rgba(244, 63, 94, 0.2); color: #fb7185; border: 1px solid rgba(244, 63, 94, 0.4); }
+    .p-2 { background: rgba(56, 189, 248, 0.2); color: #38bdf8; border: 1px solid rgba(56, 189, 248, 0.4); }
+    .p-3 { background: rgba(16, 185, 129, 0.2); color: #34d399; border: 1px solid rgba(16, 185, 129, 0.4); }
+    
+    .priority-content {
+      flex: 1;
+    }
+    .priority-action {
+      font-size: 0.92rem;
+      font-weight: 800;
+      color: #fff;
+      margin-bottom: 4px;
+    }
+    .priority-reason {
+      font-size: 0.82rem;
+      color: var(--text-muted);
+    }
+
+    /* Final 1-Pager Presentation View */
+    .one-pager-wrap {
+      background: linear-gradient(135deg, rgba(15, 23, 42, 0.95) 0%, rgba(30, 41, 59, 0.95) 100%);
+      border: 2px solid var(--accent-indigo);
+      border-radius: var(--radius-lg);
+      padding: 24px;
+      margin-top: 10px;
+      box-shadow: 0 0 24px rgba(99, 102, 241, 0.25);
+    }
+    .one-pager-title {
+      font-size: 1.15rem;
+      font-weight: 800;
+      color: #a5b4fc;
+      margin-bottom: 14px;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+    .one-pager-lines {
+      background: rgba(0, 0, 0, 0.35);
+      padding: 16px;
+      border-radius: var(--radius-md);
+      margin-bottom: 12px;
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+      font-size: 0.9rem;
+      color: #f1f5f9;
+      line-height: 1.5;
+    }
+    .one-pager-risk {
+      font-size: 0.84rem;
+      color: #fca5a5;
+      background: rgba(244, 63, 94, 0.1);
+      padding: 10px 14px;
+      border-radius: var(--radius-sm);
+      border: 1px solid rgba(244, 63, 94, 0.25);
+    }
+
+    /* Practice & Audio Recorder Box */
+    .practice-box {
+      background: var(--bg-card);
+      border: 1px solid var(--border-color);
+      border-radius: var(--radius-lg);
+      padding: 20px;
+      display: flex;
+      flex-direction: column;
+      gap: 12px;
+    }
+    .practice-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      flex-wrap: wrap;
+      gap: 10px;
+    }
+    .btn-rec-toggle {
+      background: #ef4444;
+      color: #fff;
+      border: none;
+      padding: 7px 16px;
+      border-radius: var(--radius-sm);
+      font-weight: 700;
+      font-size: 0.82rem;
+      cursor: pointer;
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      transition: all 0.2s;
+    }
+    .btn-rec-toggle.recording {
+      background: #dc2626;
+      animation: pulse 1.2s infinite;
+    }
+    @keyframes pulse {
+      0% { box-shadow: 0 0 0 0 rgba(239, 68, 68, 0.7); }
+      70% { box-shadow: 0 0 0 10px rgba(239, 68, 68, 0); }
+      100% { box-shadow: 0 0 0 0 rgba(239, 68, 68, 0); }
+    }
+    .practice-textarea {
+      width: 100%;
+      height: 110px;
+      background: var(--bg-subtle);
+      border: 1px solid var(--border-color);
+      border-radius: var(--radius-md);
+      padding: 12px;
+      color: #fff;
+      font-family: inherit;
+      font-size: 0.88rem;
+      resize: vertical;
+      line-height: 1.5;
+    }
+    .practice-textarea:focus {
+      outline: none;
+      border-color: var(--accent-blue);
+    }
+
+    /* Global Footer / Guide Banner */
+    .footer-trap-guide {
+      background: var(--bg-card);
+      border-top: 1px solid var(--border-color);
+      padding: 20px 24px;
+      margin-top: 30px;
+    }
+    .guide-inner {
+      max-width: 1720px;
+      margin: 0 auto;
+      display: flex;
+      flex-direction: column;
+      gap: 12px;
+    }
+    .guide-title-row {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      font-weight: 800;
+      font-size: 0.95rem;
+      color: #fbbf24;
+    }
+    .guide-cards-grid {
+      display: grid;
+      grid-template-columns: repeat(4, 1fr);
+      gap: 12px;
+    }
+    @media (max-width: 900px) {
+      .guide-cards-grid {
+        grid-template-columns: repeat(2, 1fr);
+      }
+    }
+    .guide-mini-card {
+      background: var(--bg-elevated);
+      border: 1px solid var(--border-color);
+      padding: 12px 14px;
+      border-radius: var(--radius-sm);
+      display: flex;
+      flex-direction: column;
+      gap: 4px;
+    }
+    .guide-card-num {
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 0.76rem;
+      font-weight: 800;
+      color: var(--accent-blue);
+    }
+    .guide-card-title {
+      font-size: 0.86rem;
+      font-weight: 700;
+      color: #fff;
+    }
+    .guide-card-desc {
+      font-size: 0.78rem;
+      color: var(--text-muted);
+    }
+
+    /* Toast Notification */
+    .toast-box {
+      position: fixed;
+      bottom: 24px;
+      right: 24px;
+      background: rgba(15, 23, 42, 0.95);
+      border: 1px solid var(--accent-blue);
+      color: #fff;
+      padding: 10px 18px;
+      border-radius: var(--radius-md);
+      font-size: 0.85rem;
+      font-weight: 700;
+      box-shadow: 0 8px 24px rgba(0, 0, 0, 0.5);
+      transform: translateY(100px);
+      opacity: 0;
+      transition: all 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+      z-index: 9999;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+    .toast-box.show {
+      transform: translateY(0);
+      opacity: 1;
+    }
+  </style>
+</head>
+<body>
+
+  <!-- Top Navigation Header -->
+  <header class="top-header">
+    <div class="header-inner">
+      <div class="brand-group">
+        <div class="brand-logo">SK hynix PT</div>
+        <div class="brand-title-wrap">
+          <h1>문제해결 PT 마스터 : DHVD 프레임워크 시뮬레이터</h1>
+          <p>LEtUin Edu 최신 프레임워크 기반 · 문제 출제부터 2줄 핵심 프롬프트 및 1장 요약 PT까지</p>
+        </div>
+      </div>
+
+      <div class="header-tools">
+        <a href="index.html" style="display: inline-flex; align-items: center; gap: 6px; background: rgba(255,255,255,0.08); border: 1px solid var(--border-color); color: var(--text-sub); padding: 7px 14px; border-radius: var(--radius-md); font-weight: 700; font-size: 0.82rem; text-decoration: none; transition: all 0.2s;">
+          <span>🔙 AISK 백과사전</span>
+        </a>
+        <!-- 20분 실전 타이머 -->
+        <div class="timer-widget">
+          <span style="font-size:0.76rem; color:var(--text-muted); font-weight:700;">⏱️ PT 준비</span>
+          <span class="timer-display" id="timerDisplay">20:00</span>
+          <button class="timer-btn" id="btnTimerToggle" onclick="toggleTimer()">시작</button>
+          <button class="timer-btn" onclick="resetTimer(20)">20분</button>
+          <button class="timer-btn" onclick="resetTimer(30)">30분</button>
+        </div>
+
+        <button class="btn-guide-modal" onclick="showToast('💡 LEtUin Edu 원본 슬라이드 기반의 DHVD 프레임워크가 완벽히 탑재되어 있습니다!')">
+          <span>📘 프레임워크 가이드</span>
+        </button>
+      </div>
+    </div>
+  </header>
+
+  <!-- Main Container -->
+  <main class="main-layout">
+
+    <!-- Scenario Navigation Bar -->
+    <section class="scenario-nav-bar">
+      <div style="font-size:0.86rem; font-weight:800; color:var(--text-main); display:flex; align-items:center; gap:8px;">
+        <span>🎯 실전 문제 시나리오 선택 :</span>
+      </div>
+      <div class="scenario-tabs" id="scenarioTabs"></div>
+    </section>
+
+    <!-- Two-Column Master Grid -->
+    <div class="dashboard-grid">
+
+      <!-- LEFT: Problem Sheet & Data Parameters -->
+      <aside class="problem-panel">
+        
+        <!-- Problem Detail Card -->
+        <div class="card-box">
+          <div class="problem-header">
+            <div style="display:flex; justify-content:space-between; align-items:center;">
+              <span class="badge-process" id="problemBadge">ETCH</span>
+              <span style="font-size:0.75rem; color:var(--text-muted); font-family:'JetBrains Mono';">ID: <span id="problemIdText">pt_01</span></span>
+            </div>
+            <h2 class="problem-title" id="problemTitle">문제 제목 로딩 중...</h2>
+            <div class="problem-sub" id="problemSubtitle">부제목</div>
+          </div>
+
+          <div class="problem-desc" id="problemDesc">문제 상세 설명</div>
+
+          <!-- Wafer Map Visual Representation -->
+          <div class="visual-section">
+            <div class="visual-title">
+              <span>📊 웨이퍼 맵 & 결함 패턴 시각화</span>
+              <span id="waferPatternType" style="color:var(--accent-blue); font-weight:700;">Edge-fast</span>
+            </div>
+            <div class="wafer-maps-row">
+              <div class="wafer-map-col">
+                <div class="wafer-canvas-wrap" id="waferBeforeCanvas">
+                  <svg width="140" height="140" viewBox="0 0 140 140" id="svgWaferBefore"></svg>
+                  <div class="wafer-notch"></div>
+                </div>
+                <span class="wafer-badge good" id="badgeWiwnuBefore">PM 전 : WIWNU 2.8%</span>
+              </div>
+              <div style="font-size:1.4rem; color:var(--text-muted); font-weight:900;">➔</div>
+              <div class="wafer-map-col">
+                <div class="wafer-canvas-wrap" id="waferAfterCanvas">
+                  <svg width="140" height="140" viewBox="0 0 140 140" id="svgWaferAfter"></svg>
+                  <div class="wafer-notch"></div>
+                </div>
+                <span class="wafer-badge bad" id="badgeWiwnuAfter">PM 후 : WIWNU 7.2%</span>
+              </div>
+            </div>
+          </div>
+
+          <!-- Parameter Changes Table -->
+          <div style="font-size:0.84rem; font-weight:800; color:#fff; margin-bottom:6px; display:flex; justify-content:space-between;">
+            <span>📋 핵심 공정 센서 파라미터 변화</span>
+            <span style="font-size:0.72rem; color:var(--text-muted);">* 트랩 데이터 주의</span>
+          </div>
+          <table class="param-table">
+            <thead>
+              <tr>
+                <th>파라미터</th>
+                <th>이전</th>
+                <th>이후</th>
+                <th>단위</th>
+                <th>비고 및 판정</th>
+              </tr>
+            </thead>
+            <tbody id="paramTableBody"></tbody>
+          </table>
+        </div>
+
+        <!-- Naive Prompt Limitation Warning Box -->
+        <div class="naive-compare-box">
+          <div class="naive-header">
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"></circle><line x1="12" y1="8" x2="12" y2="12"></line><line x1="12" y1="16" x2="12.01" y2="16"></line></svg>
+            <span>일반적인 단발성 프롬프트의 한계 (LEtUin Edu 경고)</span>
+          </div>
+          <div class="naive-question" id="naivePromptText">"PM 이후 균일도가 나빠졌어. 원인과 해결 방법을 알려줘."</div>
+          <div class="naive-reply" id="naiveReplyText">"He 압력 감소로 냉각 효율이 저하됐을 가능성이 있습니다. He 라인과 ESC를 점검하세요."</div>
+          <div style="font-size:0.76rem; font-weight:700; color:#f87171; margin-bottom:4px;">❌ 단발성 질문의 치명적 문제점 :</div>
+          <ul class="naive-limits-list" id="naiveLimitsList"></ul>
+        </div>
+
+      </aside>
+
+      <!-- RIGHT: DHVD Framework Explorer -->
+      <section class="dhvd-panel">
+
+        <!-- DHVD 4-Step Nav Tabs -->
+        <div class="dhvd-nav-tabs">
+          <button class="dhvd-step-btn btn-d1 active" onclick="switchStep('define')">
+            <span class="step-char">D</span>
+            <span class="step-label">DEFINE (문제 정의)</span>
+          </button>
+          <button class="dhvd-step-btn btn-h" onclick="switchStep('hypothesize')">
+            <span class="step-char">H</span>
+            <span class="step-label">HYPOTHESIZE (원인 가설)</span>
+          </button>
+          <button class="dhvd-step-btn btn-v" onclick="switchStep('verify')">
+            <span class="step-char">V</span>
+            <span class="step-label">VERIFY (검증 계획)</span>
+          </button>
+          <button class="dhvd-step-btn btn-d2" onclick="switchStep('decide')">
+            <span class="step-char">D</span>
+            <span class="step-label">DECIDE (최종 판단)</span>
+          </button>
+        </div>
+
+        <!-- Dynamic Step Content Card -->
+        <div class="step-content-card" id="stepContentCard">
+          
+          <div class="step-header-banner">
+            <div class="step-header-left">
+              <span class="step-pill-badge" id="stepBadge">DEFINE</span>
+              <div>
+                <h3 class="step-title-text" id="stepTitleText">주어진 데이터만으로 문제를 명확히 정의한다</h3>
+                <div class="step-goal-text" id="stepGoalText">현상 · 목표 KPI · 제약조건을 3줄로 정리하고 추가 필요 정보 한정</div>
+              </div>
+            </div>
+            <button class="btn-copy-prompt" onclick="copyAllPromptsOfCurrentStep()">
+              <span>📋 단계 전체 프롬프트 복사</span>
+            </button>
+          </div>
+
+          <!-- Core 2-Line Prompts Box -->
+          <div class="prompts-box">
+            <div class="prompts-title">
+              <span>💬 필수 활용 2줄 핵심 프롬프트 (클릭하여 복사)</span>
+              <span style="font-size:0.72rem; color:var(--text-muted);">ChatGPT / Claude 즉시 입력용</span>
+            </div>
+            <div class="prompt-item">
+              <span class="prompt-num">P1</span>
+              <span class="prompt-text" id="promptText1">프롬프트 1 로딩 중...</span>
+              <button class="btn-copy-prompt" onclick="copySinglePrompt(1)">복사</button>
+            </div>
+            <div class="prompt-item">
+              <span class="prompt-num">P2</span>
+              <span class="prompt-text" id="promptText2">프롬프트 2 로딩 중...</span>
+              <button class="btn-copy-prompt" onclick="copySinglePrompt(2)">복사</button>
+            </div>
+          </div>
+
+          <!-- AI Model Analysis Output Body (Dynamic Render) -->
+          <div class="ai-output-box">
+            <div class="ai-output-header">
+              <span>🤖 AI 심층 분석 및 최적 도출 결과</span>
+              <span class="ai-tag">DHVD 최적화 모델</span>
+            </div>
+
+            <!-- Injected Step Detail View -->
+            <div id="stepDetailRenderArea"></div>
+          </div>
+
+        </div>
+
+        <!-- Presentation 1-Pager Final Slide Box (Visible on Decide or Quick View) -->
+        <div class="one-pager-wrap" id="onePagerBox">
+          <div class="one-pager-title">
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="2" y="3" width="20" height="14" rx="2" ry="2"></rect><line x1="8" y1="21" x2="16" y2="21"></line><line x1="12" y1="17" x2="12" y2="21"></line></svg>
+            <span id="onePagerTitle">[1장 요약 PT 결론] 최종 발표용 마스터 슬라이드</span>
+          </div>
+          <div class="one-pager-lines" id="onePagerLines"></div>
+          <div class="one-pager-risk" id="onePagerRisk"></div>
+        </div>
+
+        <!-- Practice & Recording Console -->
+        <div class="practice-box">
+          <div class="practice-header">
+            <div style="font-size:0.88rem; font-weight:800; color:#fff; display:flex; align-items:center; gap:8px;">
+              <span>🎙️ 나의 실전 PT 답변 작성 및 음성 녹음 연습장</span>
+              <span id="recTimerText" style="font-family:'JetBrains Mono'; color:var(--accent-blue); font-size:0.8rem;">00:00</span>
+            </div>
+            <div style="display:flex; gap:8px;">
+              <button class="btn-rec-toggle" id="btnRecToggle" onclick="toggleSTT()">
+                <span id="recBtnIcon">🔴</span>
+                <span id="recBtnText">음성 답변 녹음 (STT)</span>
+              </button>
+              <button class="timer-btn" onclick="clearPracticeText()">지우기</button>
+            </div>
+          </div>
+          <textarea class="practice-textarea" id="practiceTextarea" placeholder="프롬프트 실행 결과를 바탕으로 면접관에게 3분간 발표할 결론-근거-실행안을 직접 작성하거나 음성으로 녹음해보세요..."></textarea>
+        </div>
+
+      </section>
+
+    </div>
+
+  </main>
+
+  <!-- Global Footer / LEtUin Edu Guide Checklist Banner -->
+  <footer class="footer-trap-guide">
+    <div class="guide-inner">
+      <div class="guide-title-row">
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"></path><line x1="12" y1="9" x2="12" y2="13"></line><line x1="12" y1="17" x2="12.01" y2="17"></line></svg>
+        <span>⚠️ 할루시네이션 · 트랩데이터 검증 4대 공식 (LEtUin Edu 핵심 가이드)</span>
+      </div>
+      <div class="guide-cards-grid">
+        <div class="guide-mini-card">
+          <span class="guide-card-num">CHECK 01</span>
+          <span class="guide-card-title">단위 · 범위 비현실적 값 확인</span>
+          <span class="guide-card-desc">Torr vs mTorr, % vs ppm 등 단위 혼동 및 설비 허용 오차 내 노이즈 데이터 선별</span>
+        </div>
+        <div class="guide-mini-card">
+          <span class="guide-card-num">CHECK 02</span>
+          <span class="guide-card-title">주어진 데이터 밖 추정은 '가정'</span>
+          <span class="guide-card-desc">문제에 없는 장비 상태나 이력은 기정사실이 아닌 '가설/가정'으로 명시</span>
+        </div>
+        <div class="guide-mini-card">
+          <span class="guide-card-num">CHECK 03</span>
+          <span class="guide-card-title">서로 모순되는 조건 존재 여부</span>
+          <span class="guide-card-desc">온도는 정상인데 압력만 급락한 경우 등 물리적 상충 관계를 가설 검증의 지렛대로 활용</span>
+        </div>
+        <div class="guide-mini-card">
+          <span class="guide-card-num">CHECK 04</span>
+          <span class="guide-card-title">반대 가설 및 계측 오차 검증</span>
+          <span class="guide-card-desc">단일 원인에 매몰되지 않고 기각할 수 있는 명확한 반대 근거(Weakness) 도출</span>
+        </div>
+      </div>
+    </div>
+  </footer>
+
+  <!-- Toast Element -->
+  <div class="toast-box" id="toastBox">토스트 메시지</div>
+
+  <!-- JavaScript Application Logic -->
+  <script>
+    const SCENARIOS = [{"id": "pt_01", "process": "Etch", "badge_class": "badge-etch", "title": "Etch 장비 PM 후 WIWNU 악화 (2.8% → 7.2%)", "subtitle": "LEtUin Edu 원본 문제 재현 · 건식 식각 챔버 정기 보수 후 면내 균일도 급락", "problem_description": "식각(Dry Etch) 공정 챔버의 정기 예방보수(PM) 직후 생산된 웨이퍼의 면내 균일도(WIWNU, Within-Wafer Non-Uniformity)가 기준치인 3.0% 이하에서 7.2%로 대폭 악화되었습니다. 웨이퍼 맵 분석 결과 웨이퍼 외곽부(Edge)의 식각률이 중심부에 비해 비정상적으로 높게 나타나는 Edge-fast 패턴이 확인되었습니다.", "process_parameters": [{"name": "Backside He 압력", "before": "12.0", "after": "9.1", "unit": "Torr", "status": "danger", "note": "급격한 누설 또는 공급 제어 이상 의심 (핵심 단서)"}, {"name": "Chamber 진공도", "before": "25.0", "after": "28.0", "unit": "mTorr", "status": "warning", "note": "APC 밸브 열림각 또는 미세 배기 저항 변화"}, {"name": "RF Source 파워", "before": "800", "after": "801", "unit": "W", "status": "normal", "note": "1W 변동은 장비 계측 오차 및 제어 리플 (트랩 데이터)"}, {"name": "ESC Chiller 온도", "before": "20.0", "after": "20.1", "unit": "℃", "status": "normal", "note": "냉각수 순환 온도는 정상 범위 유지 중"}], "wafer_map_info": {"pattern_type": "Edge-fast", "wiwnu_before": "2.8%", "wiwnu_after": "7.2%", "description": "중심부는 정상 식각률이나 웨이퍼 외곽 30mm 영역에서 식각률이 18% 이상 급증함"}, "naive_prompt": {"prompt": "\"PM 이후 균일도가 나빠졌어. 원인과 해결 방법을 알려줘.\"", "ai_reply": "\"He 압력 감소로 냉각 효율이 저하됐을 가능성이 있습니다. He 라인과 ESC를 점검하세요.\"", "limitations": ["단일 변수(He)에만 편향되어 챔버 압력 변동이나 Edge Ring 조립 편차 등 복합 인자 무시", "공정 양산 제약조건(시간, 다운타임, 수율)과 구체적인 검증 실험 순서 결여", "RF 파워 1W 변동과 같은 장비 트랩 데이터 검증 미흡으로 할루시네이션 위험 노출"]}, "dhvd": {"define": {"step_name": "DEFINE (문제 정의)", "step_goal": "주어진 데이터를 바탕으로 문제를 명확히 정의하고 필요 정보를 한정한다.", "prompts": ["주어진 데이터만으로 현상, 목표 KPI, 제약조건을 3줄로 정리해줘.", "추가로 꼭 필요한 정보 3가지만 말해줘."], "ai_output": {"phenomenon": "Etch PM 직후 Backside He 압력이 12.0에서 9.1 Torr로 급감하며 WIWNU가 2.8%에서 7.2%로 악화 (Edge-fast 발생)", "goal": "WIWNU를 양산 스펙인 3.0% 이하로 즉시 복귀", "constraints": "양산 가동 라인이므로 챔버 다운타임 최소화 및 재PM 없이 원인 규명", "additional_info": ["Backside He 유량 Trace 로그 (누설 속도 및 실시간 공급 압력 프로파일)", "Chamber 세정/부품 교체 이력 (Focus Ring/Edge Ring 교체 여부 및 조립 단차)", "공정 진행 중 실시간 웨이퍼 표면 온도맵(Fluorescence Sensor Trace)"]}}, "hypothesize": {"step_name": "HYPOTHESIZE (원인 가설 도출 - MECE)", "step_goal": "데이터를 기반으로 상호 배타적이고 포괄적인 3가지 원인 가설을 수립한다.", "prompts": ["발생 가능한 원인 가설 3개와 각 가설의 메커니즘을 비교해줘.", "각 가설을 지지하는 데이터와 약점(반대 근거)을 함께 써줘."], "hypotheses": [{"rank": 1, "title": "가설 1: Backside He 공급/배관 누설 및 외곽 씰링 불량 (유력)", "mechanism": "PM 중 O-Ring 조립 불량 또는 씰 손상으로 Backside He가 누설되어 9.1 Torr로 강하. 웨이퍼 외곽부의 열전달(Heat Transfer) 효율이 급락하여 외곽 온도가 상승하고, 라디칼 반응 속도가 증가하여 Edge-fast 식각 발생.", "support": "Backside He가 12.0→9.1 Torr로 24% 급감한 데이터와 정확히 일치함.", "weakness": "Chamber 진공도가 25→28 mTorr로 약간 상승한 부가 현상을 전적으로 설명하기에는 부족함."}, {"rank": 2, "title": "가설 2: Focus Ring(Edge Ring) 조립 단차 및 마모 편차", "mechanism": "PM 시 장착된 신규 Focus Ring의 높이 편차로 인해 웨이퍼 가장자리 플라즈마 시스(Sheath)가 휘어져 이온 플럭스가 외곽으로 집중됨.", "support": "Edge-fast 식각 맵 형상과 완벽하게 부합함.", "weakness": "Focus Ring 단차만으로는 Backside He 압력이 9.1 Torr로 동반 급락한 이유를 설명하지 못함."}, {"rank": 3, "title": "가설 3: APC(Auto Pressure Controller) 밸브 제어 편차 및 배기 저항 변동", "mechanism": "Chamber 압력이 25에서 28 mTorr로 증가함에 따라 기상 체류 시간(Residence Time)이 길어져 외곽 식각 라디칼 농도 증가.", "support": "Chamber 압력이 3 mTorr 상승한 사실과 일치함.", "weakness": "3 mTorr 압력 상승이 7.2% 수준의 극단적인 WIWNU 악화를 유발하기에는 영향도가 낮음."}]}, "verify": {"step_name": "VERIFY (검증 계획 설계)", "step_goal": "가설을 최소 비용과 시간으로 구분할 수 있는 실험과 데이터 트랩을 검증한다.", "prompts": ["가설을 가장 빠르게 구분할 검증 항목과 예상 결과를 정리해줘.", "데이터에 할루시네이션 또는 트랩 가능성이 있는지도 점검해줘."], "verification_plans": [{"item": "검증 1: Backside He Leak Check 및 정적 가압 테스트", "method": "챔버 진공 상태에서 Backside He 공급 밸브 차단 후 압력 강하율(Leak Rate, mTorr/min) 측정", "expected": "외곽 씰링 누설일 경우 초당 0.5 Torr 이상 급격한 압력 강하 관측"}, {"item": "검증 2: 온도맵 센서(Etch Sensor Wafer) 투입 측정", "method": "자체 센서가 내장된 무선 온도 측정 웨이퍼를 로딩하여 플라즈마 방전 중 실시간 중심-외곽 온도차 측정", "expected": "외곽 영역 온도가 중심부 대비 +15℃ 이상 과열될 경우 가설 1 확정"}, {"item": "검증 3: Dummy Wafer 기반 Focus Ring 높이 단차 레이저 프로파일링", "method": "광학 단차계를 활용해 웨이퍼 표면과 Focus Ring 상단 간의 평탄도 측정", "expected": "단차 50㎛ 이내 정상 확인 시 가설 2 기각"}], "trap_checkpoints": ["RF Power 800W → 801W 변동: RF 제너레이터 리플 오차범위(±0.5%) 내로 공정 영향 없는 대표적 '노이즈 트랩 데이터'임.", "Chamber 진공도 25 → 28 mTorr: He 배관에서 누설된 He 가스가 챔버 내부로 유입되어 기본 압력을 상승시킨 '종속 결과'일 가능성 높음."]}, "decide": {"step_name": "DECIDE (최종 판단 및 조치)", "step_goal": "품질·시간·비용을 고려하여 즉시 실행 가능한 우선 조치안과 1장 PT 결론을 도출한다.", "prompts": ["품질 · 시간 · 비용을 고려해 우선 조치안을 순위로 정리해줘.", "PT 발표용으로 결론 · 근거 · 리스크를 1장 요약 형식으로 정리해줘."], "action_priorities": [{"priority": "1순위 (즉시 조치)", "action": "Backside He 라인 O-Ring 및 ESC 가스 공급 포트 리크 점검 및 재체결", "reason": "챔버 개방 없이 진공 라인 외부 점검 가능, 소요 시간 30분 이내, 가설 1 직접 해결"}, {"priority": "2순위 (데이터 보완)", "action": "ESC 전압(Clamping Voltage) 인가 상태 및 웨이퍼 흡착 균일도 재교정", "reason": "정전 척 흡착력 부족 시 He 누설 및 열전달 저하가 동시 발생하므로 쿨롱 척 전압 점검"}, {"priority": "3순위 (단계적 검증)", "action": "Dummy Run 후 He 누설 해소 시 Focus Ring 재정렬은 보류하고 양산 파일럿 투입", "reason": "불필요한 챔버 오픈을 방지하여 생산 다운타임 손실 최소화"}], "presentation_1pager": {"title": "[결론] Backside He 외곽 씰링 누설에 따른 냉각 불량 해소 및 WIWNU 2.8% 복귀 방안", "summary_3lines": ["현상 및 원인: PM 후 Backside He 씰링 누설(12→9.1 Torr)로 인한 웨이퍼 외곽 과열 및 Edge-fast 식각 발생", "검증 및 조치: 정적 누설 검증 완료 후 O-Ring 씰링 재장착(30분 소요), 챔버 전면 개방 방지로 생산성 보존", "기대 효과 및 리스크: WIWNU 2.8% 이하 복원 및 수율 100% 정상화, 재발 방지를 위해 PM 체결 토크 SOP 표준화"], "risk_and_countermeasure": "리스크: 단순 체결 불량이 아닌 ESC 세라믹 크랙일 경우 챔버 전면 수리 필요 → 대응책: 누설 지속 시 즉시 Spare ESC 교체 스케줄링"}}}}, {"id": "pt_02", "process": "Thin Film", "badge_class": "badge-film", "title": "DRAM High-k 커패시터 ALD 증착 후 누설전류 급증 및 유전율 산포 악화", "subtitle": "ZAZ 유전막 ALD 양산 라인에서 Purge Time 단축 후 웨이퍼 센터-엣지 누설전류 스펙 아웃", "problem_description": "1b nm DRAM 캐패시터 생산성(Throughput) 향상을 위해 ZrO2/Al2O3/ZrO2(ZAZ) ALD 증착 챔버의 불활성 아르곤(Ar) Purge 시간을 스텝당 0.8초에서 0.5초로 단축했습니다. 그러나 증착 후 캐패시터 누설전류(Leakage Current)가 양산 상한 기준(1.0 fA/cell)을 5배 초과하는 5.2 fA/cell로 급증하고 유전상수(k값)의 불균일도가 2배 악화되었습니다.", "process_parameters": [{"name": "Ar Purge Time", "before": "0.8", "after": "0.5", "unit": "sec", "status": "danger", "note": "생산성 향상 목적으로 임의 단축된 핵심 변경 변수"}, {"name": "Stage 히터 온도", "before": "280.0", "after": "280.2", "unit": "℃", "status": "normal", "note": "히터 설정 온도 및 실측 온도는 극도로 안정적"}, {"name": "Precursor 캐니스터 압력", "before": "150", "after": "148", "unit": "kPa", "status": "normal", "note": "전구체 공급 증기압 정상 범위 유지"}, {"name": "Al 도핑 농도 산포", "before": "3.2%", "after": "6.8%", "unit": "%", "status": "warning", "note": "Al2O3 중간막 형성 시 국소 결정화 억제 실패"}], "wafer_map_info": {"pattern_type": "Center-hot Leakage", "wiwnu_before": "1.8%", "wiwnu_after": "4.5%", "description": "샤워헤드 가스 주입구 직하부인 웨이퍼 센터 부근에서 누설전류가 집중 발생함"}, "naive_prompt": {"prompt": "\"캐패시터 누설전류가 5배로 늘었어. 챔버 온도나 전구체를 어떻게 바꿔야 해?\"", "ai_reply": "\"히터 온도를 낮추거나 Zr 전구체 주입량을 줄여 결정을 재조정하세요.\"", "limitations": ["Purge 타임 단축으로 인한 CVD 유사 기상 반응(Gas-phase reaction) 오염 메커니즘을 놓침", "원자 단위의 Self-limiting 포화 원리를 무시하고 전구체 주입량만 지적", "양산 처리량(Throughput) 요구조건과 누설전류 간의 트레이드오프 검증 누락"]}, "dhvd": {"define": {"step_name": "DEFINE (문제 정의)", "step_goal": "Purge 단축 데이터와 누설전류 급증의 인과관계를 정의한다.", "prompts": ["주어진 데이터만으로 현상, 목표 KPI, 제약조건을 3줄로 정리해줘.", "추가로 꼭 필요한 정보 3가지만 말해줘."], "ai_output": {"phenomenon": "ALD Purge 타임 0.8s→0.5s 단축 후 캐패시터 누설전류가 1.0에서 5.2 fA/cell로 급증하고 Al 산포 6.8%로 악화", "goal": "누설전류 1.0 fA/cell 이하 복귀 및 캐패시턴스(Cs) 25 fF/cell 확보", "constraints": "시간당 웨이퍼 처리 매수(WPH)를 기존 대비 최소 10% 이상 개선 유지하는 최적해 탐색", "additional_info": ["ZAZ 박막 내 탄소(C)/염소(Cl) 잔류 불순물 농도 SIMS 프로파일", "ALD 사이클별 배기 가스 QMS(사중극자 질량분석기) 실시간 성분 잔류량", "ZrO2 박막 결정상(Tetragonal vs Monoclinic) TEM 분석 데이터"]}}, "hypothesize": {"step_name": "HYPOTHESIZE (원인 가설 도출 - MECE)", "step_goal": "물리화학적 ALD 반응 메커니즘에 근거한 3가지 가설 수립", "prompts": ["발생 가능한 원인 가설 3개와 각 가설의 메커니즘을 비교해줘.", "각 가설을 지지하는 데이터와 약점(반대 근거)을 함께 써줘."], "hypotheses": [{"rank": 1, "title": "가설 1: 불완전 Purge로 인한 기상 반응 및 박막 내 탄소(C) 불순물 다량 잔류 (유력)", "mechanism": "0.5초의 짧은 Purge로 인해 미흡착 유기금속 전구체가 배출되지 못하고 오존(O3)과 직접 기상 반응(CVD 모드)을 일으켜 탄소 오염층 및 Trap Site 생성, 누설전류 급증.", "support": "샤워헤드 하부 센터 영역에 전구체가 정체되어 Center-hot 누설 패턴이 형성된 점과 일치.", "weakness": "Al 산포 악화(3.2%→6.8%)를 독립적으로 설명하기엔 추가 기전 필요."}, {"rank": 2, "title": "가설 2: Al2O3 중간막 커버리지 불량에 따른 ZrO2 Tetragonal 결정화 이상", "mechanism": "Al2O3 주입 후 잔류 Zr 전구체와의 혼합 반응으로 균일한 Al2O3 단원자 차단막 형성이 실패하여 누설 억제 장벽 붕괴.", "support": "Al 도핑 농도 산포가 6.8%로 두 배 이상 튄 계측 데이터와 일치.", "weakness": "히터 온도가 280℃로 엄격히 고정되어 있어 단독 결정화 전이 가능성은 제한적임."}, {"rank": 3, "title": "가설 3: 전구체 기화기(Vaporizer) 압력 변동에 의한 주입 농도 불균일", "mechanism": "Purge 시간 단축으로 밸브 개폐 빈도가 급증해 버퍼 탱크 압력 맥동(Pulsation) 유발.", "support": "고속 밸브 스위칭 시 흔히 발생하는 장비적 현상.", "weakness": "캐니스터 압력이 148kPa로 정상 범위(150±5kPa)를 유지하여 데이터적 지지 미약."}]}, "verify": {"step_name": "VERIFY (검증 계획 설계)", "step_goal": "SIMS 불순물 및 스텝별 Purge 스플릿 실험 설계", "prompts": ["가설을 가장 빠르게 구분할 검증 항목과 예상 결과를 정리해줘.", "데이터에 할루시네이션 또는 트랩 가능성이 있는지도 점검해줘."], "verification_plans": [{"item": "검증 1: SIMS 박막 심도별 잔류 탄소(C) 농도 분석", "method": "양품(0.8s)과 불량품(0.5s) 웨이퍼의 박막 내 C 원자 농도 비교", "expected": "불량품의 C 농도가 10^19 atoms/cm3 이상으로 10배 이상 검출 시 가설 1 확정"}, {"item": "검증 2: 단계적 Purge Time 스플릿(0.5s / 0.6s / 0.7s / 0.8s) DOE", "method": "Purge 시간대별 누설전류 및 박막 굴절률(RI) 상관관계 추적", "expected": "0.65초 이상 구간에서 누설전류가 급격히 포화 안정화되는 임계점 도출"}, {"item": "검증 3: QMS 실시간 잔류 전구체 이온 피크 모니터링", "method": "Purge 구간 배기 라인 질량 분석으로 전구체 시그널이 0으로 떨어지는 실제 시간 측정", "expected": "완전 배출에 0.62초가 소요됨을 실측하여 0.5초가 물리적 한계 미달임을 규명"}], "trap_checkpoints": ["히터 온도 280.0℃ → 280.2℃: 서모커플 측정 오차(±0.5℃) 내의 무의미한 수치이므로 온도 탓으로 결론지으면 오진임.", "Throughput 만을 위해 Purge를 줄이면 ALD의 전제 조건인 '표면 자기제어(Self-limiting)'가 깨져 CVD로 변질된다는 기본 원리 망각 트랩."]}, "decide": {"step_name": "DECIDE (최종 판단 및 조치)", "step_goal": "품질(Leakage)과 생산성(WPH)을 양립하는 최적 조치안 및 1장 요약 PT", "prompts": ["품질 · 시간 · 비용을 고려해 우선 조치안을 순위로 정리해줘.", "PT 발표용으로 결론 · 근거 · 리스크를 1장 요약 형식으로 정리해줘."], "action_priorities": [{"priority": "1순위 (품질 복구)", "action": "Ar Purge 타임을 0.5초에서 임계 마진을 확보한 0.65초로 재설정", "reason": "C 잔류 불순물을 억제하면서도 기존(0.8초) 대비 사이클 타임 12% 단축 달성"}, {"priority": "2순위 (장비 개선)", "action": "Ar Purge 가스 인입 유량을 기존 500 sccm에서 800 sccm으로 상향 조정", "reason": "배기 유속을 증가시켜 퍼지 효율을 극대화하여 0.6초까지 추가 단축 여력 확보"}, {"priority": "3순위 (모니터링 체계화)", "action": "ALD 챔버 배기단 QMS 알람 인터록 설정 (미배출 전구체 잔류 시 웨이퍼 홀딩)", "reason": "양산 롯트 전수 불량 사전 방지"}], "presentation_1pager": {"title": "[결론] ALD 퍼지 시간 최적화(0.65s) 및 고유량 퍼지 적용을 통한 누설전류 정상화 및 WPH 12% 개선", "summary_3lines": ["현상 및 원인: 무리한 Purge 단축(0.5s)으로 기상 반응 유발, 탄소 불순물 침투로 누설전류 5.2 fA/cell 급증", "검증 및 조치: QMS 잔류 시간(0.62s) 규명 후 Purge 0.65s + 유량 800sccm 복합 레시피 적용으로 즉시 정상화", "기대 효과 및 리스크: 누설전류 0.8 fA/cell 회복 및 목표 WPH 10% 초과 달성, 밸브 수명 주기 점검 주기 30% 단축 관리"], "risk_and_countermeasure": "리스크: 고유량 퍼지 시 챔버 진공 섭동 발생 우려 → 대응책: Throttle 밸브 사전 보정 및 소프트 스타트 제어 적용"}}}}, {"id": "pt_03", "process": "Metal", "badge_class": "badge-metal", "title": "Cu 듀얼 다마신 공정 후 비아 저항(Rc) 산포 악화 및 하부 Void 발생", "subtitle": "Advanced 금속 배선 공정에서 PVD Ta/TaN 배리어 및 Cu Seed 단차 피복성 불량 해결", "problem_description": "다층 금속 배선(Interconnect) Cu 듀얼 다마신(Dual Damascene) 공정 진행 중, 지름 30nm급 미세 비아 콘택트(Via Hole) 바닥에서 Cu 충진 불량으로 인한 심(Seam) 및 보이드(Void)가 발생하여 비아 저항(Rc)이 설계 스펙(15 Ω) 대비 35 Ω으로 급증하고 전기적 오픈(Open) 불량이 검출되었습니다.", "process_parameters": [{"name": "PVD TaN/Ta 배리어 두께", "before": "2.5", "after": "4.2", "unit": "nm", "status": "warning", "note": "Cu 확산 방지 강화 목적으로 배리어 두께 증가"}, {"name": "Cu Seed PVD DC 파워", "before": "15", "after": "15", "unit": "kW", "status": "normal", "note": "스퍼터링 방전 전력 일정"}, {"name": "도금액 Accelerator 농도", "before": "5.0", "after": "4.9", "unit": "ppm", "status": "normal", "note": "전기도금 바텀업 필링 첨가제 농도 정상"}, {"name": "비아 입구 오버행(Overhang)", "before": "1.2", "after": "3.8", "unit": "nm", "status": "danger", "note": "입구 좁아짐 현상 심화로 보텀업 도금액 침투 저해"}], "wafer_map_info": {"pattern_type": "Peripheral Fail", "wiwnu_before": "2.1%", "wiwnu_after": "5.9%", "description": "웨이퍼 최외곽 엣지 영역에서 스퍼터 입사각 편차로 오버행이 극대화되어 저항 불량 집중"}, "naive_prompt": {"prompt": "\"구리 비아 저항이 너무 높고 구멍이 생겨. 전기도금 시간을 늘려야 하나?\"", "ai_reply": "\"도금 시간을 늘리고 화학 첨가제를 더 넣어 매립을 강화하세요.\"", "limitations": ["입구가 좁아진 오버행(Overhang) 문제를 무시하여 도금 시간을 늘릴수록 입구가 먼저 막히는 핀치오프(Pinch-off) 촉발", "PVD 스퍼터링 입자의 직진성과 재스퍼터(Resputtering) 메커니즘 간과", "배리어 두께 증가가 비아 저항에 미치는 부정적 기여도 미계산"]}, "dhvd": {"define": {"step_name": "DEFINE (문제 정의)", "step_goal": "PVD 물리 증착의 한계와 비아 보이드 생성의 핵심 제약조건 정의", "prompts": ["주어진 데이터만으로 현상, 목표 KPI, 제약조건을 3줄로 정리해줘.", "추가로 꼭 필요한 정보 3가지만 말해줘."], "ai_output": {"phenomenon": "TaN/Ta 배리어 증착 두께 증가 후 비아 입구 오버행이 1.2→3.8nm로 심화되며 Cu 전기도금 보이드 발생, 비아 저항이 15에서 35Ω으로 급증", "goal": "비아 콘택트 저항 15Ω 이하 달성 및 비아 보이드 제로(Zero-void) 매립 구현", "constraints": "Cu 원자의 절연막(Low-k) 확산 방지 신뢰성(TDDB)을 손상시키지 않는 조건 수립", "additional_info": ["FIB-TEM 단면 비아 프로파일 (입구 넥 폭, 측벽 배리어 두께, 바닥 Cu Seed 연속성)", "PVD 챔버 내 이온화 스퍼터링 바이어스 RF 전압(Ion Energy Trace)", "도금 후 어닐링(Annealing) 온도 및 결정립(Grain) 성장 수치"]}}, "hypothesize": {"step_name": "HYPOTHESIZE (원인 가설 도출 - MECE)", "step_goal": "오버행 핀치오프, 바닥 씨드 불연속, 배리어 과후막화 3대 가설 수립", "prompts": ["발생 가능한 원인 가설 3개와 각 가설의 메커니즘을 비교해줘.", "각 가설을 지지하는 데이터와 약점(반대 근거)을 함께 써줘."], "hypotheses": [{"rank": 1, "title": "가설 1: PVD 증착의 물리적 입사각 한계로 인한 입구 핀치오프(Pinch-off) 보이드 (유력)", "mechanism": "Ta/TaN을 4.2nm로 두껍게 치면서 입구 모서리에 그림자 효과(Shadowing) 발생, 이어진 Cu Seed 증착 시 입구가 먼저 닫혀 도금액의 Bottom-up 충진이 차단됨.", "support": "비아 입구 오버행이 3.8nm로 3배 이상 폭증한 측정 데이터가 명백한 물증.", "weakness": "도금액 첨가제 밸런스 이상 가능성을 완전히 배제하기 위해선 도금 욕 분석 필요."}, {"rank": 2, "title": "가설 2: 비아 바닥 고저항 배리어막 과다 잔류로 인한 오믹 콘택트 불량", "mechanism": "비아 바닥에 전도성이 낮은 TaN(비저항 수백 μΩ·cm)이 바닥에 과도하게 쌓여 저항 직접 상승.", "support": "비아 저항이 35Ω으로 치솟은 전기적 테스트 결과.", "weakness": "저항 증가뿐 아니라 물리적 빈 공간(Void)이 발생한 형상을 단독 설명 불가."}, {"rank": 3, "title": "가설 3: 전기도금(ECD) Accelerator/Suppressor 흡착 농도 국소 불균형", "mechanism": "비아 바닥 가속제 흡착 부족으로 바닥 성장 속도가 측벽 대비 느려져 보이드 발생.", "support": "전형적인 도금 매립 불량 메커니즘.", "weakness": "도금액 분석 결과 첨가제 농도가 4.9ppm으로 정상 유지되고 있어 신빙성 낮음."}]}, "verify": {"step_name": "VERIFY (검증 계획 설계)", "step_goal": "TEM 분석 및 PVD Resputtering 프로세스 검증", "prompts": ["가설을 가장 빠르게 구분할 검증 항목과 예상 결과를 정리해줘.", "데이터에 할루시네이션 또는 트랩 가능성이 있는지도 점검해줘."], "verification_plans": [{"item": "검증 1: FIB-TEM 초고배율 단면 분석", "method": "불량 비아의 정밀 단면을 잘라 보이드의 발생 위치(바닥 vs 중간부) 확인", "expected": "입구가 막힌 형태의 Keyhole/Center Void 관측 시 오버행 핀치오프(가설 1) 확정"}, {"item": "검증 2: In-situ Ar+ 플라즈마 재스퍼터링(Resputter) 에치백 적용 비교", "method": "PVD 증착 중 기판 바이어스를 인가해 입구 오버행을 깎아 바닥으로 재증착시키는 공정 적용", "expected": "오버행이 1.0nm 이하로 감소하고 보이드 완전 소멸 확인"}, {"item": "검증 3: ALD TaN 극박막(1.5nm) 대체 파일럿 테스트", "method": "100% Step Coverage를 갖는 ALD 배리어 적용 후 비아 저항 측정", "expected": "비아 저항이 12Ω으로 대폭 감소 확인"}], "trap_checkpoints": ["도금 전류 밀도(Current Density)를 낮추면 해결될 것이라는 속단 트랩: 입구 오버행이 3.8nm인 상태에서는 도금 속도를 아무리 늦춰도 입구가 먼저 막힘.", "Cu Seed PVD 파워가 15kW로 정상이라서 PVD 공정 문제가 아니라는 오류: 파워가 정상이더라도 고종횡비 구조에서는 입사 각도와 입구 기하구조가 성패를 좌우함."]}, "decide": {"step_name": "DECIDE (최종 판단 및 조치)", "step_goal": "공정 개선 우선순위 확정 및 1장 PT 요약", "prompts": ["품질 · 시간 · 비용을 고려해 우선 조치안을 순위로 정리해줘.", "PT 발표용으로 결론 · 근거 · 리스크를 1장 요약 형식으로 정리해줘."], "action_priorities": [{"priority": "1순위 (즉시 조치)", "action": "PVD 챔버에 Ar+ Ion Resputtering 스텝 추가 (입구 오버행 테이퍼 가공)", "reason": "장비 하드웨어 개조 없이 레시피 수정만으로 즉시 적용 가능, 오버행 1.2nm 회복"}, {"priority": "2순위 (스펙 최적화)", "action": "TaN/Ta 배리어 두께를 4.2nm에서 2.8nm로 롤백하고 TaN/Ta 비율을 1:1로 조정", "reason": "TDDB 신뢰성 기준 충족 범위 내에서 비아 입구 개구율 최대 확보"}, {"priority": "3순위 (차세대 전환)", "action": "미세 비아용 ALD TaN 장비 양산 적용성 평가 진행", "reason": "차세대 1c nm 및 향후 미세 피치 배선의 원천적 Step Coverage 한계 극복"}], "presentation_1pager": {"title": "[결론] In-situ Resputtering 레시피 적용 및 배리어 박막화를 통한 비아 보이드 완전 제거 및 Rc 13.8Ω 달성", "summary_3lines": ["현상 및 원인: 배리어 과후막화(4.2nm)로 비아 입구 오버행 3.8nm 발생, Cu 도금 핀치오프 보이드로 Rc 35Ω 폭증", "검증 및 조치: FIB-TEM 키홀 보이드 실측 후 In-situ Ar 재스퍼터링 적용 및 배리어 2.8nm 재설정으로 즉각 개선", "기대 효과 및 리스크: 비아 오픈 불량 0% 및 Rc 13.8Ω 확보, 재스퍼터 시 하부 절연막 펀치스루 방지를 위해 RF 타임 2초 단위 정밀 제어"], "risk_and_countermeasure": "리스크: 과도한 Resputtering 시 하부 Cu 층 산화 유발 가능 → 대응책: 챔버 고진공 베이스라인 엄격 관리 및 H2 환원 가스 첨가"}}}}, {"id": "pt_04", "process": "Photo", "badge_class": "badge-photo", "title": "1b nm EUV 노광 후 국소 Bridge 결함 및 Overlay 규격 이탈", "subtitle": "EUV 스캐너 고온 가동 시 레티클 열팽창과 초미세 선폭(CD) 브릿지 불량 분석", "problem_description": "1b nm DRAM 첨단 레이어 노광 공정에서 EUV 스캐너(High-NA 이전 현용 장비) 연속 가동 중 특정 샷(Shot) 영역에서 미세 라인 간 브릿지(Bridge) 결함이 집중 검출되고, 하부 레이어와의 정렬 오차(Overlay)가 관리 기준인 ±1.5nm를 벗어난 3.2nm로 급격히 악화되었습니다.", "process_parameters": [{"name": "EUV Dose량", "before": "45.0", "after": "45.1", "unit": "mJ/cm2", "status": "normal", "note": "선폭 노광 에너지는 목표치 정밀 제어 중"}, {"name": "레티클 스테이지 온도 편차", "before": "+0.02", "after": "+0.18", "unit": "℃", "status": "danger", "note": "연속 노광에 따른 EUV 광 흡수 열변형(Thermal Expansion)"}, {"name": "PEB 플레이트 Zone 3 온도", "before": "110.0", "after": "110.2", "unit": "℃", "status": "normal", "note": "트랙 장비 핫플레이트 온도 안정적 (트랩 데이터)"}, {"name": "스캐너 진공 챔버 수소(H2) 압력", "before": "2.0", "after": "1.9", "unit": "Pa", "status": "normal", "note": "주석(Sn) 오염 세정용 수소 흐름 정상"}], "wafer_map_info": {"pattern_type": "Shot-grid Distortion", "wiwnu_before": "1.4nm", "wiwnu_after": "3.8nm", "description": "웨이퍼 중심부에서 외곽 샷으로 갈수록 Overlay 벡터가 방사형으로 왜곡되는 스케일링 에러"}, "naive_prompt": {"prompt": "\"EUV 브릿지 결함이 생기고 오버레이가 틀어졌어. 노광 에너지를 높여야 하나?\"", "ai_reply": "\"Dose를 높여 선을 가늘게 만들고 포토레지스트(PR)를 교체하세요.\"", "limitations": ["EUV 선폭을 줄이기 위해 무턱대고 Dose를 높이면 스토캐스틱 결함(Micro-bridging vs Line breaking)의 역트레이드오프 발생", "오버레이 왜곡이 레티클 열변형에 기인한 광학 기하학적 수차임을 파악하지 못함", "스캐너 소프트웨어 보정(Wafer/Reticle Grid Correction) 솔루션을 배제함"]}, "dhvd": {"define": {"step_name": "DEFINE (문제 정의)", "step_goal": "열변형과 오버레이 왜곡 및 브릿지 불량의 상관관계 확립", "prompts": ["주어진 데이터만으로 현상, 목표 KPI, 제약조건을 3줄로 정리해줘.", "추가로 꼭 필요한 정보 3가지만 말해줘."], "ai_output": {"phenomenon": "연속 노광 시 레티클 스테이지 온도 편차가 +0.18℃로 상승하며 방사형 오버레이 에러 3.2nm 및 국소 브릿지 불량 발생", "goal": "오버레이 ±1.5nm 이하 복구 및 브릿지 제로 결함 달성", "constraints": "스캐너 생산성 유지를 위해 샷당 노광 시간 지연을 초래하지 않는 실시간 보정법 적용", "additional_info": ["스캐너 샷별 오버레이 잔여 오차(Residual Error) 벡터 맵", "레티클 히팅 맵 및 광학 배율(Magnification/Expansion) 수치 로그", "결함 발생 지점의 국소 초점 심도(Depth of Focus, DoF) 이탈량"]}}, "hypothesize": {"step_name": "HYPOTHESIZE (원인 가설 도출 - MECE)", "step_goal": "광학 열변형, 스토캐스틱 효과, 트랙 베이크 편차 비교 가설", "prompts": ["발생 가능한 원인 가설 3개와 각 가설의 메커니즘을 비교해줘.", "각 가설을 지지하는 데이터와 약점(반대 근거)을 함께 써줘."], "hypotheses": [{"rank": 1, "title": "가설 1: 고출력 EUV 광흡수에 의한 레티클 열팽창 및 수차(Aberration) 왜곡 (유력)", "mechanism": "13.5nm EUV광의 높은 에너지 흡수로 레티클 다층막(Mo/Si)이 국소 가열되어 +0.18℃ 팽창. 패턴 상(Image)이 외곽으로 밀려나며 인접 선간 간격이 좁아져 브릿지 유발 및 오버레이 스케일 에러 발생.", "support": "레티클 스테이지 온도 상승과 방사형 샷 그리드 왜곡 형상이 정량적으로 완벽 부합.", "weakness": "Dose 변동(45.0→45.1)과의 연관성은 없음."}, {"rank": 2, "title": "가설 2: EUV 광자수 부족에 따른 스토캐스틱(Stochastic) 나노 브릿징", "mechanism": "국소 포톤 샷 노이즈(Photon Shot Noise)로 인해 특정 지점 산발적 브릿지 형성.", "support": "초미세 EUV 공정에서 항상 존재하는 고유 결함.", "weakness": "무작위 발생이어야 하나 특정 샷 외곽에서 오버레이 에러와 동반 규칙적 발생하는 현상 설명 불가."}, {"rank": 3, "title": "가설 3: 트랙(Track) 장비 PEB 플레이트 히터 온도 불균일", "mechanism": "포토레지스트 가교 반응 온도 불균일로 선폭(CD) 산포 증가.", "support": "일반적인 포토 공정 불량 단골 원인.", "weakness": "Zone 3 온도가 110.2℃로 스펙(110.0±0.3℃) 내 엄격히 통제되고 있어 주원인 아님 (트랩)."}]}, "verify": {"step_name": "VERIFY (검증 계획 설계)", "step_goal": "스캐너 보정 알고리즘 적용 및 레티클 쿨링 검증", "prompts": ["가설을 가장 빠르게 구분할 검증 항목과 예상 결과를 정리해줘.", "데이터에 할루시네이션 또는 트랩 가능성이 있는지도 점검해줘."], "verification_plans": [{"item": "검증 1: 스캐너 동적 피드포워드 레티클 열보정(Feed-forward Heating Model) On/Off 비교", "method": "스캐너 내장 알고리즘으로 예상 열팽창량을 렌즈 매니퓰레이터 및 스테이지 좌표로 실시간 역보정", "expected": "알고리즘 가동 시 오버레이 에러가 즉시 3.2nm에서 1.1nm로 격감"}, {"item": "검증 2: 연속 노광 매수별 오버레이 드리프트(Drift) 추세 분석", "method": "1매차 vs 25매차 롯트 마지막 웨이퍼의 오버레이 비교", "expected": "노광이 누적될수록 왜곡이 선형 증가함을 확인하여 열축적 메커니즘 입증"}, {"item": "검증 3: 레티클 백사이드 수소 쿨링 유량 스플릿", "method": "냉각 수소 가스 유량을 20% 증가시켜 온도 상승 폭 억제 확인", "expected": "온도 편차가 +0.05℃ 이내로 억제됨을 확인"}], "trap_checkpoints": ["PEB 온도 110.0℃ → 110.2℃: 미세한 0.2℃ 변화는 산발생제(PAG) 활성화에 0.1nm 미만의 CD 변화만 주므로 현 사태의 주범이 아님.", "Dose를 높이면 브릿지는 풀리지만 패턴 뜯김(Line Break) 결함이 생기는 풍선효과(Balloon Effect) 경계."]}, "decide": {"step_name": "DECIDE (최종 판단 및 조치)", "step_goal": "실시간 보정 및 냉각 시스템 최적화 1장 PT", "prompts": ["품질 · 시간 · 비용을 고려해 우선 조치안을 순위로 정리해줘.", "PT 발표용으로 결론 · 근거 · 리스크를 1장 요약 형식으로 정리해줘."], "action_priorities": [{"priority": "1순위 (즉시 보정)", "action": "스캐너 Advanced Reticle Heating Compensation(ARHC) 소프트웨어 파라미터 업데이트", "reason": "설비 가동 중단 없이 레시피 계수 수정으로 즉시 오버레이 1.2nm 이내 진입"}, {"priority": "2순위 (하드웨어 냉각)", "action": "레티클 스테이지 백사이드 쿨링 가스 퍼지 라인 클리닝 및 유량 최적화", "reason": "열전달 효율을 개선하여 연속 노광 시 정상 상태 온도 편차를 +0.04℃ 이하로 방어"}, {"priority": "3순위 (운영 최적화)", "action": "노광 대기 시간(Idle Time) 중 레티클 온도 안정화 시퀀스(Wait time 5초) 삽입", "reason": "급격한 열충격 완화"}], "presentation_1pager": {"title": "[결론] EUV 스캐너 ARHC 실시간 열보정 및 레티클 쿨링 최적화를 통한 오버레이 1.1nm 달성 및 브릿지 제로화", "summary_3lines": ["현상 및 원인: EUV 연속 노광 시 레티클 열팽창(+0.18℃)으로 방사형 배율 왜곡 발생, 선간 협소화로 브릿지 및 오버레이 3.2nm 이탈", "검증 및 조치: 실시간 열팽창 역보정 알고리즘(ARHC) 적용 및 쿨링 유량 상향으로 샷 왜곡 완벽 상쇄", "기대 효과 및 리스크: 오버레이 1.1nm로 스펙 인(In-spec) 및 브릿지 불량 0건 달성, 스캔 속도 저하 없이 양산 수율 99.4% 확보"], "risk_and_countermeasure": "리스크: 노광 레이아웃 변경 시 열모델 불일치 발생 가능 → 대응책: 패턴 밀도별 사전 캘리브레이션 룩업테이블(LUT) 자동 연동"}}}}, {"id": "pt_05", "process": "3D NAND", "badge_class": "badge-nand", "title": "3D NAND 200단 채널홀 극저온 식각 중 Bowing 및 Bottom Distortion 불량", "subtitle": "High Aspect Ratio(HAR) 식각 시 척 온도 변화와 보호막 부족에 따른 형상 왜곡", "problem_description": "200단 이상 초고적층 3D NAND의 산화막/질화막(ON) 몰드를 관통하는 채널 홀(Channel Hole, 종횡비 80:1 이상) HAR 식각 공정 중, 홀 중간부가 불룩하게 파이는 보잉(Bowing) 현상과 바닥부 홀 축이 틀어지는 바텀 디스토션(Bottom Distortion)이 발생하여 하부 워드라인과 쇼트(Short) 및 채널 오픈 불량이 발생했습니다.", "process_parameters": [{"name": "정전척(ESC) 극저온 설정", "before": "-60.0", "after": "-35.0", "unit": "℃", "status": "danger", "note": "칠러 냉매 순환 이상으로 척 온도가 비정상 상승"}, {"name": "C4F6 / O2 반응가스 비율", "before": "1.5", "after": "1.5", "unit": "ratio", "status": "normal", "note": "식각 가스 유량비는 레시피 설정치 준수"}, {"name": "LF 바이어스 RF 전압(Vpp)", "before": "8.5", "after": "8.4", "unit": "kV", "status": "normal", "note": "초고전압 이온 가속 전압 정상"}, {"name": "Bowing 최대 직경(CD)", "before": "95", "after": "138", "unit": "nm", "status": "danger", "note": "중간부 비정상 과식각으로 인접 셀 침범"}], "wafer_map_info": {"pattern_type": "Wafer Radial Ingot Fluctuation", "wiwnu_before": "2.4%", "wiwnu_after": "8.1%", "description": "척 쿨링 라인 유로가 지나는 동심원 경로를 따라 보잉 현상 극대화"}, "naive_prompt": {"prompt": "\"채널홀 중간이 불룩해졌어. 식각 가스를 줄여야 해?\"", "ai_reply": "\"가스 유량을 줄이고 식각 시간을 짧게 하세요.\"", "limitations": ["극저온 식각(Cryogenic Etch)의 핵심인 '표면 패시베이션 응축 메커니즘'을 완전히 간과", "식각 시간을 줄이면 200단 바닥까지 뚫지 못하는 낫오픈(Not-open) 치명 불량 초래", "ESC 칠러 냉각 능력 저하라는 하드웨어 결함 규명 누락"]}, "dhvd": {"define": {"step_name": "DEFINE (문제 정의)", "step_goal": "극저온 식각 열역학과 종횡비(HAR) 구조 한계 정의", "prompts": ["주어진 데이터만으로 현상, 목표 KPI, 제약조건을 3줄로 정리해줘.", "추가로 꼭 필요한 정보 3가지만 말해줘."], "ai_output": {"phenomenon": "ESC 온도가 -60℃에서 -35℃로 상승하며 채널홀 Bowing CD가 95→138nm로 폭증하고 하부 왜곡 발생", "goal": "Bowing CD를 98nm 이하로 제어하고 200단 바닥 오픈률 100% 확보", "constraints": "식각 시간 단축 없이 바닥 콘택트 면적(Bottom CD > 45nm) 필수 보장", "additional_info": ["ESC 칠러 냉매(Fluorinert) 압력 및 실시간 회수 온도 로그", "SEM 홀 수직 단면 프로파일(Top, Bowing, Bottom CD 실측값)", "플라즈마 방전 중 OES(광학발광분석) 불소(F)/탄소(CFx) 라디칼 강도비"]}}, "hypothesize": {"step_name": "HYPOTHESIZE (원인 가설 도출 - MECE)", "step_goal": "측벽 보호막 응축 결핍, 바이어스 이온 산란, 가스 성분비 변동 가설", "prompts": ["발생 가능한 원인 가설 3개와 각 가설의 메커니즘을 비교해줘.", "각 가설을 지지하는 데이터와 약점(반대 근거)을 함께 써줘."], "hypotheses": [{"rank": 1, "title": "가설 1: 극저온 척 온도 상승(-35℃)에 의한 측벽 폴리머 보호막 응축 실패 (유력)", "mechanism": "극저온 식각에서는 -60℃ 이하에서 CxFy 반응 생성물이 홀 측벽에 얼어붙듯 응축되어 보호막을 형성함. -35℃로 온도가 오르자 탈착 속도가 빨라져 보호막이 형성되지 못하고 라디칼에 의해 측벽이 파여 Bowing 발생.", "support": "ESC 온도가 25℃나 상승한 사실과 완벽하게 부합.", "weakness": "가스 유량비(1.5)가 정상이라 화학적 공급 자체는 동일했음."}, {"rank": 2, "title": "가설 2: LF 바이어스 RF 전압 제어기 위상 불안정 및 이온 산란", "mechanism": "Vpp 불량으로 이온 직진성이 떨어져 홀 측벽을 때림.", "support": "Bowing 및 Bottom 왜곡 현상 설명 가능.", "weakness": "Vpp가 8.4kV로 정상 범위(8.5±0.2kV)를 유지하고 있어 데이터적 근거 희박."}, {"rank": 3, "title": "가설 3: 하드마스크(ACL/SOC) 조기 소모 및 스트라이크", "mechanism": "마스크 어깨가 무너져 입구 직경이 커진 영향.", "support": "일반적인 HAR 식각의 원인 중 하나.", "weakness": "Top CD는 정상이고 중간부(Bowing)만 선택적으로 부풀어 오른 형상과 불일치."}]}, "verify": {"step_name": "VERIFY (검증 계획 설계)", "step_goal": "칠러 하드웨어 점검 및 온도별 형상 재현 검증", "prompts": ["가설을 가장 빠르게 구분할 검증 항목과 예상 결과를 정리해줘.", "데이터에 할루시네이션 또는 트랩 가능성이 있는지도 점검해줘."], "verification_plans": [{"item": "검증 1: 칠러 냉매 필터 차압 및 유량 실측", "method": "극저온 칠러 순환 루프의 배관 밸브 및 펌프 압력 측정", "expected": "냉매 필터 막힘으로 유량이 40% 저하되어 -60℃ 냉각 불가 상태 실측"}, {"item": "검증 2: 척 온도 강제 냉각(-60℃) 복원 후 Dummy Etch 단면 검사", "method": "칠러 정상화 후 동일 조건 식각 진행", "expected": "Bowing CD가 94nm로 정상 복구되고 바닥 왜곡 소멸 확인"}, {"item": "검증 3: 측벽 패시베이션 강화 가스(SiCl4/O2) 임시 첨가 평가", "method": "온도 정상화 전 임시로 무기 보호막을 형성하는 케미컬 첨가 테스트", "expected": "Bowing 억제 효과 일부 검증"}], "trap_checkpoints": ["Vpp 8.5kV → 8.4kV: 계측 오차 범위의 정상값이나, 고전압이 무서워 전압을 낮추면 이온 직진성이 더 죽어 바닥 Not-open 대형 사고 유발.", "Bowing을 잡겠다고 식각 속도를 늦추면 200단 바닥까지 도달하지 못하므로, 반드시 '온도 정상화'를 통해 문제를 해결해야 함."]}, "decide": {"step_name": "DECIDE (최종 판단 및 조치)", "step_goal": "칠러 정비 및 극저온 모니터링 인터록 구축 1장 PT", "prompts": ["품질 · 시간 · 비용을 고려해 우선 조치안을 순위로 정리해줘.", "PT 발표용으로 결론 · 근거 · 리스크를 1장 요약 형식으로 정리해줘."], "action_priorities": [{"priority": "1순위 (설비 수리)", "action": "극저온 칠러 냉매 순환 필터 교체 및 열교환기 플러싱 (1시간 소요)", "reason": "-60℃ 타깃 온도 즉각 회복 가능, 공정 레시피 변경 없이 근본 원인 해결"}, {"priority": "2순위 (공정 마진)", "action": "식각 초기 단계 C4F6 폴리머 비율을 5% 미세 상향하여 측벽 내구성 보강", "reason": "온도 변동에 대한 공정 프로세스 윈도우 확대"}, {"priority": "3순위 (인터록 강화)", "action": "ESC 온도가 -55℃ 이상으로 상승 시 플라즈마 방전 자동 차단 인터록 등록", "reason": "양산 롯트 폐기(Scrap) 원천 방지"}], "presentation_1pager": {"title": "[결론] 극저온 칠러 유로 복원을 통한 척 온도(-60℃) 정상화 및 200단 채널홀 Bowing CD 94nm 안정화", "summary_3lines": ["현상 및 원인: 칠러 필터 막힘에 의한 척 온도 상승(-35℃)으로 측벽 보호막 응축 실패, Bowing 138nm 발생", "검증 및 조치: 칠러 냉매 라인 긴급 정비 후 -60℃ 냉각 기능 복원, 테스트 식각을 통해 완벽한 수직 프로파일 확인", "기대 효과 및 리스크: Bowing 94nm 복원 및 200단 채널홀 오픈률 100% 달성, 실시간 온도 인터록으로 품질 사고 방지"], "risk_and_countermeasure": "리스크: 동절기 냉매 점도 상승에 따른 유량 저하 재발 가능 → 대응책: 칠러 라인 보온재 강화 및 정기 교체 주기 3개월로 단축"}}}}, {"id": "pt_06", "process": "Packaging", "badge_class": "badge-pkg", "title": "HBM3E MR-MUF 패키징 후 칩 휨(Warpage) 및 마이크로범프 결합 보이드", "subtitle": "AI 고대역폭 메모리 적층 공정에서 액상 EMC 충진 압력과 열경화 수축 불균일 해결", "problem_description": "최신 12단/16단 HBM3E 양산 중, DRAM 다이(Die)를 적층하고 액상 보호재를 주입하는 MR-MUF(Mass Reflow Molded Underfill) 공정 완료 후 패키지 외곽부 휨(Warpage)이 기준 스펙(35㎛)을 초과한 58㎛로 급증하고, 상하 다이 사이의 마이크로범프(Microbump) 주변에 미세 에어 보이드(Air Void)가 검출되어 방열 신뢰성 테스트에서 탈락했습니다.", "process_parameters": [{"name": "MUF 액상 수지 주입 압력", "before": "4.5", "after": "6.2", "unit": "MPa", "status": "warning", "note": "충진 속도를 높이기 위해 인가 압력 상향"}, {"name": "리플로우 피크 온도", "before": "260.0", "after": "260.5", "unit": "℃", "status": "normal", "note": "솔더 용융 프로파일 정상 유지"}, {"name": "에폭시/필러 점도(Viscosity)", "before": "12", "after": "18", "unit": "Pa·s", "status": "danger", "note": "보관 시한 경과로 에폭시 프리큐어(사전 겔화) 진행"}, {"name": "경화 챔버 진공 배기 시간", "before": "60", "after": "60", "unit": "sec", "status": "normal", "note": "진공 탈포 사이클 규격대로 작동"}], "wafer_map_info": {"pattern_type": "Diagonal Convex Warpage", "wiwnu_before": "18㎛", "wiwnu_after": "58㎛", "description": "패키지 네 모서리가 아래로 처지는 대각선 볼록 휨(Convex) 및 코너 범프 접합 불량"}, "naive_prompt": {"prompt": "\"HBM 패키지가 휘고 기포가 생겨. 온도를 낮춰야 해?\"", "ai_reply": "\"리플로우 온도를 낮추고 압력을 서서히 줄여서 굳히세요.\"", "limitations": ["온도를 낮추면 마이크로범프 솔더가 완전히 녹지 않아 오픈(Open) 및 냉납 불량 초래", "에폭시 점도 상승(18 Pa·s)에 따른 모세관 유동(Capillary Flow) 저하를 물리적으로 규명하지 못함", "DRAM 칩과 EMC 간 열팽창계수(CTE) 미스매치에 의한 수축 응력 분석 결여"]}, "dhvd": {"define": {"step_name": "DEFINE (문제 정의)", "step_goal": "MR-MUF 소재 유변학(Rheology) 및 열기계적 응력 정의", "prompts": ["주어진 데이터만으로 현상, 목표 KPI, 제약조건을 3줄로 정리해줘.", "추가로 꼭 필요한 정보 3가지만 말해줘."], "ai_output": {"phenomenon": "MUF 수지 점도가 12에서 18 Pa·s로 급상승하며 좁은 다이 간극 침투 실패로 보이드 발생 및 휨이 58㎛로 기준치 초과", "goal": "패키지 휨(Warpage) 30㎛ 이하 달성 및 마이크로범프 보이드 제로(Zero)", "constraints": "HBM 다이 간격(15㎛ 이하)의 미세 갭 충진 완전성 확보 및 솔더 접합 강도 보존", "additional_info": ["투입된 액상 EMC 롯트의 유통기한 및 냉동 보관 해동 시간 이력", "초음파 탐상 장비(C-SAM) 및 X-ray 3D 단층 보이드 위치 분포도", "다이 두께별 실리콘 vs EMC 간의 유리전이온도(Tg) 및 열팽창계수(CTE)"]}}, "hypothesize": {"step_name": "HYPOTHESIZE (원인 가설 도출 - MECE)", "step_goal": "소재 점도 열화, 과도한 주입 압력, 경화 프로파일 불균형 가설", "prompts": ["발생 가능한 원인 가설 3개와 각 가설의 메커니즘을 비교해줘.", "각 가설을 지지하는 데이터와 약점(반대 근거)을 함께 써줘."], "hypotheses": [{"rank": 1, "title": "가설 1: 액상 EMC 점도 상승(18 Pa·s)으로 인한 유동 지체 및 모세관 유동 실패 (유력)", "mechanism": "해동 후 대기 시간 초과로 사전 가교 반응이 일어나 점도가 50% 상승. 고점도 액상이 15㎛의 초미세 범프 사이를 비집고 들어가지 못해 보이드가 갇히고, 압력을 6.2MPa로 무리하게 높여 수지 흐름 불균일로 비대칭 휨(58㎛) 유발.", "support": "점도 계측치가 18 Pa·s로 비정상 상승한 명백한 데이터.", "weakness": "리플로우 온도(260℃) 자체는 정상 범위임."}, {"rank": 2, "title": "가설 2: 가압 챔버 실링 불량으로 인한 탈포 공정 결함", "mechanism": "진공 흡입력이 약해 기포가 빠져나가지 못함.", "support": "보이드 발생 현상 설명 가능.", "weakness": "진공 배기 시간이 60초로 정상이고 진공도 게이지 이상 없음."}, {"rank": 3, "title": "가설 3: 상하 DRAM 다이 간의 열팽창계수(CTE) 부정합", "mechanism": "실리콘과 몰딩재 간의 열수축 차이로 휨 발생.", "support": "HBM 휨의 구조적 근본 원인.", "weakness": "동일 자재 스펙을 사용하던 이전 롯트(18㎛ 정상) 대비 갑자기 58㎛로 튄 급격한 이상 원인으로는 부적합."}]}, "verify": {"step_name": "VERIFY (검증 계획 설계)", "step_goal": "신선한 EMC 투입 및 C-SAM 단층 촬영 검증", "prompts": ["가설을 가장 빠르게 구분할 검증 항목과 예상 결과를 정리해줘.", "데이터에 할루시네이션 또는 트랩 가능성이 있는지도 점검해줘."], "verification_plans": [{"item": "검증 1: 정상 점도(12 Pa·s) 신규 EMC 자재 교체 테스트", "method": "규정 해동 시간(2시간)을 준수한 신선한 롯트 투입 후 충진", "expected": "점도 12 Pa·s 회복 시 보이드 완전 제거 및 휨 26㎛로 정상화 확인"}, {"item": "검증 2: C-SAM 비파괴 초음파 영상으로 보이드 패턴 확인", "method": "다이 층별 초음파 스캔", "expected": "외곽에서 중심으로 유동 전선(Flow front)이 뭉친 Flow-void 형상 관측 시 가설 1 확정"}, {"item": "검증 3: 주입 압력 스플릿(4.5 vs 5.5 vs 6.2 MPa) 비교", "method": "압력 상승이 휨에 미친 순수 기계적 영향도 분리", "expected": "고압(6.2MPa) 조건에서 휨이 15㎛ 추가 악화됨을 실측"}], "trap_checkpoints": ["리플로우 피크 온도 260.0℃ → 260.5℃: 솔더 접합 프로파일 허용 오차(±3℃) 이내의 지극히 정상적인 온도이므로 손대면 안 됨.", "충진이 안 된다고 압력만 올리면 얇은 DRAM 다이가 깨지거나(Die Crack) 휨이 기하급수적으로 폭증하는 트랩 경계."]}, "decide": {"step_name": "DECIDE (최종 판단 및 조치)", "step_goal": "소재 관리 엄격화 및 MR-MUF 공정 안정화 1장 PT", "prompts": ["품질 · 시간 · 비용을 고려해 우선 조치안을 순위로 정리해줘.", "PT 발표용으로 결론 · 근거 · 리스크를 1장 요약 형식으로 정리해줘."], "action_priorities": [{"priority": "1순위 (자재 교체)", "action": "비정상 고점도 액상 EMC 시린지 전량 폐기 및 정상 롯트(점도 12 Pa·s) 재장착", "reason": "즉시 실행 가능, 보이드 발생 근본 원인 차단"}, {"priority": "2순위 (파라미터 최적화)", "action": "주입 압력을 6.2 MPa에서 최적 기준치인 4.8 MPa로 하향 조정", "reason": "유동 균일도 확보로 잔류 열응력 및 휨을 28㎛ 수준으로 억제"}, {"priority": "3순위 (SOP 개정)", "action": "EMC 해동 후 사용 가능 시간(Pot-life)을 12시간에서 6시간으로 단축 관리", "reason": "점도 상승 재발 원천 봉쇄"}], "presentation_1pager": {"title": "[결론] 정상 점도 EMC 투입 및 주입 압력 최적화(4.8MPa)를 통한 HBM3E 휨(25㎛) 및 보이드 완전 해소", "summary_3lines": ["현상 및 원인: 포트라이프 초과로 EMC 점도 상승(18Pa·s), 미세 간극 충진 지체 및 과도한 가압으로 휨 58㎛ 악화", "검증 및 조치: 신선 자재 교체 및 C-SAM 보이드 소멸 검증, 주입 압력 4.8MPa 정상화로 휨 대폭 완화", "기대 효과 및 리스크: 휨 25㎛ 달성 및 열방출 신뢰성 통과, HBM 수율 98.7% 확보 및 자재 포트라이프 센서 알람 도입"], "risk_and_countermeasure": "리스크: 점도 정상화 후에도 충진 속도 저하 우려 → 대응책: 척 예열 온도(80℃)를 정밀 제어하여 젤화 전 모세관 유동 촉진"}}}}];
+
+    let currentScenarioId = 'pt_01';
+    let currentStepKey = 'define'; // 'define', 'hypothesize', 'verify', 'decide'
+
+    // Timer Variables
+    let timerTotalSeconds = 20 * 60;
+    let timerRemaining = timerTotalSeconds;
+    let timerInterval = null;
+    let isTimerRunning = false;
+
+    // STT Variables
+    let isRecording = false;
+    let recognition = null;
+    let recSeconds = 0;
+    let recInterval = null;
+
+    // Initialize Application
+    document.addEventListener('DOMContentLoaded', () => {
+      renderScenarioTabs();
+      loadScenario(currentScenarioId);
+      updateTimerDisplay();
+    });
+
+    // Render Scenario Tabs
+    function renderScenarioTabs() {
+      const container = document.getElementById('scenarioTabs');
+      container.innerHTML = SCENARIOS.map(s => `
+        <button class="scenario-tab-btn ${s.id === currentScenarioId ? 'active' : ''}" onclick="selectScenario('${s.id}')">
+          <span class="badge-process ${s.badge_class}">${s.process}</span>
+          <span>${s.title.split(' ')[0]} ${s.title.split(' ')[1] || ''}</span>
+        </button>
+      `).join('');
+    }
+
+    function selectScenario(id) {
+      currentScenarioId = id;
+      document.querySelectorAll('.scenario-tab-btn').forEach((btn, idx) => {
+        if (SCENARIOS[idx].id === id) {
+          btn.classList.add('active');
+        } else {
+          btn.classList.remove('active');
+        }
+      });
+      loadScenario(id);
+      showToast(`🎯 [${currentScenarioId}] 시나리오가 로드되었습니다.`);
+    }
+
+    // Load Scenario into UI
+    function loadScenario(id) {
+      const sc = SCENARIOS.find(s => s.id === id);
+      if (!sc) return;
+
+      // Problem Header
+      const badge = document.getElementById('problemBadge');
+      badge.textContent = sc.process;
+      badge.className = `badge-process ${sc.badge_class}`;
+
+      document.getElementById('problemIdText').textContent = sc.id;
+      document.getElementById('problemTitle').textContent = sc.title;
+      document.getElementById('problemSubtitle').textContent = sc.subtitle;
+      document.getElementById('problemDesc').textContent = sc.problem_description;
+
+      // Wafer Map Info
+      document.getElementById('waferPatternType').textContent = sc.wafer_map_info.pattern_type;
+      document.getElementById('badgeWiwnuBefore').textContent = `이전: ${sc.wafer_map_info.wiwnu_before}`;
+      document.getElementById('badgeWiwnuAfter').textContent = `이후: ${sc.wafer_map_info.wiwnu_after}`;
+      renderWaferSvg('svgWaferBefore', sc.id, false);
+      renderWaferSvg('svgWaferAfter', sc.id, true);
+
+      // Parameter Table
+      const tbody = document.getElementById('paramTableBody');
+      tbody.innerHTML = sc.process_parameters.map(p => `
+        <tr>
+          <td style="font-weight:700; color:#fff;">${escapeHtml(p.name)}</td>
+          <td class="val-before">${escapeHtml(p.before)}</td>
+          <td class="val-after ${p.status}">${escapeHtml(p.after)}</td>
+          <td style="color:var(--text-muted);">${escapeHtml(p.unit)}</td>
+          <td style="font-size:0.75rem;">${escapeHtml(p.note)}</td>
+        </tr>
+      `).join('');
+
+      // Naive Prompt Info
+      document.getElementById('naivePromptText').textContent = sc.naive_prompt.prompt;
+      document.getElementById('naiveReplyText').textContent = sc.naive_prompt.ai_reply;
+      const limitsList = document.getElementById('naiveLimitsList');
+      limitsList.innerHTML = sc.naive_prompt.limitations.map(l => `<li>${escapeHtml(l)}</li>`).join('');
+
+      // Render DHVD Step Content
+      renderStepContent();
+
+      // Render 1-Pager Slide
+      const p1 = sc.dhvd.decide.presentation_1pager;
+      document.getElementById('onePagerTitle').textContent = p1.title;
+      document.getElementById('onePagerLines').innerHTML = p1.summary_3lines.map(line => `
+        <div style="display:flex; gap:8px;">
+          <span style="color:var(--accent-indigo); font-weight:900;">•</span>
+          <span>${escapeHtml(line)}</span>
+        </div>
+      `).join('');
+      document.getElementById('onePagerRisk').innerHTML = `<strong>⚠️ 리스크 관리 :</strong> ${escapeHtml(p1.risk_and_countermeasure)}`;
+    }
+
+    // Switch DHVD Step
+    function switchStep(stepKey) {
+      currentStepKey = stepKey;
+      
+      const stepClasses = {
+        define: 'btn-d1',
+        hypothesize: 'btn-h',
+        verify: 'btn-v',
+        decide: 'btn-d2'
+      };
+
+      document.querySelectorAll('.dhvd-step-btn').forEach(btn => {
+        btn.classList.remove('active');
+        if (btn.classList.contains(stepClasses[stepKey])) {
+          btn.classList.add('active');
+        }
+      });
+
+      renderStepContent();
+    }
+
+    // Render Dynamic DHVD Step Content
+    function renderStepContent() {
+      const sc = SCENARIOS.find(s => s.id === currentScenarioId);
+      if (!sc) return;
+
+      const stepData = sc.dhvd[currentStepKey];
+      if (!stepData) return;
+
+      // Header Banner
+      const badge = document.getElementById('stepBadge');
+      badge.textContent = currentStepKey.toUpperCase();
+      badge.className = `step-pill-badge badge-${currentStepKey === 'define' ? 'film' : currentStepKey === 'hypothesize' ? 'metal' : currentStepKey === 'verify' ? 'nand' : 'pkg'}`;
+
+      document.getElementById('stepTitleText').textContent = stepData.step_name;
+      document.getElementById('stepGoalText').textContent = stepData.step_goal;
+
+      // Prompts
+      document.getElementById('promptText1').textContent = stepData.prompts[0] || '';
+      document.getElementById('promptText2').textContent = stepData.prompts[1] || '';
+
+      // Detail Body
+      const area = document.getElementById('stepDetailRenderArea');
+
+      if (currentStepKey === 'define') {
+        const out = stepData.ai_output;
+        area.innerHTML = `
+          <div class="define-grid">
+            <div class="define-card">
+              <div class="define-card-lbl">01. 발생 현상 (Phenomenon)</div>
+              <div class="define-card-val">${escapeHtml(out.phenomenon)}</div>
+            </div>
+            <div class="define-card">
+              <div class="define-card-lbl">02. 목표 KPI (Target Goal)</div>
+              <div class="define-card-val" style="color:var(--accent-emerald);">${escapeHtml(out.goal)}</div>
+            </div>
+            <div class="define-card">
+              <div class="define-card-lbl">03. 제약조건 (Constraints)</div>
+              <div class="define-card-val" style="color:var(--accent-amber);">${escapeHtml(out.constraints)}</div>
+            </div>
+          </div>
+          <div class="required-info-box">
+            <div class="required-info-title">🔍 추가로 꼭 확보해야 할 3가지 핵심 정보 :</div>
+            <ul class="required-info-list">
+              ${out.additional_info.map(info => `<li>${escapeHtml(info)}</li>`).join('')}
+            </ul>
+          </div>
+        `;
+      } else if (currentStepKey === 'hypothesize') {
+        area.innerHTML = `
+          <div class="hypo-grid">
+            ${stepData.hypotheses.map(h => `
+              <div class="hypo-item-card">
+                <div class="hypo-title-row">
+                  <span class="hypo-title">${escapeHtml(h.title)}</span>
+                  <span style="font-size:0.75rem; color:var(--text-muted); font-weight:700;">가설 순위: #${h.rank}</span>
+                </div>
+                <div class="hypo-mech"><strong>메커니즘 :</strong> ${escapeHtml(h.mechanism)}</div>
+                <div class="hypo-procon-row">
+                  <div class="hypo-pro">
+                    <strong>✅ 지지 근거 :</strong> ${escapeHtml(h.support)}
+                  </div>
+                  <div class="hypo-con">
+                    <strong>❌ 약점/반대 근거 :</strong> ${escapeHtml(h.weakness)}
+                  </div>
+                </div>
+              </div>
+            `).join('')}
+          </div>
+        `;
+      } else if (currentStepKey === 'verify') {
+        area.innerHTML = `
+          <table class="verify-table">
+            <thead>
+              <tr>
+                <th style="width:28%;">검증 항목</th>
+                <th style="width:40%;">실험/분석 방법</th>
+                <th style="width:32%;">기대 결과 및 판단 기준</th>
+              </tr>
+            </thead>
+            <tbody>
+              ${stepData.verification_plans.map(v => `
+                <tr>
+                  <td style="font-weight:700; color:#fff;">${escapeHtml(v.item)}</td>
+                  <td>${escapeHtml(v.method)}</td>
+                  <td style="color:var(--accent-emerald); font-weight:600;">${escapeHtml(v.expected)}</td>
+                </tr>
+              `).join('')}
+            </tbody>
+          </table>
+          <div class="trap-box">
+            <div class="trap-header">
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"></circle><line x1="12" y1="8" x2="12" y2="12"></line><line x1="12" y1="16" x2="12.01" y2="16"></line></svg>
+              <span>⚠️ 데이터 트랩 및 할루시네이션 방지 체크포인트 :</span>
+            </div>
+            <ul class="trap-list">
+              ${stepData.trap_checkpoints.map(t => `<li>${escapeHtml(t)}</li>`).join('')}
+            </ul>
+          </div>
+        `;
+      } else if (currentStepKey === 'decide') {
+        area.innerHTML = `
+          <div class="priority-list">
+            ${stepData.action_priorities.map(a => `
+              <div class="priority-item">
+                <span class="priority-badge ${a.priority.includes('1순위') ? 'p-1' : a.priority.includes('2순위') ? 'p-2' : 'p-3'}">${escapeHtml(a.priority)}</span>
+                <div class="priority-content">
+                  <div class="priority-action">${escapeHtml(a.action)}</div>
+                  <div class="priority-reason"><strong>선정 사유 :</strong> ${escapeHtml(a.reason)}</div>
+                </div>
+              </div>
+            `).join('')}
+          </div>
+        `;
+      }
+    }
+
+    // Render SVG Wafer Maps based on Scenario
+    function renderWaferSvg(svgId, scId, isAfter) {
+      const svg = document.getElementById(svgId);
+      if (!svg) return;
+
+      if (!isAfter) {
+        // Uniform Normal Wafer
+        svg.innerHTML = `
+          <circle cx="70" cy="70" r="64" fill="#0f172a" stroke="#334155" stroke-width="2"/>
+          <circle cx="70" cy="70" r="54" fill="#0284c7" opacity="0.4"/>
+          <circle cx="70" cy="70" r="38" fill="#0284c7" opacity="0.6"/>
+          <circle cx="70" cy="70" r="20" fill="#38bdf8" opacity="0.8"/>
+        `;
+      } else {
+        // Defect Wafer Map Pattern
+        if (scId === 'pt_01') {
+          // Edge-fast (Etch)
+          svg.innerHTML = `
+            <circle cx="70" cy="70" r="64" fill="#0f172a" stroke="#334155" stroke-width="2"/>
+            <circle cx="70" cy="70" r="63" fill="none" stroke="#ef4444" stroke-width="12" opacity="0.85"/>
+            <circle cx="70" cy="70" r="48" fill="none" stroke="#f59e0b" stroke-width="8" opacity="0.7"/>
+            <circle cx="70" cy="70" r="36" fill="#10b981" opacity="0.5"/>
+            <circle cx="70" cy="70" r="18" fill="#0284c7" opacity="0.7"/>
+          `;
+        } else if (scId === 'pt_02') {
+          // Center-hot Leakage (Thin Film)
+          svg.innerHTML = `
+            <circle cx="70" cy="70" r="64" fill="#0f172a" stroke="#334155" stroke-width="2"/>
+            <circle cx="70" cy="70" r="54" fill="#0284c7" opacity="0.3"/>
+            <circle cx="70" cy="70" r="36" fill="#f59e0b" opacity="0.7"/>
+            <circle cx="70" cy="70" r="22" fill="#ef4444" opacity="0.95"/>
+          `;
+        } else if (scId === 'pt_03') {
+          // Peripheral Overhang Fail (Metal)
+          svg.innerHTML = `
+            <circle cx="70" cy="70" r="64" fill="#0f172a" stroke="#334155" stroke-width="2"/>
+            <path d="M 10 70 A 60 60 0 0 1 130 70" fill="none" stroke="#ef4444" stroke-width="14" opacity="0.8"/>
+            <circle cx="70" cy="70" r="38" fill="#10b981" opacity="0.5"/>
+          `;
+        } else if (scId === 'pt_04') {
+          // Shot Grid Distortion (Photo)
+          svg.innerHTML = `
+            <circle cx="70" cy="70" r="64" fill="#0f172a" stroke="#334155" stroke-width="2"/>
+            <g stroke="#a855f7" stroke-width="1.5" opacity="0.75">
+              <line x1="20" y1="35" x2="120" y2="35"/>
+              <line x1="15" y1="70" x2="125" y2="70"/>
+              <line x1="20" y1="105" x2="120" y2="105"/>
+              <line x1="35" y1="20" x2="35" y2="120"/>
+              <line x1="70" y1="15" x2="70" y2="125"/>
+              <line x1="105" y1="20" x2="105" y2="120"/>
+            </g>
+            <circle cx="105" cy="35" r="8" fill="#ef4444" opacity="0.8"/>
+            <circle cx="35" cy="105" r="8" fill="#ef4444" opacity="0.8"/>
+          `;
+        } else if (scId === 'pt_05') {
+          // Radial Concentric Fluctuation (3D NAND)
+          svg.innerHTML = `
+            <circle cx="70" cy="70" r="64" fill="#0f172a" stroke="#334155" stroke-width="2"/>
+            <circle cx="70" cy="70" r="50" fill="none" stroke="#ef4444" stroke-dasharray="6,4" stroke-width="8" opacity="0.85"/>
+            <circle cx="70" cy="70" r="30" fill="none" stroke="#f59e0b" stroke-width="6" opacity="0.7"/>
+            <circle cx="70" cy="70" r="14" fill="#10b981" opacity="0.6"/>
+          `;
+        } else {
+          // Convex Warpage (HBM Packaging)
+          svg.innerHTML = `
+            <rect x="25" y="25" width="90" height="90" rx="10" fill="#0f172a" stroke="#ec4899" stroke-width="3"/>
+            <circle cx="35" cy="35" r="6" fill="#ef4444"/>
+            <circle cx="105" cy="35" r="6" fill="#ef4444"/>
+            <circle cx="35" cy="105" r="6" fill="#ef4444"/>
+            <circle cx="105" cy="105" r="6" fill="#ef4444"/>
+            <ellipse cx="70" cy="70" rx="25" ry="18" fill="#38bdf8" opacity="0.5"/>
+          `;
+        }
+      }
+    }
+
+    // Copy Single Prompt
+    function copySinglePrompt(promptIndex) {
+      const text = document.getElementById(`promptText${promptIndex}`).textContent;
+      navigator.clipboard.writeText(text).then(() => {
+        showToast(`📋 P${promptIndex} 프롬프트가 복사되었습니다!`);
+      }).catch(err => {
+        showToast(`복사 실패: ${err}`);
+      });
+    }
+
+    // Copy All Prompts of Current Step
+    function copyAllPromptsOfCurrentStep() {
+      const p1 = document.getElementById('promptText1').textContent;
+      const p2 = document.getElementById('promptText2').textContent;
+      const combined = `[${currentStepKey.toUpperCase()} 프롬프트]
+1. ${p1}
+2. ${p2}`;
+      navigator.clipboard.writeText(combined).then(() => {
+        showToast(`📋 ${currentStepKey.toUpperCase()} 2줄 프롬프트가 모두 복사되었습니다!`);
+      });
+    }
+
+    // Timer Logic
+    function toggleTimer() {
+      const btn = document.getElementById('btnTimerToggle');
+      if (isTimerRunning) {
+        clearInterval(timerInterval);
+        isTimerRunning = false;
+        btn.textContent = '재개';
+      } else {
+        isTimerRunning = true;
+        btn.textContent = '일시정지';
+        timerInterval = setInterval(() => {
+          if (timerRemaining > 0) {
+            timerRemaining--;
+            updateTimerDisplay();
+          } else {
+            clearInterval(timerInterval);
+            isTimerRunning = false;
+            btn.textContent = '종료';
+            showToast('⏰ PT 준비 시간이 종료되었습니다! 발표를 시작하세요.');
+          }
+        }, 1000);
+      }
+    }
+
+    function resetTimer(minutes) {
+      clearInterval(timerInterval);
+      isTimerRunning = false;
+      timerTotalSeconds = minutes * 60;
+      timerRemaining = timerTotalSeconds;
+      document.getElementById('btnTimerToggle').textContent = '시작';
+      updateTimerDisplay();
+      showToast(`⏱️ 타이머가 ${minutes}분으로 재설정되었습니다.`);
+    }
+
+    function updateTimerDisplay() {
+      const m = String(Math.floor(timerRemaining / 60)).padStart(2, '0');
+      const s = String(timerRemaining % 60).padStart(2, '0');
+      document.getElementById('timerDisplay').textContent = `${m}:${s}`;
+    }
+
+    // STT Recording Logic
+    function toggleSTT() {
+      if (isRecording) {
+        stopSTT();
+      } else {
+        startSTT();
+      }
+    }
+
+    function startSTT() {
+      const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
+      if (!SpeechRecognition) {
+        showToast('⚠️ 현재 브라우저는 음성인식(STT)을 지원하지 않습니다. Chrome을 권장합니다.');
+        return;
+      }
+
+      try {
+        recognition = new SpeechRecognition();
+        recognition.lang = 'ko-KR';
+        recognition.continuous = true;
+        recognition.interimResults = true;
+
+        const area = document.getElementById('practiceTextarea');
+        let initialText = area.value ? (area.value + ' ') : '';
+
+        recognition.onresult = (event) => {
+          let interim = '';
+          for (let i = event.resultIndex; i < event.results.length; ++i) {
+            if (event.results[i].isFinal) {
+              initialText += event.results[i][0].transcript + ' ';
+            } else {
+              interim += event.results[i][0].transcript;
+            }
+          }
+          area.value = (initialText + interim).trim();
+        };
+
+        recognition.onerror = (e) => {
+          console.warn('STT Error:', e);
+          if (e.error === 'not-allowed') {
+            showToast('⚠️ 마이크 사용 권한을 허용해주세요.');
+            stopSTT();
+          }
+        };
+
+        recognition.start();
+        isRecording = true;
+
+        document.getElementById('btnRecToggle').classList.add('recording');
+        document.getElementById('recBtnIcon').textContent = '⏹️';
+        document.getElementById('recBtnText').textContent = '녹음 종료';
+
+        recSeconds = 0;
+        clearInterval(recInterval);
+        recInterval = setInterval(() => {
+          recSeconds++;
+          const m = String(Math.floor(recSeconds / 60)).padStart(2, '0');
+          const s = String(recSeconds % 60).padStart(2, '0');
+          document.getElementById('recTimerText').textContent = `${m}:${s}`;
+        }, 1000);
+
+        showToast('🎙️ 실시간 음성 녹음 및 대사 인식이 시작되었습니다.');
+      } catch (err) {
+        showToast('STT 시작 실패: ' + err);
+      }
+    }
+
+    function stopSTT() {
+      isRecording = false;
+      document.getElementById('btnRecToggle').classList.remove('recording');
+      document.getElementById('recBtnIcon').textContent = '🔴';
+      document.getElementById('recBtnText').textContent = '음성 답변 녹음 (STT)';
+
+      clearInterval(recInterval);
+      recInterval = null;
+
+      if (recognition) {
+        try { recognition.stop(); } catch (e) {}
+        recognition = null;
+      }
+      showToast('녹음이 종료되었습니다.');
+    }
+
+    function clearPracticeText() {
+      document.getElementById('practiceTextarea').value = '';
+      if (isRecording) stopSTT();
+      document.getElementById('recTimerText').textContent = '00:00';
+      showToast('연습장 내용이 초기화되었습니다.');
+    }
+
+    // Toast Utility
+    let toastTimeout = null;
+    function showToast(msg) {
+      const toast = document.getElementById('toastBox');
+      toast.textContent = msg;
+      toast.classList.add('show');
+      clearTimeout(toastTimeout);
+      toastTimeout = setTimeout(() => {
+        toast.classList.remove('show');
+      }, 2600);
+    }
+
+    function escapeHtml(str) {
+      if (!str) return '';
+      return String(str)
+        .replace(/&/g, '&amp;')
+        .replace(/</g, '&lt;')
+        .replace(/>/g, '&gt;')
+        .replace(/"/g, '&quot;')
+        .replace(/'/g, '&#039;');
+    }
+  </script>
+</body>
+</html>
