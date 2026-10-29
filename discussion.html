@@ -6,7 +6,7 @@
   <meta name="apple-mobile-web-app-capable" content="yes">
   <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
   <meta name="theme-color" content="#090d16">
-  <title>단체토의면접 마스터 클래스 (인문학 & AI 실전 공략)</title>
+  <title>단체토의면접 마스터 클래스 (인문학 & AI 실전 공략 v3.0)</title>
   
   <!-- Tailwind CSS -->
   <script src="https://cdn.tailwindcss.com"></script>
@@ -59,6 +59,12 @@
       background: #1e293b;
       border: 1px solid #334155;
     }
+    .tab-pill.active {
+      background-color: #7c3aed;
+      color: #ffffff;
+      font-weight: 700;
+      border-color: #8b5cf6;
+    }
   </style>
 </head>
 <body class="bg-slate-950 text-slate-100 min-h-screen flex flex-col pb-20 md:pb-10 custom-scrollbar select-none md:select-auto">
@@ -73,9 +79,9 @@
         <div>
           <div class="flex items-center gap-1.5">
             <h1 class="text-sm md:text-base font-bold text-white tracking-tight">단체토의면접 마스터</h1>
-            <span class="text-[9px] px-1.5 py-0.5 rounded-full bg-violet-950 text-violet-300 border border-violet-800 font-mono">Mobile v2.0</span>
+            <span class="text-[9px] px-1.5 py-0.5 rounded-full bg-violet-950 text-violet-300 border border-violet-800 font-mono">Mobile v3.0 Pro</span>
           </div>
-          <p class="text-[10px] text-slate-400">인문학 × AI 쟁점 & 실전 롤플레잉</p>
+          <p class="text-[10px] text-slate-400">AI 8대 쟁점 & 3대 실전 롤플레잉</p>
         </div>
       </div>
       
@@ -88,13 +94,13 @@
     <!-- Quick Touch Nav Carousel -->
     <div class="max-w-4xl mx-auto flex space-x-2 text-xs overflow-x-auto pt-2.5 pb-0.5 custom-scrollbar">
       <a href="#sec-roleplay" class="px-3 py-1.5 rounded-full bg-violet-600 text-white font-semibold flex items-center gap-1.5 whitespace-nowrap shadow-sm shadow-violet-600/30">
-        <i class="fa-solid fa-masks-theater text-xs"></i> 실전 롤플레잉
+        <i class="fa-solid fa-masks-theater text-xs"></i> 3대 실전 롤플레잉
+      </a>
+      <a href="#sec-ai-topics" class="px-3 py-1.5 rounded-full bg-slate-800 text-slate-300 font-medium hover:text-white flex items-center gap-1.5 whitespace-nowrap border border-slate-700">
+        <i class="fa-solid fa-robot text-cyan-400 text-xs"></i> AI 8대 쟁점
       </a>
       <a href="#sec-ment" class="px-3 py-1.5 rounded-full bg-slate-800 text-slate-300 font-medium hover:text-white flex items-center gap-1.5 whitespace-nowrap border border-slate-700">
         <i class="fa-solid fa-comment-dots text-amber-400 text-xs"></i> 만능 멘트집
-      </a>
-      <a href="#sec-ai-topics" class="px-3 py-1.5 rounded-full bg-slate-800 text-slate-300 font-medium hover:text-white flex items-center gap-1.5 whitespace-nowrap border border-slate-700">
-        <i class="fa-solid fa-robot text-cyan-400 text-xs"></i> AI 5대 쟁점
       </a>
       <a href="#sec-essence" class="px-3 py-1.5 rounded-full bg-slate-800 text-slate-300 font-medium hover:text-white flex items-center gap-1.5 whitespace-nowrap border border-slate-700">
         <i class="fa-solid fa-compass text-emerald-400 text-xs"></i> MECE 4단계
@@ -106,159 +112,410 @@
   <main class="max-w-4xl mx-auto px-3.5 sm:px-6 py-6 space-y-12 flex-1 w-full">
 
     <!-- ========================================== -->
-    <!-- SECTION 1: 실전 롤플레잉 (모바일 메신저 스타일) -->
+    <!-- SECTION 1: 실전 롤플레잉 3대 시나리오 (탭 전환) -->
     <!-- ========================================== -->
     <section id="sec-roleplay" class="space-y-4 pt-1">
       <div class="flex items-center justify-between border-b border-slate-800 pb-2.5">
         <div class="flex items-center gap-2">
           <span class="w-6 h-6 rounded-md bg-violet-950 text-violet-300 border border-violet-800 flex items-center justify-center font-bold text-xs">★</span>
-          <h2 class="text-base font-bold text-white">실전 토의 롤플레잉 (4인 1조 시뮬레이션)</h2>
+          <h2 class="text-base font-bold text-white">실전 AI 토의 롤플레잉 3선</h2>
         </div>
         <span class="text-[10px] text-violet-400 font-mono">Live Simulation</span>
       </div>
 
-      <!-- Topic Card -->
-      <div class="p-3.5 rounded-xl bg-gradient-to-r from-violet-950/60 to-slate-900 border border-violet-800/80 shadow-md">
-        <span class="text-[10px] font-mono px-2 py-0.5 rounded bg-violet-900 text-violet-200 font-bold">실전 기출 주제</span>
-        <h3 class="text-sm font-bold text-white mt-1.5">
-          "AI 기술이 고도화되는 시대, 인간은 AI에게 의사결정 권한을 어디까지 맡겨야 하는가?"
-        </h3>
-        <p class="text-[11px] text-slate-300 mt-1">
-          💡 <strong>지원자 C(나)</strong>의 발언에 주목하세요. 찬반 대립을 깨고 <strong>MECE 기준(비가역성·영향도)</strong>을 제시해 합격을 이끄는 모범 패턴입니다.
-        </p>
+      <!-- Roleplay Scenario Selector Tabs -->
+      <div class="flex space-x-1.5 overflow-x-auto pb-1 text-xs custom-scrollbar">
+        <button onclick="switchRoleplay('rp1')" id="tab-rp1" class="tab-pill active px-3 py-1.5 rounded-lg border border-slate-700 bg-slate-800 text-slate-300 whitespace-nowrap transition">
+          시나리오 1. 의사결정 위임 한계
+        </button>
+        <button onclick="switchRoleplay('rp2')" id="tab-rp2" class="tab-pill px-3 py-1.5 rounded-lg border border-slate-700 bg-slate-800 text-slate-300 whitespace-nowrap transition">
+          시나리오 2. 자율주행 사고 책임 (모빌리티)
+        </button>
+        <button onclick="switchRoleplay('rp3')" id="tab-rp3" class="tab-pill px-3 py-1.5 rounded-lg border border-slate-700 bg-slate-800 text-slate-300 whitespace-nowrap transition">
+          시나리오 3. AI 기반 인사평가(HR) 공정성
+        </button>
       </div>
 
-      <!-- Chat Stream -->
-      <div class="space-y-3.5 text-xs font-sans">
-
-        <!-- Stage 1 Banner -->
-        <div class="text-center my-3">
-          <span class="px-3 py-1 rounded-full bg-slate-900 text-slate-400 text-[10px] border border-slate-800 font-mono">
-            [1단계: 도입 및 시간 배분 합의]
-          </span>
+      <!-- ========================================== -->
+      <!-- SCENARIO 1: 의사결정 위임 한계 -->
+      <!-- ========================================== -->
+      <div id="rp1-content" class="space-y-3.5">
+        <!-- Topic Card -->
+        <div class="p-3.5 rounded-xl bg-gradient-to-r from-violet-950/60 to-slate-900 border border-violet-800/80 shadow-md">
+          <span class="text-[10px] font-mono px-2 py-0.5 rounded bg-violet-900 text-violet-200 font-bold">시나리오 1</span>
+          <h3 class="text-sm font-bold text-white mt-1.5">
+            "AI 기술이 고도화되는 시대, 인간은 AI에게 의사결정 권한을 어디까지 맡겨야 하는가?"
+          </h3>
+          <p class="text-[11px] text-slate-300 mt-1">
+            💡 <strong>지원자 C(나)</strong>의 발언에 주목하세요. 찬반 대립을 깨고 <strong>MECE 기준(비가역성·영향도)</strong>을 제시해 합격을 이끄는 모범 패턴입니다.
+          </p>
         </div>
 
-        <!-- A -->
-        <div class="flex items-start gap-2">
-          <div class="w-7 h-7 rounded-full bg-blue-900 flex items-center justify-center text-blue-200 font-bold text-[10px] shrink-0">A</div>
-          <div class="bubble-other p-3 rounded-2xl rounded-tl-sm max-w-[88%] space-y-1">
-            <span class="font-bold text-blue-300 text-[11px] block">지원자 A (효율파)</span>
-            <p class="text-slate-200 leading-relaxed text-[11px]">
-              "인간은 피로와 감정 때문에 판단 실수가 잦습니다. 채용, 의료, 생산라인 공정까지 AI에게 최종 결정을 과감히 맡겨야 생산성과 공정성이 극대화됩니다."
-            </p>
+        <!-- Chat Stream -->
+        <div class="space-y-3.5 text-xs font-sans">
+          <div class="text-center my-2">
+            <span class="px-3 py-1 rounded-full bg-slate-900 text-slate-400 text-[10px] border border-slate-800 font-mono">
+              [1단계: 도입 및 시간 배분 합의]
+            </span>
           </div>
-        </div>
 
-        <!-- B -->
-        <div class="flex items-start gap-2">
-          <div class="w-7 h-7 rounded-full bg-rose-900 flex items-center justify-center text-rose-200 font-bold text-[10px] shrink-0">B</div>
-          <div class="bubble-other p-3 rounded-2xl rounded-tl-sm max-w-[88%] space-y-1">
-            <span class="font-bold text-rose-300 text-[11px] block">지원자 B (원칙파)</span>
-            <p class="text-slate-200 leading-relaxed text-[11px]">
-              "반대합니다. AI는 블랙박스라 설명이 불가능합니다. 사람의 인생과 생명이 걸린 문제를 기계에 맡기는 것은 인간 존엄성을 훼손하는 무책임한 일입니다."
-            </p>
-          </div>
-        </div>
-
-        <!-- C (Me) -->
-        <div class="flex items-start gap-2 justify-end">
-          <div class="bubble-me p-3.5 rounded-2xl rounded-tr-sm max-w-[92%] space-y-1.5 shadow-lg shadow-indigo-950/50">
-            <div class="flex items-center justify-between">
-              <span class="font-bold text-amber-300 text-[11px] flex items-center gap-1">
-                <i class="fa-solid fa-crown text-[10px]"></i> 지원자 C (나 - 합격 조율자)
-              </span>
-              <span class="text-[9px] px-1.5 py-0.2 rounded bg-amber-950 text-amber-300 font-mono">방향타 세팅</span>
-            </div>
-            <p class="text-slate-100 leading-relaxed text-[11.5px]">
-              "두 분 말씀 모두 일리가 있습니다. 본격적인 논쟁에 앞서 주어진 30분을 효율적으로 쓰기 위해 <strong>토의 순서와 의사결정의 범위를 먼저 합의</strong>하면 어떨까요?<br>
-              단순 찬반을 떠나 <strong>초반 5분은 위임 기준 프레임워크 수립, 중반 15분은 위험도별 적용 영역 분석, 마지막 5분은 인간 책임(거버넌스)과 합의안 도출</strong>로 시간을 배분해 보면 어떨까요?"
-            </p>
-            <div class="text-[10px] text-violet-300 bg-violet-950/70 p-1.5 rounded border border-violet-800/60 font-sans">
-              💡 <strong>평가 포인트:</strong> 찬반 대립을 막고 토의의 규칙을 세워 팀 전체의 나침반 역할을 수행함.
+          <!-- A -->
+          <div class="flex items-start gap-2">
+            <div class="w-7 h-7 rounded-full bg-blue-900 flex items-center justify-center text-blue-200 font-bold text-[10px] shrink-0">A</div>
+            <div class="bubble-other p-3 rounded-2xl rounded-tl-sm max-w-[88%] space-y-1">
+              <span class="font-bold text-blue-300 text-[11px] block">지원자 A (효율파)</span>
+              <p class="text-slate-200 leading-relaxed text-[11px]">
+                "인간은 피로와 감정 때문에 판단 실수가 잦습니다. 채용, 의료, 생산라인 공정까지 AI에게 최종 결정을 과감히 맡겨야 생산성과 공정성이 극대화됩니다."
+              </p>
             </div>
           </div>
-          <div class="w-7 h-7 rounded-full bg-amber-600 flex items-center justify-center text-white font-bold text-[10px] shrink-0">나</div>
-        </div>
 
-        <!-- Stage 2 Banner -->
-        <div class="text-center my-3">
-          <span class="px-3 py-1 rounded-full bg-slate-900 text-slate-400 text-[10px] border border-slate-800 font-mono">
-            [2 & 3단계: MECE 층위 분석 & 대립 절충]
-          </span>
-        </div>
-
-        <!-- C (Me) -->
-        <div class="flex items-start gap-2 justify-end">
-          <div class="bubble-me p-3.5 rounded-2xl rounded-tr-sm max-w-[92%] space-y-1.5 shadow-lg shadow-indigo-950/50">
-            <div class="flex items-center justify-between">
-              <span class="font-bold text-amber-300 text-[11px] flex items-center gap-1">
-                <i class="fa-solid fa-crown text-[10px]"></i> 지원자 C (나 - 합격 조율자)
-              </span>
-              <span class="text-[9px] px-1.5 py-0.2 rounded bg-amber-950 text-amber-300 font-mono">MECE 기준 제시</span>
-            </div>
-            <p class="text-slate-100 leading-relaxed text-[11.5px]">
-              "위임 기준에 대해 저는 2가지 잣대를 제안합니다. 바로 <strong>① '결과의 비가역성(되돌릴 수 있는가)'</strong>과 <strong>② '인간 생명·기본권 영향도'</strong>입니다.<br>
-              A님의 '통계적 정확성'과 B님의 '인간 존엄'을 절충하여, <strong>AI에게 분석과 대안 추천(Augmentation)은 맡기되, 가치 판단과 최종 승인은 인간이 내리는 'Human-in-the-loop' 구조</strong>로 정렬해 보면 어떨까요?"
-            </p>
-          </div>
-          <div class="w-7 h-7 rounded-full bg-amber-600 flex items-center justify-center text-white font-bold text-[10px] shrink-0">나</div>
-        </div>
-
-        <!-- C pulls D in -->
-        <div class="flex items-start gap-2 justify-end">
-          <div class="bubble-me p-3 rounded-2xl rounded-tr-sm max-w-[92%] space-y-1 shadow-lg shadow-indigo-950/50">
-            <span class="font-bold text-emerald-300 text-[11px] block">지원자 C (나 - 동료 배려)</span>
-            <p class="text-slate-100 leading-relaxed text-[11.5px]">
-              "(말을 아끼던 D를 바라보며) 지금까지 활발한 논의가 오갔는데요, 아까 진지하게 경청해 주시던 D 지원자님의 생각도 무척 궁금합니다. 혹시 이 인간 개입 체계에 대해 어떤 관점을 갖고 계신가요?"
-            </p>
-            <div class="text-[10px] text-emerald-300 bg-emerald-950/70 p-1.5 rounded border border-emerald-800/60 font-sans">
-              💡 <strong>평가 포인트:</strong> 소외된 동료를 자연스럽게 끌어들여 '원팀'을 완성하는 인성 최고 득점 멘트.
+          <!-- B -->
+          <div class="flex items-start gap-2">
+            <div class="w-7 h-7 rounded-full bg-rose-900 flex items-center justify-center text-rose-200 font-bold text-[10px] shrink-0">B</div>
+            <div class="bubble-other p-3 rounded-2xl rounded-tl-sm max-w-[88%] space-y-1">
+              <span class="font-bold text-rose-300 text-[11px] block">지원자 B (원칙파)</span>
+              <p class="text-slate-200 leading-relaxed text-[11px]">
+                "반대합니다. AI는 블랙박스라 설명이 불가능합니다. 사람의 인생과 생명이 걸린 문제를 기계에 맡기는 것은 인간 존엄성을 훼손하는 무책임한 일입니다."
+              </p>
             </div>
           </div>
-          <div class="w-7 h-7 rounded-full bg-amber-600 flex items-center justify-center text-white font-bold text-[10px] shrink-0">나</div>
-        </div>
 
-        <!-- D -->
-        <div class="flex items-start gap-2">
-          <div class="w-7 h-7 rounded-full bg-slate-700 flex items-center justify-center text-slate-200 font-bold text-[10px] shrink-0">D</div>
-          <div class="bubble-other p-3 rounded-2xl rounded-tl-sm max-w-[88%] space-y-1">
-            <span class="font-bold text-slate-300 text-[11px] block">지원자 D (소극파 ➔ 참여)</span>
-            <p class="text-slate-200 leading-relaxed text-[11px]">
-              "아, 기회 주셔서 감사합니다! 저도 C 지원자님 의견에 동의하며, 덧붙여 AI 추천을 따랐을 때 사고가 나면 제조사인지 사용자인지 '법적 책임 소재 가이드라인'도 함께 마련되어야 한다고 봅니다."
-            </p>
+          <!-- C (Me) -->
+          <div class="flex items-start gap-2 justify-end">
+            <div class="bubble-me p-3.5 rounded-2xl rounded-tr-sm max-w-[92%] space-y-1.5 shadow-lg shadow-indigo-950/50">
+              <div class="flex items-center justify-between">
+                <span class="font-bold text-amber-300 text-[11px] flex items-center gap-1">
+                  <i class="fa-solid fa-crown text-[10px]"></i> 지원자 C (나 - 합격 조율자)
+                </span>
+                <span class="text-[9px] px-1.5 py-0.2 rounded bg-amber-950 text-amber-300 font-mono">방향타 세팅</span>
+              </div>
+              <p class="text-slate-100 leading-relaxed text-[11.5px]">
+                "두 분 말씀 모두 일리가 있습니다. 본격적인 논쟁에 앞서 주어진 30분을 효율적으로 쓰기 위해 <strong>토의 순서와 의사결정의 범위를 먼저 합의</strong>하면 어떨까요?<br>
+                단순 찬반을 떠나 <strong>초반 5분은 위임 기준 프레임워크 수립, 중반 15분은 위험도별 적용 영역 분석, 마지막 5분은 인간 책임(거버넌스)과 합의안 도출</strong>로 시간을 배분해 보면 어떨까요?"
+              </p>
+              <div class="text-[10px] text-violet-300 bg-violet-950/70 p-1.5 rounded border border-violet-800/60 font-sans">
+                💡 <strong>평가 포인트:</strong> 찬반 대립을 막고 토의의 규칙을 세워 팀 전체의 나침반 역할을 수행함.
+              </div>
+            </div>
+            <div class="w-7 h-7 rounded-full bg-amber-600 flex items-center justify-center text-white font-bold text-[10px] shrink-0">나</div>
           </div>
-        </div>
 
-        <!-- Stage 4 Banner -->
-        <div class="text-center my-3">
-          <span class="px-3 py-1 rounded-full bg-slate-900 text-slate-400 text-[10px] border border-slate-800 font-mono">
-            [4단계: 최종 결론 3대 요약 랩업]
-          </span>
-        </div>
+          <!-- Stage 2 & 3 -->
+          <div class="text-center my-2">
+            <span class="px-3 py-1 rounded-full bg-slate-900 text-slate-400 text-[10px] border border-slate-800 font-mono">
+              [2 & 3단계: MECE 층위 분석 & 대립 절충]
+            </span>
+          </div>
 
-        <!-- C Wrapup -->
-        <div class="flex items-start gap-2 justify-end">
-          <div class="bubble-me p-3.5 rounded-2xl rounded-tr-sm max-w-[92%] space-y-1.5 shadow-lg shadow-indigo-950/50">
-            <span class="font-bold text-amber-300 text-[11px] block">지원자 C (나 - 최종 랩업)</span>
-            <p class="text-slate-100 leading-relaxed text-[11.5px]">
-              "종료 2분 전입니다. 오늘 조의 결론을 세 가지로 요약해 보겠습니다.<br>
-              <strong>1. 위임 기준</strong>: 결과의 비가역성과 인간 기본권 영향도로 층위화한다.<br>
-              <strong>2. 역할 분리</strong>: 저위험은 전면 위임, 고위험은 AI 추천 + 인간 최종 승인(Human-in-the-loop)을 적용한다.<br>
-              <strong>3. 제도 안전망</strong>: D 지원자님 의견처럼 설명가능성(XAI)과 법적 책임 소재를 선제 규정한다.<br>
-              이 3대 합의안으로 최종 결론을 맺어도 좋을까요?"
-            </p>
-            <div class="text-[10px] text-amber-300 bg-amber-950/70 p-1.5 rounded border border-amber-800/60 font-sans">
-              💡 <strong>평가 포인트:</strong> D의 의견까지 녹여내어 보고서 형태로 매듭짓는 완벽한 마무리.
+          <!-- C (Me) -->
+          <div class="flex items-start gap-2 justify-end">
+            <div class="bubble-me p-3.5 rounded-2xl rounded-tr-sm max-w-[92%] space-y-1.5 shadow-lg shadow-indigo-950/50">
+              <div class="flex items-center justify-between">
+                <span class="font-bold text-amber-300 text-[11px] flex items-center gap-1">
+                  <i class="fa-solid fa-crown text-[10px]"></i> 지원자 C (나 - 합격 조율자)
+                </span>
+                <span class="text-[9px] px-1.5 py-0.2 rounded bg-amber-950 text-amber-300 font-mono">MECE 기준 제시</span>
+              </div>
+              <p class="text-slate-100 leading-relaxed text-[11.5px]">
+                "위임 기준에 대해 저는 2가지 잣대를 제안합니다. 바로 <strong>① '결과의 비가역성(되돌릴 수 있는가)'</strong>과 <strong>② '인간 생명·기본권 영향도'</strong>입니다.<br>
+                A님의 '통계적 정확성'과 B님의 '인간 존엄'을 절충하여, <strong>AI에게 분석과 대안 추천(Augmentation)은 맡기되, 가치 판단과 최종 승인은 인간이 내리는 'Human-in-the-loop' 구조</strong>로 정렬해 보면 어떨까요?"
+              </p>
+            </div>
+            <div class="w-7 h-7 rounded-full bg-amber-600 flex items-center justify-center text-white font-bold text-[10px] shrink-0">나</div>
+          </div>
+
+          <!-- C pulls D in -->
+          <div class="flex items-start gap-2 justify-end">
+            <div class="bubble-me p-3 rounded-2xl rounded-tr-sm max-w-[92%] space-y-1 shadow-lg shadow-indigo-950/50">
+              <span class="font-bold text-emerald-300 text-[11px] block">지원자 C (나 - 동료 배려)</span>
+              <p class="text-slate-100 leading-relaxed text-[11.5px]">
+                "(말을 아끼던 D를 바라보며) 지금까지 활발한 논의가 오갔는데요, 아까 진지하게 경청해 주시던 D 지원자님의 생각도 무척 궁금합니다. 혹시 이 인간 개입 체계에 대해 어떤 관점을 갖고 계신가요?"
+              </p>
+            </div>
+            <div class="w-7 h-7 rounded-full bg-amber-600 flex items-center justify-center text-white font-bold text-[10px] shrink-0">나</div>
+          </div>
+
+          <!-- D -->
+          <div class="flex items-start gap-2">
+            <div class="w-7 h-7 rounded-full bg-slate-700 flex items-center justify-center text-slate-200 font-bold text-[10px] shrink-0">D</div>
+            <div class="bubble-other p-3 rounded-2xl rounded-tl-sm max-w-[88%] space-y-1">
+              <span class="font-bold text-slate-300 text-[11px] block">지원자 D (소극파 ➔ 참여)</span>
+              <p class="text-slate-200 leading-relaxed text-[11px]">
+                "아, 감사합니다! 저도 C 지원자님 의견에 동의하며, 덧붙여 AI 추천을 따랐을 때 사고가 나면 제조사인지 사용자인지 '법적 책임 소재 가이드라인'도 함께 마련되어야 한다고 봅니다."
+              </p>
             </div>
           </div>
-          <div class="w-7 h-7 rounded-full bg-amber-600 flex items-center justify-center text-white font-bold text-[10px] shrink-0">나</div>
+
+          <!-- C Wrapup -->
+          <div class="flex items-start gap-2 justify-end">
+            <div class="bubble-me p-3.5 rounded-2xl rounded-tr-sm max-w-[92%] space-y-1.5 shadow-lg shadow-indigo-950/50">
+              <span class="font-bold text-amber-300 text-[11px] block">지원자 C (나 - 최종 랩업)</span>
+              <p class="text-slate-100 leading-relaxed text-[11.5px]">
+                "종료 2분 전입니다. 오늘 조의 결론을 세 가지로 요약해 보겠습니다.<br>
+                <strong>1. 위임 기준</strong>: 결과의 비가역성과 인간 기본권 영향도로 층위화한다.<br>
+                <strong>2. 역할 분리</strong>: 저위험은 전면 위임, 고위험은 AI 추천 + 인간 최종 승인(Human-in-the-loop)을 적용한다.<br>
+                <strong>3. 제도 안전망</strong>: D 지원자님 의견처럼 설명가능성(XAI)과 법적 책임 소재를 선제 규정한다.<br>
+                이 3대 합의안으로 최종 결론을 맺어도 좋을까요?"
+              </p>
+            </div>
+            <div class="w-7 h-7 rounded-full bg-amber-600 flex items-center justify-center text-white font-bold text-[10px] shrink-0">나</div>
+          </div>
+        </div>
+      </div>
+
+      <!-- ========================================== -->
+      <!-- SCENARIO 2: 완전 자율주행 사고 책임 (모빌리티) -->
+      <!-- ========================================== -->
+      <div id="rp2-content" class="space-y-3.5 hidden">
+        <!-- Topic Card -->
+        <div class="p-3.5 rounded-xl bg-gradient-to-r from-blue-950/60 to-slate-900 border border-blue-800/80 shadow-md">
+          <span class="text-[10px] font-mono px-2 py-0.5 rounded bg-blue-900 text-blue-200 font-bold">시나리오 2 (모빌리티/현대차 최빈출)</span>
+          <h3 class="text-sm font-bold text-white mt-1.5">
+            "완전 자율주행(레벨 4/5) 상용화 시, 불가피한 인명 사고의 법적·윤리적 책임은 누구에게 귀속되어야 하는가?"
+          </h3>
+          <p class="text-[11px] text-slate-300 mt-1">
+            💡 <strong>쟁점</strong>: 제조사(SW/완성차) vs 운전자(탑승자) vs 국가 인프라 간의 책임 공방을 '보험·사회적 펀드 및 블랙박스 데이터 표준화'로 푸는 합격 전략.
+          </p>
+        </div>
+
+        <div class="space-y-3.5 text-xs font-sans">
+          <!-- A -->
+          <div class="flex items-start gap-2">
+            <div class="w-7 h-7 rounded-full bg-blue-900 flex items-center justify-center text-blue-200 font-bold text-[10px] shrink-0">A</div>
+            <div class="bubble-other p-3 rounded-2xl rounded-tl-sm max-w-[88%] space-y-1">
+              <span class="font-bold text-blue-300 text-[11px] block">지원자 A (소비자 보호론)</span>
+              <p class="text-slate-200 leading-relaxed text-[11px]">
+                "레벨 4 이상에서는 운전자가 운전에 전혀 개입하지 않습니다. 운전대를 잡지 않은 탑승자에게 책임을 묻는 것은 부당하며, 알고리즘을 설계한 완성차 제조사가 전적으로 형사·민사 책임을 져야 합니다."
+              </p>
+            </div>
+          </div>
+
+          <!-- B -->
+          <div class="flex items-start gap-2">
+            <div class="w-7 h-7 rounded-full bg-rose-900 flex items-center justify-center text-rose-200 font-bold text-[10px] shrink-0">B</div>
+            <div class="bubble-other p-3 rounded-2xl rounded-tl-sm max-w-[88%] space-y-1">
+              <span class="font-bold text-rose-300 text-[11px] block">지원자 B (산업 발전론)</span>
+              <p class="text-slate-200 leading-relaxed text-[11px]">
+                "사고 책임을 전적으로 제조사에 지우면 어떤 기업도 천문학적인 소송 리스크 때문에 자율주행차를 출시하지 못할 것입니다. 국가 산업 경쟁력이 죽습니다. 차량 소유주가 위험을 감수하고 보험으로 처리해야 합니다."
+              </p>
+            </div>
+          </div>
+
+          <!-- C (Me) -->
+          <div class="flex items-start gap-2 justify-end">
+            <div class="bubble-me p-3.5 rounded-2xl rounded-tr-sm max-w-[92%] space-y-1.5 shadow-lg shadow-indigo-950/50">
+              <div class="flex items-center justify-between">
+                <span class="font-bold text-amber-300 text-[11px] flex items-center gap-1">
+                  <i class="fa-solid fa-crown text-[10px]"></i> 지원자 C (나 - 합격 조율자)
+                </span>
+                <span class="text-[9px] px-1.5 py-0.2 rounded bg-amber-950 text-amber-300 font-mono">책임 층위 분리</span>
+              </div>
+              <p class="text-slate-100 leading-relaxed text-[11.5px]">
+                "두 분 말씀 모두 자율주행 상용화의 핵심 딜레마를 짚어주셨습니다. 책임을 어느 한쪽에 전부 떠넘기려 하면 논의가 평행선을 달릴 수밖에 없습니다.<br>
+                저는 책임을 <strong>'과실 입증 책임'</strong>과 <strong>'피해 구제 보상'</strong>이라는 두 가지 축으로 분리해 볼 것을 제안합니다.<br>
+                첫째, 사고 시 <strong>'EDR(사고기록장치) 및 센서 로그 분석을 의무화'</strong>하여 통신 오류, 센서 결함, 부품 마모 여부에 따라 제조사와 인프라의 기여도를 기술적으로 규명해야 합니다."
+              </p>
+            </div>
+            <div class="w-7 h-7 rounded-full bg-amber-600 flex items-center justify-center text-white font-bold text-[10px] shrink-0">나</div>
+          </div>
+
+          <!-- C Continues with Solution -->
+          <div class="flex items-start gap-2 justify-end">
+            <div class="bubble-me p-3.5 rounded-2xl rounded-tr-sm max-w-[92%] space-y-1.5 shadow-lg shadow-indigo-950/50">
+              <span class="font-bold text-amber-300 text-[11px] block">지원자 C (나 - 절충 대안 제시)</span>
+              <p class="text-slate-100 leading-relaxed text-[11.5px]">
+                "둘째, 소송이 길어져 피해자가 방치되는 것을 막기 위해 항공기 사고처럼 <strong>'무과실 책임 기반의 공공 자율주행 보상 펀드(제조사·정부·보험사 공동 출자)'</strong>를 신설하여 피해자를 선(先)구제하고, 사후에 원인 규명 데이터에 따라 구상권을 청구하는 3자 협력 시스템을 구축하면 소비자 보호와 기업의 혁신을 동시에 달성할 수 있습니다."
+              </p>
+              <div class="text-[10px] text-violet-300 bg-violet-950/70 p-1.5 rounded border border-violet-800/60 font-sans">
+                💡 <strong>평가 포인트:</strong> 단순 법적 다툼을 넘어 '엔지니어링 데이터(로그)+사회적 제도(펀드)'를 융합한 탁월한 정책적 해결력.
+              </div>
+            </div>
+            <div class="w-7 h-7 rounded-full bg-amber-600 flex items-center justify-center text-white font-bold text-[10px] shrink-0">나</div>
+          </div>
+
+          <!-- D -->
+          <div class="flex items-start gap-2">
+            <div class="w-7 h-7 rounded-full bg-slate-700 flex items-center justify-center text-slate-200 font-bold text-[10px] shrink-0">D</div>
+            <div class="bubble-other p-3 rounded-2xl rounded-tl-sm max-w-[88%] space-y-1">
+              <span class="font-bold text-slate-300 text-[11px] block">지원자 D</span>
+              <p class="text-slate-200 leading-relaxed text-[11px]">
+                "매우 현실적인 대안이네요! 항공기 사고 조사 위원회처럼 '자율주행 사고 공공 조사 기구'를 법제화하는 방안도 C 지원자님 말씀에 덧붙이고 싶습니다."
+              </p>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- ========================================== -->
+      <!-- SCENARIO 3: AI 기반 인사평가(HR) 공정성 -->
+      <!-- ========================================== -->
+      <div id="rp3-content" class="space-y-3.5 hidden">
+        <!-- Topic Card -->
+        <div class="p-3.5 rounded-xl bg-gradient-to-r from-emerald-950/60 to-slate-900 border border-emerald-800/80 shadow-md">
+          <span class="text-[10px] font-mono px-2 py-0.5 rounded bg-emerald-900 text-emerald-200 font-bold">시나리오 3 (조직/인사 AI)</span>
+          <h3 class="text-sm font-bold text-white mt-1.5">
+            "기업에서 직원의 성과 평가 및 승진 심사에 AI 알고리즘을 도입하는 것은 공정한가?"
+          </h3>
+          <p class="text-[11px] text-slate-300 mt-1">
+            💡 <strong>쟁점</strong>: 인간 상사의 정성적 편향(연줄/친분) 제거 vs AI의 정량 데이터 만능주의(보이지 않는 기여 누락)와 감시 사회 우려.
+          </p>
+        </div>
+
+        <div class="space-y-3.5 text-xs font-sans">
+          <!-- A -->
+          <div class="flex items-start gap-2">
+            <div class="w-7 h-7 rounded-full bg-blue-900 flex items-center justify-center text-blue-200 font-bold text-[10px] shrink-0">A</div>
+            <div class="bubble-other p-3 rounded-2xl rounded-tl-sm max-w-[88%] space-y-1">
+              <span class="font-bold text-blue-300 text-[11px] block">지원자 A</span>
+              <p class="text-slate-200 leading-relaxed text-[11px]">
+                "사내 정치나 인간적인 친분으로 승진이 갈리는 불공정을 없애려면, 커밋 수, 프로젝트 산출물 등 객관적 메트릭을 바탕으로 AI가 평가하는 것이 가장 투명하고 공정합니다."
+              </p>
+            </div>
+          </div>
+
+          <!-- B -->
+          <div class="flex items-start gap-2">
+            <div class="w-7 h-7 rounded-full bg-rose-900 flex items-center justify-center text-rose-200 font-bold text-[10px] shrink-0">B</div>
+            <div class="bubble-other p-3 rounded-2xl rounded-tl-sm max-w-[88%] space-y-1">
+              <span class="font-bold text-rose-300 text-[11px] block">지원자 B</span>
+              <p class="text-slate-200 leading-relaxed text-[11px]">
+                "AI 평가는 치명적입니다. 신입사원 멘토링, 팀 내 갈등 중재, 회의록 정리 같은 '보이지 않는 헌신'은 데이터로 안 잡힙니다. 결국 구성원들이 AI 점수 따기 쉬운 숫자 놀음에만 매달려 조직이 와해될 것입니다."
+              </p>
+            </div>
+          </div>
+
+          <!-- C (Me) -->
+          <div class="flex items-start gap-2 justify-end">
+            <div class="bubble-me p-3.5 rounded-2xl rounded-tr-sm max-w-[92%] space-y-1.5 shadow-lg shadow-indigo-950/50">
+              <div class="flex items-center justify-between">
+                <span class="font-bold text-amber-300 text-[11px] flex items-center gap-1">
+                  <i class="fa-solid fa-crown text-[10px]"></i> 지원자 C (나 - 합격 조율자)
+                </span>
+                <span class="text-[9px] px-1.5 py-0.2 rounded bg-amber-950 text-amber-300 font-mono">정량 vs 정성 통합</span>
+              </div>
+              <p class="text-slate-100 leading-relaxed text-[11.5px]">
+                "A 지원자님께서 말씀하신 '정치적 주관성 배제'와 B 지원자님께서 우려하신 '비정량적 기여 누락'은 모두 조직 평가의 핵심 본질입니다.<br>
+                저는 AI의 역할을 '평가자(Judge)'가 아닌 <strong>'평가 보조 및 편향 감지기(Auditor)'</strong>로 규정할 것을 제안합니다.<br>
+                AI는 객관적 업무 데이터 추이를 요약해 상사에게 기초 팩트로 제공하고, 동시에 상사의 평가에서 특정 성별이나 연줄에 의한 극단적 이상치가 있는지 '편향 알림(Bias Flag)'을 띄우는 모니터링 역할을 맡기는 것입니다."
+              </p>
+            </div>
+            <div class="w-7 h-7 rounded-full bg-amber-600 flex items-center justify-center text-white font-bold text-[10px] shrink-0">나</div>
+          </div>
+
+          <!-- C Wrapup -->
+          <div class="flex items-start gap-2 justify-end">
+            <div class="bubble-me p-3.5 rounded-2xl rounded-tr-sm max-w-[92%] space-y-1.5 shadow-lg shadow-indigo-950/50">
+              <span class="font-bold text-amber-300 text-[11px] block">지원자 C (나 - 심층 대안)</span>
+              <p class="text-slate-100 leading-relaxed text-[11.5px]">
+                "그리고 최종 평가는 동료 다면평가와 상사의 심층 인터뷰라는 인간적 맥락(Context)을 합산하여 결정하게 한다면, 데이터의 객관성과 조직의 온기를 모두 지킬 수 있는 신뢰받는 인사 시스템이 될 것입니다."
+              </p>
+              <div class="text-[10px] text-violet-300 bg-violet-950/70 p-1.5 rounded border border-violet-800/60 font-sans">
+                💡 <strong>평가 포인트:</strong> AI를 단순한 감시자가 아닌 '인간의 편향을 교정해 주는 거울'로 격상시킨 인문학적 조직관.
+              </div>
+            </div>
+            <div class="w-7 h-7 rounded-full bg-amber-600 flex items-center justify-center text-white font-bold text-[10px] shrink-0">나</div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- ========================================== -->
+    <!-- SECTION 2: 인문학 x AI 8대 핵심 쟁점 (확장판) -->
+    <!-- ========================================== -->
+    <section id="sec-ai-topics" class="space-y-4 pt-1">
+      <div class="flex items-center justify-between border-b border-slate-800 pb-2.5">
+        <div class="flex items-center gap-2">
+          <span class="w-6 h-6 rounded-md bg-cyan-950 text-cyan-300 border border-cyan-800 flex items-center justify-center font-bold text-xs">🤖</span>
+          <h2 class="text-base font-bold text-white">인문학 × AI 8대 핵심 빈출 쟁점 사전</h2>
+        </div>
+        <span class="text-[10px] text-cyan-400 font-mono">8 Master Topics</span>
+      </div>
+
+      <div class="space-y-3 text-xs">
+
+        <!-- Theme 1: 의사결정 위임 (신규) -->
+        <div class="p-3.5 rounded-xl bg-slate-900 border border-cyan-800/80 space-y-2">
+          <div class="flex items-center justify-between">
+            <span class="font-bold text-cyan-300 text-xs">1. AI에게 의사결정을 어디까지 맡겨야 하는가?</span>
+            <span class="text-[9px] px-1.5 py-0.5 rounded bg-cyan-950 text-cyan-400 border border-cyan-800">핵심 빈출</span>
+          </div>
+          <p class="text-slate-300 text-[11px] leading-relaxed">
+            • <strong>핵심 기준</strong>: '결과의 비가역성(되돌릴 수 있는가)'과 '인간 기본권 영향도'.<br>
+            • <strong>합격 포인트</strong>: 저위험·반복 분석은 전폭 위임하되, 생명/채용 등 고위험 영역은 AI 추천 + 인간 최종 승인의 <strong>'Human-in-the-loop'</strong> 구조를 명확히 제시.
+          </p>
+        </div>
+
+        <!-- Theme 2: 자율주행 사고 책임 (신규) -->
+        <div class="p-3.5 rounded-xl bg-slate-900 border border-blue-800/80 space-y-2">
+          <div class="flex items-center justify-between">
+            <span class="font-bold text-blue-300 text-xs">2. 완전 자율주행 사고와 윤리적·법적 책임 귀속</span>
+            <span class="text-[9px] px-1.5 py-0.5 rounded bg-blue-950 text-blue-400 border border-blue-800">모빌리티 특화</span>
+          </div>
+          <p class="text-slate-300 text-[11px] leading-relaxed">
+            • <strong>핵심 쟁점</strong>: 제조사 무과실 vs 탑승자 책임 공방을 <strong>'블랙박스 센서 로그 분석 의무화'</strong>와 <strong>'공공 자율주행 보상 펀드(선보상 후구상)'</strong>로 이원화하여 해결.
+          </p>
+        </div>
+
+        <!-- Theme 3: AI 기반 인사평가 (신규) -->
+        <div class="p-3.5 rounded-xl bg-slate-900 border border-emerald-800/80 space-y-2">
+          <div class="flex items-center justify-between">
+            <span class="font-bold text-emerald-300 text-xs">3. 사내 AI 인사평가(HR) 도입과 공정성의 본질</span>
+            <span class="text-[9px] px-1.5 py-0.5 rounded bg-emerald-950 text-emerald-400 border border-emerald-800">조직 문화</span>
+          </div>
+          <p class="text-slate-300 text-[11px] leading-relaxed">
+            • <strong>합격 포인트</strong>: AI를 '단독 심판관'이 아닌 <strong>'인간 상사의 편향을 감시하는 모니터링 툴(Auditor)'</strong>로 규정하고, 최종 승진은 동료 다면평가와 정성적 맥락을 종합하는 통합 거버넌스 제안.
+          </p>
+        </div>
+
+        <!-- Theme 4: AI 데이터 저작권과 공정이용 (신규) -->
+        <div class="p-3.5 rounded-xl bg-slate-900 border border-amber-800/80 space-y-2">
+          <div class="flex items-center justify-between">
+            <span class="font-bold text-amber-300 text-xs">4. AI 학습 데이터 저작권 vs 기술 혁신 (공정이용)</span>
+            <span class="text-[9px] px-1.5 py-0.5 rounded bg-amber-950 text-amber-400 border border-amber-800">법·경제학</span>
+          </div>
+          <p class="text-slate-300 text-[11px] leading-relaxed">
+            • <strong>합격 포인트</strong>: 창작자 독점권과 국가 AI 경쟁력의 충돌. <strong>'학습 단계는 공정이용(TDM 면책)으로 열어주되, 상업적 수익 발생 시 창작자 배당 펀드로 환원'</strong>하는 상생 징수 모델 제시.
+          </p>
+        </div>
+
+        <!-- Theme 5: 창의성/영혼 -->
+        <div class="p-3.5 rounded-xl bg-slate-900 border border-slate-800 space-y-2">
+          <span class="font-bold text-slate-200 text-xs block">5. 생성형 AI와 인간의 고유성 (창의성·영혼)</span>
+          <p class="text-slate-300 text-[11px] leading-relaxed">
+            • <strong>합격 포인트</strong>: '산출물(Output)'의 독창성보다 **'의도(Intent)와 삶의 경험(Context)'**의 차이 강조. AI는 통계적 재조합일 뿐, 고통과 결핍에서 나오는 실존적 의도는 인간만의 고유 영역.
+          </p>
+        </div>
+
+        <!-- Theme 6: AI 윤리/트롤리 -->
+        <div class="p-3.5 rounded-xl bg-slate-900 border border-slate-800 space-y-2">
+          <span class="font-bold text-slate-200 text-xs block">6. AI 윤리와 트롤리 딜레마 (판단 외주화)</span>
+          <p class="text-slate-300 text-[11px] leading-relaxed">
+            • <strong>합격 포인트</strong>: 무결점 알고리즘은 불가능함을 인정하고, 판단 과정의 **설명가능성(XAI)**과 **사고 시 법적 책임 추적성(Accountability)** 제도화 제안.
+          </p>
+        </div>
+
+        <!-- Theme 7: 노동의 종말/해방 -->
+        <div class="p-3.5 rounded-xl bg-slate-900 border border-slate-800 space-y-2">
+          <span class="font-bold text-slate-200 text-xs block">7. 노동의 종말인가 노동의 해방인가</span>
+          <p class="text-slate-300 text-[11px] leading-relaxed">
+            • <strong>합격 포인트</strong>: 일자리의 파괴가 아닌 **'업무의 재정의(Task Transformation)'**. 단순 반복은 AI에 넘기고 인간은 대면 돌봄과 오케스트레이션에 집중. 소외 계층을 위한 전환 교육 병행.
+          </p>
+        </div>
+
+        <!-- Theme 8: 사유의 퇴화 -->
+        <div class="p-3.5 rounded-xl bg-slate-900 border border-slate-800 space-y-2">
+          <span class="font-bold text-slate-200 text-xs block">8. 지능의 외주화와 사유의 퇴화 vs 인지 확장</span>
+          <p class="text-slate-300 text-[11px] leading-relaxed">
+            • <strong>합격 포인트</strong>: 계산기가 수학적 직관을 없애지 않았듯, AI는 **'확장된 인지(Extended Mind)'**. 단, 비판적 의심(Critical Doubt)이 없으면 퇴화하므로 '질문 문해력(Literacy)' 교육 필수.
+          </p>
         </div>
 
       </div>
     </section>
 
     <!-- ========================================== -->
-    <!-- SECTION 2: 만능 멘트집 (모바일 원클릭 복사 카드) -->
+    <!-- SECTION 3: 만능 멘트집 (모바일 원클릭 복사 카드) -->
     <!-- ========================================== -->
     <section id="sec-ment" class="space-y-4 pt-1">
       <div class="flex items-center justify-between border-b border-slate-800 pb-2.5">
@@ -339,67 +596,6 @@
     </section>
 
     <!-- ========================================== -->
-    <!-- SECTION 3: 인문학 x AI 5대 핵심 주제 -->
-    <!-- ========================================== -->
-    <section id="sec-ai-topics" class="space-y-4 pt-1">
-      <div class="flex items-center justify-between border-b border-slate-800 pb-2.5">
-        <div class="flex items-center gap-2">
-          <span class="w-6 h-6 rounded-md bg-cyan-950 text-cyan-300 border border-cyan-800 flex items-center justify-center font-bold text-xs">🤖</span>
-          <h2 class="text-base font-bold text-white">인문학 × AI 5대 핵심 빈출 쟁점</h2>
-        </div>
-        <span class="text-[10px] text-cyan-400 font-mono">Key Scenarios</span>
-      </div>
-
-      <div class="space-y-3 text-xs">
-
-        <!-- Theme 1: 의사결정 위임 (신규) -->
-        <div class="p-3.5 rounded-xl bg-slate-900 border border-cyan-800/80 space-y-2">
-          <div class="flex items-center justify-between">
-            <span class="font-bold text-cyan-300 text-xs">1. AI에게 의사결정을 어디까지 맡겨야 하는가?</span>
-            <span class="text-[9px] px-1.5 py-0.5 rounded bg-cyan-950 text-cyan-400 border border-cyan-800">핵심 빈출</span>
-          </div>
-          <p class="text-slate-300 text-[11px] leading-relaxed">
-            • <strong>핵심 기준</strong>: '결과의 비가역성(되돌릴 수 있는가)'과 '인간 기본권 영향도'.<br>
-            • <strong>합격 포인트</strong>: 저위험·반복 분석은 전폭 위임하되, 생명/채용 등 고위험 영역은 AI 추천 + 인간 최종 승인의 <strong>'Human-in-the-loop'</strong> 구조를 명확히 제시.
-          </p>
-        </div>
-
-        <!-- Theme 2: 창의성/영혼 -->
-        <div class="p-3.5 rounded-xl bg-slate-900 border border-slate-800 space-y-2">
-          <span class="font-bold text-slate-200 text-xs block">2. 생성형 AI와 인간의 고유성 (창의성·영혼)</span>
-          <p class="text-slate-300 text-[11px] leading-relaxed">
-            • <strong>합격 포인트</strong>: '산출물(Output)'의 독창성보다 **'의도(Intent)와 삶의 경험(Context)'**의 차이 강조. AI는 통계적 재조합일 뿐, 고통과 결핍에서 나오는 실존적 의도는 인간만의 고유 영역.
-          </p>
-        </div>
-
-        <!-- Theme 3: AI 윤리/트롤리 -->
-        <div class="p-3.5 rounded-xl bg-slate-900 border border-slate-800 space-y-2">
-          <span class="font-bold text-slate-200 text-xs block">3. AI 윤리와 트롤리 딜레마 (판단 외주화)</span>
-          <p class="text-slate-300 text-[11px] leading-relaxed">
-            • <strong>합격 포인트</strong>: 무결점 알고리즘은 불가능함을 인정하고, 판단 과정의 **설명가능성(XAI)**과 **사고 시 법적 책임 추적성(Accountability)** 제도화 제안.
-          </p>
-        </div>
-
-        <!-- Theme 4: 노동의 종말/해방 -->
-        <div class="p-3.5 rounded-xl bg-slate-900 border border-slate-800 space-y-2">
-          <span class="font-bold text-slate-200 text-xs block">4. 노동의 종말인가 노동의 해방인가</span>
-          <p class="text-slate-300 text-[11px] leading-relaxed">
-            • <strong>합격 포인트</strong>: 일자리의 파괴가 아닌 **'업무의 재정의(Task Transformation)'**. 단순 반복은 AI에 넘기고 인간은 대면 돌봄과 오케스트레이션에 집중. 소외 계층을 위한 전환 교육 병행.
-          </p>
-        </div>
-
-        <!-- Theme 5: 사유의 퇴화 -->
-        <div class="p-3.5 rounded-xl bg-slate-900 border border-slate-800 space-y-2">
-          <span class="font-bold text-slate-200 text-xs block">5. 지능의 외주화와 사유의 퇴화 vs 인지 확장</span>
-          <p class="text-slate-300 text-[11px] leading-relaxed">
-            • <strong>합격 포인트</strong>: 계산기가 수학적 직관을 없애지 않았듯, AI는 **'확장된 인지(Extended Mind)'**. 단, 비판적 의심(Critical Doubt)이 없으면 퇴화하므로 '질문 문해력(Literacy)' 교육 필수.
-          </p>
-        </div>
-
-      </div>
-    </section>
-
-    <!-- ========================================== -->
     <!-- SECTION 4: MECE 4단계 & 감점 금기 -->
     <!-- ========================================== -->
     <section id="sec-essence" class="space-y-4 pt-1">
@@ -442,13 +638,13 @@
       <i class="fa-solid fa-masks-theater text-sm mb-0.5"></i>
       <span>롤플레잉</span>
     </a>
-    <a href="#sec-ment" class="flex flex-col items-center text-slate-400 hover:text-amber-400 text-[10px]">
-      <i class="fa-solid fa-comment-dots text-sm mb-0.5"></i>
-      <span>만능멘트</span>
-    </a>
     <a href="#sec-ai-topics" class="flex flex-col items-center text-slate-400 hover:text-cyan-400 text-[10px]">
       <i class="fa-solid fa-robot text-sm mb-0.5"></i>
       <span>AI 쟁점</span>
+    </a>
+    <a href="#sec-ment" class="flex flex-col items-center text-slate-400 hover:text-amber-400 text-[10px]">
+      <i class="fa-solid fa-comment-dots text-sm mb-0.5"></i>
+      <span>만능멘트</span>
     </a>
     <a href="#sec-essence" class="flex flex-col items-center text-slate-400 hover:text-emerald-400 text-[10px]">
       <i class="fa-solid fa-clipboard-check text-sm mb-0.5"></i>
@@ -470,6 +666,21 @@
         setTimeout(() => {
           toast.classList.add('opacity-0');
         }, 2000);
+      });
+    }
+
+    function switchRoleplay(id) {
+      const scenarios = ['rp1', 'rp2', 'rp3'];
+      scenarios.forEach(s => {
+        const content = document.getElementById(s + '-content');
+        const tab = document.getElementById('tab-' + s);
+        if (s === id) {
+          content.classList.remove('hidden');
+          tab.classList.add('active');
+        } else {
+          content.classList.add('hidden');
+          tab.classList.remove('active');
+        }
       });
     }
   </script>
