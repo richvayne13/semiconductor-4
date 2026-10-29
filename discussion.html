@@ -1,0 +1,477 @@
+<!DOCTYPE html>
+<html lang="ko" class="dark scroll-smooth">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+  <meta name="theme-color" content="#090d16">
+  <title>단체토의면접 마스터 클래스 (인문학 & AI 실전 공략)</title>
+  
+  <!-- Tailwind CSS -->
+  <script src="https://cdn.tailwindcss.com"></script>
+  <!-- Font Awesome -->
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+  
+  <script>
+    tailwind.config = {
+      darkMode: 'class',
+      theme: {
+        extend: {
+          colors: {
+            brand: {
+              50: '#f5f3ff',
+              100: '#ede9fe',
+              500: '#8b5cf6',
+              600: '#7c3aed',
+              700: '#6d28d9',
+              900: '#4c1d95',
+            }
+          }
+        }
+      }
+    }
+  </script>
+  
+  <style>
+    @import url('https://fonts.googleapis.com/css2?family=Pretendard:wght@300;400;500;600;700;800&family=Fira+Code:wght@400;600&display=swap');
+    body {
+      font-family: 'Pretendard', -apple-system, BlinkMacSystemFont, system-ui, Roboto, sans-serif;
+      -webkit-tap-highlight-color: transparent;
+    }
+    .custom-scrollbar::-webkit-scrollbar {
+      display: none;
+    }
+    .custom-scrollbar {
+      -ms-overflow-style: none;
+      scrollbar-width: none;
+    }
+    .quote-box {
+      border-left: 3px solid #8b5cf6;
+      background: rgba(139, 92, 246, 0.08);
+    }
+    /* Mobile Chat Bubbles */
+    .bubble-me {
+      background: linear-gradient(135deg, #1e1b4b 0%, #312e81 100%);
+      border: 1px solid #4338ca;
+    }
+    .bubble-other {
+      background: #1e293b;
+      border: 1px solid #334155;
+    }
+  </style>
+</head>
+<body class="bg-slate-950 text-slate-100 min-h-screen flex flex-col pb-20 md:pb-10 custom-scrollbar select-none md:select-auto">
+
+  <!-- Mobile Sticky Top Header -->
+  <header class="bg-slate-900/95 border-b border-slate-800 sticky top-0 z-50 backdrop-blur-md shadow-lg px-4 py-3">
+    <div class="max-w-4xl mx-auto flex items-center justify-between">
+      <div class="flex items-center space-x-2.5">
+        <div class="w-8 h-8 rounded-lg bg-gradient-to-tr from-violet-600 to-indigo-500 flex items-center justify-center shadow-md shadow-violet-500/20">
+          <i class="fa-solid fa-users-rectangle text-white text-sm"></i>
+        </div>
+        <div>
+          <div class="flex items-center gap-1.5">
+            <h1 class="text-sm md:text-base font-bold text-white tracking-tight">단체토의면접 마스터</h1>
+            <span class="text-[9px] px-1.5 py-0.5 rounded-full bg-violet-950 text-violet-300 border border-violet-800 font-mono">Mobile v2.0</span>
+          </div>
+          <p class="text-[10px] text-slate-400">인문학 × AI 쟁점 & 실전 롤플레잉</p>
+        </div>
+      </div>
+      
+      <a href="index.html" class="px-2.5 py-1.5 rounded-lg bg-slate-800 hover:bg-slate-700 text-slate-300 text-xs font-semibold border border-slate-700 flex items-center gap-1 transition">
+        <i class="fa-solid fa-house text-[11px]"></i>
+        <span class="hidden sm:inline">메인으로</span>
+      </a>
+    </div>
+
+    <!-- Quick Touch Nav Carousel -->
+    <div class="max-w-4xl mx-auto flex space-x-2 text-xs overflow-x-auto pt-2.5 pb-0.5 custom-scrollbar">
+      <a href="#sec-roleplay" class="px-3 py-1.5 rounded-full bg-violet-600 text-white font-semibold flex items-center gap-1.5 whitespace-nowrap shadow-sm shadow-violet-600/30">
+        <i class="fa-solid fa-masks-theater text-xs"></i> 실전 롤플레잉
+      </a>
+      <a href="#sec-ment" class="px-3 py-1.5 rounded-full bg-slate-800 text-slate-300 font-medium hover:text-white flex items-center gap-1.5 whitespace-nowrap border border-slate-700">
+        <i class="fa-solid fa-comment-dots text-amber-400 text-xs"></i> 만능 멘트집
+      </a>
+      <a href="#sec-ai-topics" class="px-3 py-1.5 rounded-full bg-slate-800 text-slate-300 font-medium hover:text-white flex items-center gap-1.5 whitespace-nowrap border border-slate-700">
+        <i class="fa-solid fa-robot text-cyan-400 text-xs"></i> AI 5대 쟁점
+      </a>
+      <a href="#sec-essence" class="px-3 py-1.5 rounded-full bg-slate-800 text-slate-300 font-medium hover:text-white flex items-center gap-1.5 whitespace-nowrap border border-slate-700">
+        <i class="fa-solid fa-compass text-emerald-400 text-xs"></i> MECE 4단계
+      </a>
+    </div>
+  </header>
+
+  <!-- Main Container -->
+  <main class="max-w-4xl mx-auto px-3.5 sm:px-6 py-6 space-y-12 flex-1 w-full">
+
+    <!-- ========================================== -->
+    <!-- SECTION 1: 실전 롤플레잉 (모바일 메신저 스타일) -->
+    <!-- ========================================== -->
+    <section id="sec-roleplay" class="space-y-4 pt-1">
+      <div class="flex items-center justify-between border-b border-slate-800 pb-2.5">
+        <div class="flex items-center gap-2">
+          <span class="w-6 h-6 rounded-md bg-violet-950 text-violet-300 border border-violet-800 flex items-center justify-center font-bold text-xs">★</span>
+          <h2 class="text-base font-bold text-white">실전 토의 롤플레잉 (4인 1조 시뮬레이션)</h2>
+        </div>
+        <span class="text-[10px] text-violet-400 font-mono">Live Simulation</span>
+      </div>
+
+      <!-- Topic Card -->
+      <div class="p-3.5 rounded-xl bg-gradient-to-r from-violet-950/60 to-slate-900 border border-violet-800/80 shadow-md">
+        <span class="text-[10px] font-mono px-2 py-0.5 rounded bg-violet-900 text-violet-200 font-bold">실전 기출 주제</span>
+        <h3 class="text-sm font-bold text-white mt-1.5">
+          "AI 기술이 고도화되는 시대, 인간은 AI에게 의사결정 권한을 어디까지 맡겨야 하는가?"
+        </h3>
+        <p class="text-[11px] text-slate-300 mt-1">
+          💡 <strong>지원자 C(나)</strong>의 발언에 주목하세요. 찬반 대립을 깨고 <strong>MECE 기준(비가역성·영향도)</strong>을 제시해 합격을 이끄는 모범 패턴입니다.
+        </p>
+      </div>
+
+      <!-- Chat Stream -->
+      <div class="space-y-3.5 text-xs font-sans">
+
+        <!-- Stage 1 Banner -->
+        <div class="text-center my-3">
+          <span class="px-3 py-1 rounded-full bg-slate-900 text-slate-400 text-[10px] border border-slate-800 font-mono">
+            [1단계: 도입 및 시간 배분 합의]
+          </span>
+        </div>
+
+        <!-- A -->
+        <div class="flex items-start gap-2">
+          <div class="w-7 h-7 rounded-full bg-blue-900 flex items-center justify-center text-blue-200 font-bold text-[10px] shrink-0">A</div>
+          <div class="bubble-other p-3 rounded-2xl rounded-tl-sm max-w-[88%] space-y-1">
+            <span class="font-bold text-blue-300 text-[11px] block">지원자 A (효율파)</span>
+            <p class="text-slate-200 leading-relaxed text-[11px]">
+              "인간은 피로와 감정 때문에 판단 실수가 잦습니다. 채용, 의료, 생산라인 공정까지 AI에게 최종 결정을 과감히 맡겨야 생산성과 공정성이 극대화됩니다."
+            </p>
+          </div>
+        </div>
+
+        <!-- B -->
+        <div class="flex items-start gap-2">
+          <div class="w-7 h-7 rounded-full bg-rose-900 flex items-center justify-center text-rose-200 font-bold text-[10px] shrink-0">B</div>
+          <div class="bubble-other p-3 rounded-2xl rounded-tl-sm max-w-[88%] space-y-1">
+            <span class="font-bold text-rose-300 text-[11px] block">지원자 B (원칙파)</span>
+            <p class="text-slate-200 leading-relaxed text-[11px]">
+              "반대합니다. AI는 블랙박스라 설명이 불가능합니다. 사람의 인생과 생명이 걸린 문제를 기계에 맡기는 것은 인간 존엄성을 훼손하는 무책임한 일입니다."
+            </p>
+          </div>
+        </div>
+
+        <!-- C (Me) -->
+        <div class="flex items-start gap-2 justify-end">
+          <div class="bubble-me p-3.5 rounded-2xl rounded-tr-sm max-w-[92%] space-y-1.5 shadow-lg shadow-indigo-950/50">
+            <div class="flex items-center justify-between">
+              <span class="font-bold text-amber-300 text-[11px] flex items-center gap-1">
+                <i class="fa-solid fa-crown text-[10px]"></i> 지원자 C (나 - 합격 조율자)
+              </span>
+              <span class="text-[9px] px-1.5 py-0.2 rounded bg-amber-950 text-amber-300 font-mono">방향타 세팅</span>
+            </div>
+            <p class="text-slate-100 leading-relaxed text-[11.5px]">
+              "두 분 말씀 모두 일리가 있습니다. 본격적인 논쟁에 앞서 주어진 30분을 효율적으로 쓰기 위해 <strong>토의 순서와 의사결정의 범위를 먼저 합의</strong>하면 어떨까요?<br>
+              단순 찬반을 떠나 <strong>초반 5분은 위임 기준 프레임워크 수립, 중반 15분은 위험도별 적용 영역 분석, 마지막 5분은 인간 책임(거버넌스)과 합의안 도출</strong>로 시간을 배분해 보면 어떨까요?"
+            </p>
+            <div class="text-[10px] text-violet-300 bg-violet-950/70 p-1.5 rounded border border-violet-800/60 font-sans">
+              💡 <strong>평가 포인트:</strong> 찬반 대립을 막고 토의의 규칙을 세워 팀 전체의 나침반 역할을 수행함.
+            </div>
+          </div>
+          <div class="w-7 h-7 rounded-full bg-amber-600 flex items-center justify-center text-white font-bold text-[10px] shrink-0">나</div>
+        </div>
+
+        <!-- Stage 2 Banner -->
+        <div class="text-center my-3">
+          <span class="px-3 py-1 rounded-full bg-slate-900 text-slate-400 text-[10px] border border-slate-800 font-mono">
+            [2 & 3단계: MECE 층위 분석 & 대립 절충]
+          </span>
+        </div>
+
+        <!-- C (Me) -->
+        <div class="flex items-start gap-2 justify-end">
+          <div class="bubble-me p-3.5 rounded-2xl rounded-tr-sm max-w-[92%] space-y-1.5 shadow-lg shadow-indigo-950/50">
+            <div class="flex items-center justify-between">
+              <span class="font-bold text-amber-300 text-[11px] flex items-center gap-1">
+                <i class="fa-solid fa-crown text-[10px]"></i> 지원자 C (나 - 합격 조율자)
+              </span>
+              <span class="text-[9px] px-1.5 py-0.2 rounded bg-amber-950 text-amber-300 font-mono">MECE 기준 제시</span>
+            </div>
+            <p class="text-slate-100 leading-relaxed text-[11.5px]">
+              "위임 기준에 대해 저는 2가지 잣대를 제안합니다. 바로 <strong>① '결과의 비가역성(되돌릴 수 있는가)'</strong>과 <strong>② '인간 생명·기본권 영향도'</strong>입니다.<br>
+              A님의 '통계적 정확성'과 B님의 '인간 존엄'을 절충하여, <strong>AI에게 분석과 대안 추천(Augmentation)은 맡기되, 가치 판단과 최종 승인은 인간이 내리는 'Human-in-the-loop' 구조</strong>로 정렬해 보면 어떨까요?"
+            </p>
+          </div>
+          <div class="w-7 h-7 rounded-full bg-amber-600 flex items-center justify-center text-white font-bold text-[10px] shrink-0">나</div>
+        </div>
+
+        <!-- C pulls D in -->
+        <div class="flex items-start gap-2 justify-end">
+          <div class="bubble-me p-3 rounded-2xl rounded-tr-sm max-w-[92%] space-y-1 shadow-lg shadow-indigo-950/50">
+            <span class="font-bold text-emerald-300 text-[11px] block">지원자 C (나 - 동료 배려)</span>
+            <p class="text-slate-100 leading-relaxed text-[11.5px]">
+              "(말을 아끼던 D를 바라보며) 지금까지 활발한 논의가 오갔는데요, 아까 진지하게 경청해 주시던 D 지원자님의 생각도 무척 궁금합니다. 혹시 이 인간 개입 체계에 대해 어떤 관점을 갖고 계신가요?"
+            </p>
+            <div class="text-[10px] text-emerald-300 bg-emerald-950/70 p-1.5 rounded border border-emerald-800/60 font-sans">
+              💡 <strong>평가 포인트:</strong> 소외된 동료를 자연스럽게 끌어들여 '원팀'을 완성하는 인성 최고 득점 멘트.
+            </div>
+          </div>
+          <div class="w-7 h-7 rounded-full bg-amber-600 flex items-center justify-center text-white font-bold text-[10px] shrink-0">나</div>
+        </div>
+
+        <!-- D -->
+        <div class="flex items-start gap-2">
+          <div class="w-7 h-7 rounded-full bg-slate-700 flex items-center justify-center text-slate-200 font-bold text-[10px] shrink-0">D</div>
+          <div class="bubble-other p-3 rounded-2xl rounded-tl-sm max-w-[88%] space-y-1">
+            <span class="font-bold text-slate-300 text-[11px] block">지원자 D (소극파 ➔ 참여)</span>
+            <p class="text-slate-200 leading-relaxed text-[11px]">
+              "아, 기회 주셔서 감사합니다! 저도 C 지원자님 의견에 동의하며, 덧붙여 AI 추천을 따랐을 때 사고가 나면 제조사인지 사용자인지 '법적 책임 소재 가이드라인'도 함께 마련되어야 한다고 봅니다."
+            </p>
+          </div>
+        </div>
+
+        <!-- Stage 4 Banner -->
+        <div class="text-center my-3">
+          <span class="px-3 py-1 rounded-full bg-slate-900 text-slate-400 text-[10px] border border-slate-800 font-mono">
+            [4단계: 최종 결론 3대 요약 랩업]
+          </span>
+        </div>
+
+        <!-- C Wrapup -->
+        <div class="flex items-start gap-2 justify-end">
+          <div class="bubble-me p-3.5 rounded-2xl rounded-tr-sm max-w-[92%] space-y-1.5 shadow-lg shadow-indigo-950/50">
+            <span class="font-bold text-amber-300 text-[11px] block">지원자 C (나 - 최종 랩업)</span>
+            <p class="text-slate-100 leading-relaxed text-[11.5px]">
+              "종료 2분 전입니다. 오늘 조의 결론을 세 가지로 요약해 보겠습니다.<br>
+              <strong>1. 위임 기준</strong>: 결과의 비가역성과 인간 기본권 영향도로 층위화한다.<br>
+              <strong>2. 역할 분리</strong>: 저위험은 전면 위임, 고위험은 AI 추천 + 인간 최종 승인(Human-in-the-loop)을 적용한다.<br>
+              <strong>3. 제도 안전망</strong>: D 지원자님 의견처럼 설명가능성(XAI)과 법적 책임 소재를 선제 규정한다.<br>
+              이 3대 합의안으로 최종 결론을 맺어도 좋을까요?"
+            </p>
+            <div class="text-[10px] text-amber-300 bg-amber-950/70 p-1.5 rounded border border-amber-800/60 font-sans">
+              💡 <strong>평가 포인트:</strong> D의 의견까지 녹여내어 보고서 형태로 매듭짓는 완벽한 마무리.
+            </div>
+          </div>
+          <div class="w-7 h-7 rounded-full bg-amber-600 flex items-center justify-center text-white font-bold text-[10px] shrink-0">나</div>
+        </div>
+
+      </div>
+    </section>
+
+    <!-- ========================================== -->
+    <!-- SECTION 2: 만능 멘트집 (모바일 원클릭 복사 카드) -->
+    <!-- ========================================== -->
+    <section id="sec-ment" class="space-y-4 pt-1">
+      <div class="flex items-center justify-between border-b border-slate-800 pb-2.5">
+        <div class="flex items-center gap-2">
+          <span class="w-6 h-6 rounded-md bg-amber-950 text-amber-300 border border-amber-800 flex items-center justify-center font-bold text-xs">💬</span>
+          <h2 class="text-base font-bold text-white">상황별 실전 만능 멘트 6선</h2>
+        </div>
+        <span class="text-[10px] text-amber-400 font-mono">Touch to Copy</span>
+      </div>
+
+      <div class="space-y-3">
+        <!-- Ment Card 1 -->
+        <div class="p-3.5 rounded-xl bg-slate-900 border border-slate-800 space-y-2">
+          <div class="flex items-center justify-between">
+            <span class="px-2 py-0.5 rounded bg-violet-950 text-violet-300 font-bold text-[10px]">1. 토의 시작 (시간 배분)</span>
+            <button onclick="copyText('ment1')" class="text-[10px] text-slate-400 hover:text-white px-2 py-1 rounded bg-slate-800"><i class="fa-regular fa-copy mr-1"></i>복사</button>
+          </div>
+          <p id="ment1" class="text-xs text-slate-200 leading-relaxed font-sans quote-box p-2.5 rounded">
+            "본격적인 논의에 앞서, 오늘 다룰 [주제]의 개념 범위를 명확히 하고 시작하면 좋을 것 같습니다. 주어진 30분을 효율적으로 쓰기 위해 초반 5분은 개념 정의, 중반 15분은 다각적 원인과 대안 검토, 마지막 5분은 최종 결론 도출로 배분해 보면 어떨까요?"
+          </p>
+        </div>
+
+        <!-- Ment Card 2 -->
+        <div class="p-3.5 rounded-xl bg-slate-900 border border-slate-800 space-y-2">
+          <div class="flex items-center justify-between">
+            <span class="px-2 py-0.5 rounded bg-emerald-950 text-emerald-300 font-bold text-[10px]">2. 타인 의견 인정 후 확장 (Yes, and)</span>
+            <button onclick="copyText('ment2')" class="text-[10px] text-slate-400 hover:text-white px-2 py-1 rounded bg-slate-800"><i class="fa-regular fa-copy mr-1"></i>복사</button>
+          </div>
+          <p id="ment2" class="text-xs text-slate-200 leading-relaxed font-sans quote-box p-2.5 rounded">
+            "A 지원자님께서 말씀해 주신 [키워드] 관점에 깊이 공감합니다. 그 말씀에 더하여(Yes, and), 이 문제를 기술적 효율성을 넘어 '인간의 주체성과 소외'라는 인문학적 층위로 한 걸음 더 확장해 본다면 훨씬 입체적인 논의가 될 것 같습니다."
+          </p>
+        </div>
+
+        <!-- Ment Card 3 -->
+        <div class="p-3.5 rounded-xl bg-slate-900 border border-slate-800 space-y-2">
+          <div class="flex items-center justify-between">
+            <span class="px-2 py-0.5 rounded bg-amber-950 text-amber-300 font-bold text-[10px]">3. 첨예한 대립 시 절충 (Win-Win)</span>
+            <button onclick="copyText('ment3')" class="text-[10px] text-slate-400 hover:text-white px-2 py-1 rounded bg-slate-800"><i class="fa-regular fa-copy mr-1"></i>복사</button>
+          </div>
+          <p id="ment3" class="text-xs text-slate-200 leading-relaxed font-sans quote-box p-2.5 rounded">
+            "지금 두 분께서 말씀해 주신 [A안의 가치(기술)]와 [B안의 가치(윤리)]는 배척되는 개념이라기보다 동전의 양면 같습니다. 두 안을 '단기적 기술 도입'과 '장기적 윤리 안전망'이라는 단계적 층위로 절충해 보면 어떨까요?"
+          </p>
+        </div>
+
+        <!-- Ment Card 4 -->
+        <div class="p-3.5 rounded-xl bg-slate-900 border border-slate-800 space-y-2">
+          <div class="flex items-center justify-between">
+            <span class="px-2 py-0.5 rounded bg-blue-950 text-blue-300 font-bold text-[10px]">4. 논의 산으로 갈 때 (회귀)</span>
+            <button onclick="copyText('ment4')" class="text-[10px] text-slate-400 hover:text-white px-2 py-1 rounded bg-slate-800"><i class="fa-regular fa-copy mr-1"></i>복사</button>
+          </div>
+          <p id="ment4" class="text-xs text-slate-200 leading-relaxed font-sans quote-box p-2.5 rounded">
+            "매우 의미 있는 디테일한 논의였습니다. 다만 주어진 시간이 한정된 만큼, 잠시 한 걸음 물러나 오늘 토의의 본래 질문이었던 '[핵심 아젠다]'로 돌아와 결론의 윤곽을 잡아볼 시점인 것 같습니다."
+          </p>
+        </div>
+
+        <!-- Ment Card 5 -->
+        <div class="p-3.5 rounded-xl bg-slate-900 border border-slate-800 space-y-2">
+          <div class="flex items-center justify-between">
+            <span class="px-2 py-0.5 rounded bg-cyan-950 text-cyan-300 font-bold text-[10px]">5. 침묵하는 동료 배려</span>
+            <button onclick="copyText('ment5')" class="text-[10px] text-slate-400 hover:text-white px-2 py-1 rounded bg-slate-800"><i class="fa-regular fa-copy mr-1"></i>복사</button>
+          </div>
+          <p id="ment5" class="text-xs text-slate-200 leading-relaxed font-sans quote-box p-2.5 rounded">
+            "지금까지 활발한 논의가 오갔는데요, 아까 경청해 주시던 C 지원자님의 생각도 무척 궁금합니다. 혹시 이 부분에 대해 어떤 관점을 갖고 계신지 말씀 나눠주실 수 있을까요?"
+          </p>
+        </div>
+
+        <!-- Ment Card 6 -->
+        <div class="p-3.5 rounded-xl bg-slate-900 border border-slate-800 space-y-2">
+          <div class="flex items-center justify-between">
+            <span class="px-2 py-0.5 rounded bg-indigo-950 text-indigo-300 font-bold text-[10px]">6. 최종 2분 전 랩업</span>
+            <button onclick="copyText('ment6')" class="text-[10px] text-slate-400 hover:text-white px-2 py-1 rounded bg-slate-800"><i class="fa-regular fa-copy mr-1"></i>복사</button>
+          </div>
+          <p id="ment6" class="text-xs text-slate-200 leading-relaxed font-sans quote-box p-2.5 rounded">
+            "종료 시간이 2분 정도 남았습니다. 오늘 우리 조가 도출한 결론을 세 가지로 요약해 보겠습니다. 첫째 [개념적 합의], 둘째 [핵심 대안], 셋째 [실천 방안]입니다. 이 내용으로 최종 결론을 맺어도 좋을까요?"
+          </p>
+        </div>
+      </div>
+    </section>
+
+    <!-- ========================================== -->
+    <!-- SECTION 3: 인문학 x AI 5대 핵심 주제 -->
+    <!-- ========================================== -->
+    <section id="sec-ai-topics" class="space-y-4 pt-1">
+      <div class="flex items-center justify-between border-b border-slate-800 pb-2.5">
+        <div class="flex items-center gap-2">
+          <span class="w-6 h-6 rounded-md bg-cyan-950 text-cyan-300 border border-cyan-800 flex items-center justify-center font-bold text-xs">🤖</span>
+          <h2 class="text-base font-bold text-white">인문학 × AI 5대 핵심 빈출 쟁점</h2>
+        </div>
+        <span class="text-[10px] text-cyan-400 font-mono">Key Scenarios</span>
+      </div>
+
+      <div class="space-y-3 text-xs">
+
+        <!-- Theme 1: 의사결정 위임 (신규) -->
+        <div class="p-3.5 rounded-xl bg-slate-900 border border-cyan-800/80 space-y-2">
+          <div class="flex items-center justify-between">
+            <span class="font-bold text-cyan-300 text-xs">1. AI에게 의사결정을 어디까지 맡겨야 하는가?</span>
+            <span class="text-[9px] px-1.5 py-0.5 rounded bg-cyan-950 text-cyan-400 border border-cyan-800">핵심 빈출</span>
+          </div>
+          <p class="text-slate-300 text-[11px] leading-relaxed">
+            • <strong>핵심 기준</strong>: '결과의 비가역성(되돌릴 수 있는가)'과 '인간 기본권 영향도'.<br>
+            • <strong>합격 포인트</strong>: 저위험·반복 분석은 전폭 위임하되, 생명/채용 등 고위험 영역은 AI 추천 + 인간 최종 승인의 <strong>'Human-in-the-loop'</strong> 구조를 명확히 제시.
+          </p>
+        </div>
+
+        <!-- Theme 2: 창의성/영혼 -->
+        <div class="p-3.5 rounded-xl bg-slate-900 border border-slate-800 space-y-2">
+          <span class="font-bold text-slate-200 text-xs block">2. 생성형 AI와 인간의 고유성 (창의성·영혼)</span>
+          <p class="text-slate-300 text-[11px] leading-relaxed">
+            • <strong>합격 포인트</strong>: '산출물(Output)'의 독창성보다 **'의도(Intent)와 삶의 경험(Context)'**의 차이 강조. AI는 통계적 재조합일 뿐, 고통과 결핍에서 나오는 실존적 의도는 인간만의 고유 영역.
+          </p>
+        </div>
+
+        <!-- Theme 3: AI 윤리/트롤리 -->
+        <div class="p-3.5 rounded-xl bg-slate-900 border border-slate-800 space-y-2">
+          <span class="font-bold text-slate-200 text-xs block">3. AI 윤리와 트롤리 딜레마 (판단 외주화)</span>
+          <p class="text-slate-300 text-[11px] leading-relaxed">
+            • <strong>합격 포인트</strong>: 무결점 알고리즘은 불가능함을 인정하고, 판단 과정의 **설명가능성(XAI)**과 **사고 시 법적 책임 추적성(Accountability)** 제도화 제안.
+          </p>
+        </div>
+
+        <!-- Theme 4: 노동의 종말/해방 -->
+        <div class="p-3.5 rounded-xl bg-slate-900 border border-slate-800 space-y-2">
+          <span class="font-bold text-slate-200 text-xs block">4. 노동의 종말인가 노동의 해방인가</span>
+          <p class="text-slate-300 text-[11px] leading-relaxed">
+            • <strong>합격 포인트</strong>: 일자리의 파괴가 아닌 **'업무의 재정의(Task Transformation)'**. 단순 반복은 AI에 넘기고 인간은 대면 돌봄과 오케스트레이션에 집중. 소외 계층을 위한 전환 교육 병행.
+          </p>
+        </div>
+
+        <!-- Theme 5: 사유의 퇴화 -->
+        <div class="p-3.5 rounded-xl bg-slate-900 border border-slate-800 space-y-2">
+          <span class="font-bold text-slate-200 text-xs block">5. 지능의 외주화와 사유의 퇴화 vs 인지 확장</span>
+          <p class="text-slate-300 text-[11px] leading-relaxed">
+            • <strong>합격 포인트</strong>: 계산기가 수학적 직관을 없애지 않았듯, AI는 **'확장된 인지(Extended Mind)'**. 단, 비판적 의심(Critical Doubt)이 없으면 퇴화하므로 '질문 문해력(Literacy)' 교육 필수.
+          </p>
+        </div>
+
+      </div>
+    </section>
+
+    <!-- ========================================== -->
+    <!-- SECTION 4: MECE 4단계 & 감점 금기 -->
+    <!-- ========================================== -->
+    <section id="sec-essence" class="space-y-4 pt-1">
+      <div class="flex items-center justify-between border-b border-slate-800 pb-2.5">
+        <div class="flex items-center gap-2">
+          <span class="w-6 h-6 rounded-md bg-emerald-950 text-emerald-300 border border-emerald-800 flex items-center justify-center font-bold text-xs">⚖️</span>
+          <h2 class="text-base font-bold text-white">면접관 평가표 & 즉시 탈락 4대 금기</h2>
+        </div>
+        <span class="text-[10px] text-emerald-400 font-mono">Score Sheet</span>
+      </div>
+
+      <div class="grid grid-cols-1 md:grid-cols-2 gap-3 text-xs">
+        <div class="p-3.5 rounded-xl bg-slate-900 border border-slate-800 space-y-2">
+          <span class="font-bold text-emerald-400 text-xs block">면접관 배점 기준</span>
+          <ul class="space-y-1.5 text-slate-300 text-[11px]">
+            <li class="flex justify-between"><span>• 경청 & 타인 배려 태도:</span> <strong class="text-emerald-400 font-mono">35%</strong></li>
+            <li class="flex justify-between"><span>• 논리적 구조화 (두괄식):</span> <strong class="text-emerald-400 font-mono">30%</strong></li>
+            <li class="flex justify-between"><span>• 조율 및 합의안 도출 기여:</span> <strong class="text-emerald-400 font-mono">25%</strong></li>
+            <li class="flex justify-between"><span>• 전달력 및 스피치 태도:</span> <strong class="text-emerald-400 font-mono">10%</strong></li>
+          </ul>
+        </div>
+
+        <div class="p-3.5 rounded-xl bg-rose-950/20 border border-rose-900/40 space-y-1.5">
+          <span class="font-bold text-rose-400 text-xs block">절대 탈락 4대 행동 (Don'ts)</span>
+          <p class="text-[11px] text-slate-300 leading-relaxed">
+            1. <strong>발언 독점</strong>: 혼자 1분 30초 이상 떠들기<br>
+            2. <strong>말 끊기</strong>: 상대 말이 끝나기 전 치고 들어가기<br>
+            3. <strong>딴청 피우기</strong>: 남이 말할 때 자기 메모만 보기<br>
+            4. <strong>말꼬리 잡기</strong>: 지엽적 단어 오류 반박에 집착
+          </p>
+        </div>
+      </div>
+    </section>
+
+  </main>
+
+  <!-- Mobile Bottom Sticky Bar -->
+  <div class="fixed bottom-0 left-0 right-0 bg-slate-900/95 border-t border-slate-800 p-2.5 backdrop-blur-md flex items-center justify-around z-50 md:hidden">
+    <a href="#sec-roleplay" class="flex flex-col items-center text-violet-400 text-[10px]">
+      <i class="fa-solid fa-masks-theater text-sm mb-0.5"></i>
+      <span>롤플레잉</span>
+    </a>
+    <a href="#sec-ment" class="flex flex-col items-center text-slate-400 hover:text-amber-400 text-[10px]">
+      <i class="fa-solid fa-comment-dots text-sm mb-0.5"></i>
+      <span>만능멘트</span>
+    </a>
+    <a href="#sec-ai-topics" class="flex flex-col items-center text-slate-400 hover:text-cyan-400 text-[10px]">
+      <i class="fa-solid fa-robot text-sm mb-0.5"></i>
+      <span>AI 쟁점</span>
+    </a>
+    <a href="#sec-essence" class="flex flex-col items-center text-slate-400 hover:text-emerald-400 text-[10px]">
+      <i class="fa-solid fa-clipboard-check text-sm mb-0.5"></i>
+      <span>평가기준</span>
+    </a>
+  </div>
+
+  <!-- Toast Alert -->
+  <div id="toast" class="fixed bottom-16 md:bottom-6 left-1/2 -translate-x-1/2 bg-violet-600 text-white text-xs px-4 py-2 rounded-full shadow-lg opacity-0 transition-opacity duration-300 pointer-events-none z-50 flex items-center gap-1.5 font-medium">
+    <i class="fa-solid fa-check"></i> 멘트가 복사되었습니다!
+  </div>
+
+  <script>
+    function copyText(elementId) {
+      const text = document.getElementById(elementId).innerText;
+      navigator.clipboard.writeText(text).then(() => {
+        const toast = document.getElementById('toast');
+        toast.classList.remove('opacity-0');
+        setTimeout(() => {
+          toast.classList.add('opacity-0');
+        }, 2000);
+      });
+    }
+  </script>
+</body>
+</html>
