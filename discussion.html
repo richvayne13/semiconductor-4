@@ -93,7 +93,17 @@
 
     <!-- Quick Touch Nav Carousel -->
     <div class="max-w-4xl mx-auto flex space-x-2 text-xs overflow-x-auto pt-2.5 pb-0.5 custom-scrollbar">
-      <a href="#sec-roleplay" class="px-3 py-1.5 rounded-full bg-violet-600 text-white font-semibold flex items-center gap-1.5 whitespace-nowrap shadow-sm shadow-violet-600/30">
+      
+    <a href="#sec-semi-deep-qa" class="flex flex-col items-center text-amber-400 text-[10px] font-bold">
+      <i class="fa-solid fa-microchip text-sm mb-0.5"></i>
+      <span>AI·공정20</span>
+    </a>
+    <a href="#sec-semi-pe" class="flex flex-col items-center text-emerald-400 text-[10px] font-bold">
+      <i class="fa-solid fa-vial-circle-check text-sm mb-0.5"></i>
+      <span>양산IF</span>
+    </a>
+
+    <a href="#sec-roleplay" class="px-3 py-1.5 rounded-full bg-violet-600 text-white font-semibold flex items-center gap-1.5 whitespace-nowrap shadow-sm shadow-violet-600/30">
         <i class="fa-solid fa-masks-theater text-xs"></i> 3대 실전 롤플레잉
       </a>
       <a href="#sec-ai-topics" class="px-3 py-1.5 rounded-full bg-slate-800 text-slate-300 font-medium hover:text-white flex items-center gap-1.5 whitespace-nowrap border border-slate-700">
@@ -114,6 +124,350 @@
     <!-- ========================================== -->
     <!-- SECTION 1: 실전 롤플레잉 3대 시나리오 (탭 전환) -->
     <!-- ========================================== -->
+    
+    <!-- ======================================================== -->
+    <!-- SECTION 0: 반도체 양산기술(PE) AI 심층 10선 & 단위공정 10선 -->
+    <!-- ======================================================== -->
+    <section id="sec-semi-deep-qa" class="space-y-4 pt-1">
+      <div class="flex items-center justify-between border-b border-slate-800 pb-2.5">
+        <div class="flex items-center gap-2">
+          <span class="w-6 h-6 rounded-md bg-amber-950 text-amber-400 border border-amber-750 flex items-center justify-center font-bold text-xs">⚡</span>
+          <h2 class="text-base font-bold text-white">반도체 AI 10선 & 단위공정 10선 (심층 Q&A)</h2>
+        </div>
+        <span class="text-[10px] text-amber-400 font-mono">PE/PIE Deep Dive</span>
+      </div>
+
+      <!-- Selector Tabs -->
+      <div class="flex space-x-2 pb-1 text-xs">
+        <button onclick="switchDeepQA('deep-ai')" id="tab-deep-ai" class="flex-1 py-2 rounded-lg border border-amber-600 bg-amber-500/20 text-amber-300 font-bold text-center transition">
+          🤖 반도체 AI 심층 질문 10선
+        </button>
+        <button onclick="switchDeepQA('deep-proc')" id="tab-deep-proc" class="flex-1 py-2 rounded-lg border border-slate-700 bg-slate-800/80 text-slate-400 font-bold text-center transition">
+          ⚙️ 팹 단위공정·양산 10선
+        </button>
+      </div>
+
+      <!-- 1. AI 10선 컨테이너 -->
+      <div id="deep-ai-content" class="space-y-3">
+        <!-- AI 1 -->
+        <div class="p-3.5 bg-slate-900 border border-slate-800 rounded-xl space-y-2">
+          <div class="flex items-center justify-between">
+            <span class="text-xs font-bold text-amber-400">Q1. 가상계측(VM, Virtual Metrology)의 예측 오차 리스크 제어</span>
+            <span class="text-[10px] bg-slate-800 text-slate-400 px-2 py-0.5 rounded">FDC 연계</span>
+          </div>
+          <p class="text-xs text-slate-300 leading-relaxed">
+            "가상계측은 모든 웨이퍼를 물리 계측할 수 없는 텍트 타임 병목을 해결하지만 드리프트 오차 위험이 있습니다. 저는 <strong>예측 신뢰도 지수(Confidence Score)를 도입하여 불확실성이 임계치를 넘거나 스펙 가드밴드 경계에 걸린 웨이퍼는 엘립소미터/CD-SEM으로 강제 인터락을 걸어 실측하도록 Closed-loop 체계</strong>를 구축하겠습니다."
+          </p>
+        </div>
+
+        <!-- AI 2 -->
+        <div class="p-3.5 bg-slate-900 border border-slate-800 rounded-xl space-y-2">
+          <div class="flex items-center justify-between">
+            <span class="text-xs font-bold text-amber-400">Q2. AI 추천 레시피가 물리·화학적 법칙과 상충할 때 (XAI 문제)</span>
+            <span class="text-[10px] bg-slate-800 text-slate-400 px-2 py-0.5 rounded">설명가능성</span>
+          </div>
+          <p class="text-xs text-slate-300 leading-relaxed">
+            "AI는 상관관계를 보지만 반도체는 물리적 인과관계로 작동합니다. AI가 일시적 노이즈에 과적합되어 비상식적인 파라미터를 추천했을 수 있으므로, <strong>XAI(SHAP 기여도 분석)로 인과관계를 역추적하고 물리적 설명이 불가능한 안은 즉시 배제</strong>하겠습니다. 필요 시 더미 웨이퍼 1장으로 메커니즘을 입증한 뒤에만 수용합니다."
+          </p>
+        </div>
+
+        <!-- AI 3 -->
+        <div class="p-3.5 bg-slate-900 border border-slate-800 rounded-xl space-y-2">
+          <div class="flex items-center justify-between">
+            <span class="text-xs font-bold text-amber-400">Q3. 부품 마모 및 가스 변경 시 발생하는 데이터 드리프트 극복</span>
+            <span class="text-[10px] bg-slate-800 text-slate-400 px-2 py-0.5 rounded">적응형 AI</span>
+          </div>
+          <p class="text-xs text-slate-300 leading-relaxed">
+            "포커스 링 마모나 PM 주기에 따라 FDC 센서 기준선이 이동합니다. 고정 모델 대신 <strong>'챔버 누적 RF-Hour'와 'PM 이력'을 메타 피처로 결합하고, 슬라이딩 윈도우 및 전이학습(Transfer Learning)</strong>을 적용해 챔버 라이프사이클에 맞춤화된 적응형 기준선(Adaptive Baseline)을 구축하겠습니다."
+          </p>
+        </div>
+
+        <!-- AI 4 -->
+        <div class="p-3.5 bg-slate-900 border border-slate-800 rounded-xl space-y-2">
+          <div class="flex items-center justify-between">
+            <span class="text-xs font-bold text-amber-400">Q4. 자율 제어 팹(Autonomous FAB) 시대 엔지니어의 핵심 역할</span>
+            <span class="text-[10px] bg-slate-800 text-slate-400 px-2 py-0.5 rounded">직무 가치</span>
+          </div>
+          <p class="text-xs text-slate-300 leading-relaxed">
+            "루틴한 파라미터 제어는 AI가 맡더라도, <strong>학습 데이터가 없는 신규 노드 개발과 복합 원인의 비정형 수율 급락을 해결하는 도메인 지식은 대체 불가</strong>합니다. 엔지니어는 AI가 올바른 물리적 안전 경계 내에서 작동하도록 통제하는 시스템 아키텍트이자 공정 오케스트레이터로 진화해야 합니다."
+          </p>
+        </div>
+
+        <!-- AI 5 -->
+        <div class="p-3.5 bg-slate-900 border border-slate-800 rounded-xl space-y-2">
+          <div class="flex items-center justify-between">
+            <span class="text-xs font-bold text-amber-400">Q5. 공정 노하우를 LLM에 학습시킬 때의 보안 유출 및 환각 방지</span>
+            <span class="text-[10px] bg-slate-800 text-slate-400 px-2 py-0.5 rounded">온프레미스 RAG</span>
+          </div>
+          <p class="text-xs text-slate-300 leading-relaxed">
+            "국가 핵심 기술인 레시피 유출을 막기 위해 <strong>외부 클라우드가 아닌 사내 폐쇄망 온프레미스 인프라에 LLM을 구축</strong>합니다. 정식 승인된 표준작업지침서(SOP)와 8D 보고서만을 인덱싱하는 <strong>RAG(검색증강생성) 아키텍처를 적용하고 출처 문서 번호를 명시</strong>하여 환각을 원천 차단하겠습니다."
+          </p>
+        </div>
+
+        <!-- AI 6 -->
+        <div class="p-3.5 bg-slate-900 border border-slate-800 rounded-xl space-y-2">
+          <div class="flex items-center justify-between">
+            <span class="text-xs font-bold text-amber-400">Q6. FDC 이상 감지의 알람 피로도(Alarm Fatigue) 해결 방안</span>
+            <span class="text-[10px] bg-slate-800 text-slate-400 px-2 py-0.5 rounded">다변량 통계</span>
+          </div>
+          <p class="text-xs text-slate-300 leading-relaxed">
+            "센서별 단변량 상하한 알람은 허위 알람을 유발해 치명 신호를 가립니다. <strong>다변량 PCA 기반 T²/Q-통계량으로 챔버 종합 이상 점수를 산출하고, KLA 결함 맵과 실제 상관성이 입증된 조합에만 인터락을 부여</strong>하여 알람을 3단계로 계층화하겠습니다."
+          </p>
+        </div>
+
+        <!-- AI 7 -->
+        <div class="p-3.5 bg-slate-900 border border-slate-800 rounded-xl space-y-2">
+          <div class="flex items-center justify-between">
+            <span class="text-xs font-bold text-amber-400">Q7. 정상 웨이퍼(99.9%) 대비 극소수 불량(0.1%) 데이터 불균형 극복</span>
+            <span class="text-[10px] bg-slate-800 text-slate-400 px-2 py-0.5 rounded">오토인코더</span>
+          </div>
+          <p class="text-xs text-slate-300 leading-relaxed">
+            "양산 라인은 불량 데이터가 극히 적으므로 지도학습 분류보다 <strong>정상 웨이퍼의 골든 프로파일만 학습시킨 오토인코더(AutoEncoder) 기반 비지도 이상치 탐지를 우선 적용</strong>합니다. 재구성 오차가 큰 웨이퍼를 신속 스크리닝하고, TCAD 결합 합성 데이터로 재현율을 높이겠습니다."
+          </p>
+        </div>
+
+        <!-- AI 8 -->
+        <div class="p-3.5 bg-slate-900 border border-slate-800 rounded-xl space-y-2">
+          <div class="flex items-center justify-between">
+            <span class="text-xs font-bold text-amber-400">Q8. 예지보전(PdM) AI의 부품 잔여 수명(RUL) 추천 수용 기준</span>
+            <span class="text-[10px] bg-slate-800 text-slate-400 px-2 py-0.5 rounded">기회비용 평가</span>
+          </div>
+          <p class="text-xs text-slate-300 leading-relaxed">
+            "AI가 예측한 부품 수명이 남아있더라도 프리미엄 본 랏 투입 직전이라면 예방 정비를 앞당기는 것이 안전합니다. <strong>'설비 셧다운 다운타임 손실'과 '공정 중 파손 시 웨이퍼 스크랩 비용'을 비교 평가하여 생산계획팀과 안전 마진을 두고 PM 일정을 최종 확정</strong>하겠습니다."
+          </p>
+        </div>
+
+        <!-- AI 9 -->
+        <div class="p-3.5 bg-slate-900 border border-slate-800 rounded-xl space-y-2">
+          <div class="flex items-center justify-between">
+            <span class="text-xs font-bold text-amber-400">Q9. 챔버 단 에지 AI(Edge AI)와 중앙 클라우드 간 역할 분담</span>
+            <span class="text-[10px] bg-slate-800 text-slate-400 px-2 py-0.5 rounded">하이브리드</span>
+          </div>
+          <p class="text-xs text-slate-300 leading-relaxed">
+            "지연 시간과 분석 목적에 따라 철저히 분산합니다. <strong>플라즈마 아킹, 압력 급변 등 밀리초(ms) 단위 긴급 정지는 설비 내부 에지 AI가 즉시 제어</strong>하고, 공정 간 다층 오버레이 상관관계나 장기 수율 트렌드 분석은 중앙 클라우드 빅데이터 플랫폼에서 대규모 분산 처리하겠습니다."
+          </p>
+        </div>
+
+        <!-- AI 10 -->
+        <div class="p-3.5 bg-slate-900 border border-slate-800 rounded-xl space-y-2">
+          <div class="flex items-center justify-between">
+            <span class="text-xs font-bold text-amber-400">Q10. AI가 자동 생성한 수율 분석 리포트의 신뢰성 검증 방법</span>
+            <span class="text-[10px] bg-slate-800 text-slate-400 px-2 py-0.5 rounded">Fact Check</span>
+          </div>
+          <p class="text-xs text-slate-300 leading-relaxed">
+            "초안 작성 시간은 단축하되 3대 검증을 거칩니다. <strong>① 수율 및 Cpk 수치가 실제 MES/SPC 원천 데이터와 1:1 일치하는지 Fact-check, ② 제시된 대책이 팹 설비의 제어 가능 범위 내인지 검증, ③ 엔지니어 본인의 물리적 해석과 책임 서명을 기재</strong>하여 완벽성을 보증합니다."
+          </p>
+        </div>
+      </div>
+
+      <!-- 2. 공정 10선 컨테이너 -->
+      <div id="deep-proc-content" class="space-y-3 hidden">
+        <!-- Proc 1 -->
+        <div class="p-3.5 bg-slate-900 border border-slate-800 rounded-xl space-y-2">
+          <div class="flex items-center justify-between">
+            <span class="text-xs font-bold text-cyan-400">Q1. 팹 내 급격한 수율 급락(Yield Drop) 시 골든타임 대응</span>
+            <span class="text-[10px] bg-slate-800 text-slate-400 px-2 py-0.5 rounded">Commonality</span>
+          </div>
+          <p class="text-xs text-slate-300 leading-relaxed">
+            "피해 랏 확산을 막는 것이 최우선입니다. <strong>불량 랏들의 공통 장비·챔버를 스크리닝하는 Commonality Analysis를 즉시 가동하고, EDS 불량 맵과 인라인 결함 맵을 대조</strong>해 발생 공정을 식각/박막/포토 중 압축합니다. 의심 챔버는 즉각 투입 중단(Hold) 인터락을 걸고 OCAP에 따라 더미 퀄을 진행하겠습니다."
+          </p>
+        </div>
+
+        <!-- Proc 2 -->
+        <div class="p-3.5 bg-slate-900 border border-slate-800 rounded-xl space-y-2">
+          <div class="flex items-center justify-between">
+            <span class="text-xs font-bold text-cyan-400">Q2. 건식 식각 중 마이크로 로딩 효과(Micro-loading) 및 CD 산포 개선</span>
+            <span class="text-[10px] bg-slate-800 text-slate-400 px-2 py-0.5 rounded">펄스 플라즈마</span>
+          </div>
+          <p class="text-xs text-slate-300 leading-relaxed">
+            "패턴 밀집도 차이에 따른 라디칼 가스 소모 불균일이 원인입니다. <strong>챔버 압력을 낮춰 가스의 평균자유행정(MFP)을 늘리고 반응 율속 상태로 전환하며, 펄스 플라즈마(Pulsed RF)를 적용</strong>하여 좁은 트렌치 내부까지 라디칼이 균일하게 도달하도록 레시피를 튜닝하겠습니다."
+          </p>
+        </div>
+
+        <!-- Proc 3 -->
+        <div class="p-3.5 bg-slate-900 border border-slate-800 rounded-xl space-y-2">
+          <div class="flex items-center justify-between">
+            <span class="text-xs font-bold text-cyan-400">Q3. 고종횡비 트렌치 박막 증착 시 보이드(Void) 발생 대처</span>
+            <span class="text-[10px] bg-slate-800 text-slate-400 px-2 py-0.5 rounded">Area-Selective ALD</span>
+          </div>
+          <p class="text-xs text-slate-300 leading-relaxed">
+            "트렌치 입구 오버행(Overhang)으로 내부가 막히는 보이드 방지를 위해 <strong>CVD에서 원자층 자기제어 특성의 ALD 공정으로 전환</strong>합니다. 퍼지 시간을 늘려 바닥까지 전구체를 균일 침투시키고, 상부 증착을 지연시키는 억제제(Inhibitor)를 선행 흡착시켜 완벽한 갭필(Gap-fill)을 달성하겠습니다."
+          </p>
+        </div>
+
+        <!-- Proc 4 -->
+        <div class="p-3.5 bg-slate-900 border border-slate-800 rounded-xl space-y-2">
+          <div class="flex items-center justify-between">
+            <span class="text-xs font-bold text-cyan-400">Q4. 포토 공정 오버레이(Overlay) 에러 발생 시 리워크 판단 기준</span>
+            <span class="text-[10px] bg-slate-800 text-slate-400 px-2 py-0.5 rounded">가역적 공정</span>
+          </div>
+          <p class="text-xs text-slate-300 leading-relaxed">
+            "포토는 식각 전 PR을 스트립하면 원상복구 가능한 유일한 가역적 공정입니다. <strong>오버레이 에러가 허용 스펙을 벗어나면 즉각 홀드하고 리워크를 결정</strong>합니다. 동시에 스캐너 노광 장비에 <strong>고차 오버레이 보정 모델(HOPC) 파라미터를 피드백 갱신</strong>하여 후속 랏의 불량을 원천 차단하겠습니다."
+          </p>
+        </div>
+
+        <!-- Proc 5 -->
+        <div class="p-3.5 bg-slate-900 border border-slate-800 rounded-xl space-y-2">
+          <div class="flex items-center justify-between">
+            <span class="text-xs font-bold text-cyan-400">Q5. CMP 공정 중 금속 배선 디싱(Dishing) 및 침식 결함 제어</span>
+            <span class="text-[10px] bg-slate-800 text-slate-400 px-2 py-0.5 rounded">고선택비 슬러리</span>
+          </div>
+          <p class="text-xs text-slate-300 leading-relaxed">
+            "절연막과 구리 간 연마 속도 차이로 중심부가 파이는 디싱을 막기 위해 <strong>고선택비 슬러리를 채택하고, CMP 폴리싱 헤드의 멀티 존 에어백 압력을 조절해 반경별 하중을 차등 제어</strong>하겠습니다. 아울러 모터 토크 및 광학식 EPD 알고리즘을 최적화해 과연마를 최소화하겠습니다."
+          </p>
+        </div>
+
+        <!-- Proc 6 -->
+        <div class="p-3.5 bg-slate-900 border border-slate-800 rounded-xl space-y-2">
+          <div class="flex items-center justify-between">
+            <span class="text-xs font-bold text-cyan-400">Q6. 웨이퍼 최외곽 5mm 에지(Edge) 영역 수율 저하 극복</span>
+            <span class="text-[10px] bg-slate-800 text-slate-400 px-2 py-0.5 rounded">튜너블 포커스 링</span>
+          </div>
+          <p class="text-xs text-slate-300 leading-relaxed">
+            "외곽부 플라즈마 시스 전계 휨과 가스 난류화를 보정하기 위해 <strong>포커스 링 높이와 바이어스를 독립 제어하는 튜너블 포커스 링(TFR)을 도입해 전계를 수직 교정</strong>하겠습니다. 또한 웨이퍼 끝단 경사면에 누적된 불필요한 막을 제거하는 베벨 에치(Bevel Etch) 주기를 최적화하겠습니다."
+          </p>
+        </div>
+
+        <!-- Proc 7 -->
+        <div class="p-3.5 bg-slate-900 border border-slate-800 rounded-xl space-y-2">
+          <div class="flex items-center justify-between">
+            <span class="text-xs font-bold text-cyan-400">Q7. 정기 PM 직후 챔버 퀄(Qualification) 기준 및 절차</span>
+            <span class="text-[10px] bg-slate-800 text-slate-400 px-2 py-0.5 rounded">시즈닝 퀄</span>
+          </div>
+          <p class="text-xs text-slate-300 leading-relaxed">
+            "대기 오염물 노출 챔버에 바로 양산 랏을 넣지 않습니다. <strong>진공 베이킹 및 플라즈마 방전으로 내벽을 코팅하는 시즈닝(Seasoning) 후 베어 웨이퍼로 파티클을 측정</strong>하고, 모니터 웨이퍼로 식각률과 균일도가 3-Sigma 관리선 내에 안착했음을 확인한 후에만 양산 랏을 릴리즈합니다."
+          </p>
+        </div>
+
+        <!-- Proc 8 -->
+        <div class="p-3.5 bg-slate-900 border border-slate-800 rounded-xl space-y-2">
+          <div class="flex items-center justify-between">
+            <span class="text-xs font-bold text-cyan-400">Q8. 결함 검사 샘플링 비율과 텍트 타임 간 최적화 전략</span>
+            <span class="text-[10px] bg-slate-800 text-slate-400 px-2 py-0.5 rounded">동적 샘플링</span>
+          </div>
+          <p class="text-xs text-slate-300 leading-relaxed">
+            "전수 검사는 팹 병목을, 과소 샘플링은 불량 누락을 초래합니다. 저는 <strong>'동적 샘플링(Dynamic Sampling)'을 설계하여 정상 챔버 랏은 1매(4%)만 스크리닝하되, FDC 센서 변동 랏이나 PM 직후 24시간 이내 챔버 랏은 100% 전수 검사로 자동 전환</strong>되도록 구현하겠습니다."
+          </p>
+        </div>
+
+        <!-- Proc 9 -->
+        <div class="p-3.5 bg-slate-900 border border-slate-800 rounded-xl space-y-2">
+          <div class="flex items-center justify-between">
+            <span class="text-xs font-bold text-cyan-400">Q9. 공정 간 큐타임(Q-Time) 초과 웨이퍼 발생 시 OCAP 처리 절차</span>
+            <span class="text-[10px] bg-slate-800 text-slate-400 px-2 py-0.5 rounded">자연산화막 제거</span>
+          </div>
+          <p class="text-xs text-slate-300 leading-relaxed">
+            "대기 중 자연산화막과 수분 흡착으로 소자 특성이 훼손될 수 있습니다. <strong>Q-Time 초과 랏은 시스템 자동 Hold 인터락을 걸고, OCAP 규정에 따라 DHF(희석 불산) 세정으로 표면 산화막을 제거하는 리클린(Re-clean)을 재수행</strong>한 뒤 Hot Lot으로 최우선 처리하겠습니다."
+          </p>
+        </div>
+
+        <!-- Proc 10 -->
+        <div class="p-3.5 bg-slate-900 border border-slate-800 rounded-xl space-y-2">
+          <div class="flex items-center justify-between">
+            <span class="text-xs font-bold text-cyan-400">Q10. 납기 압박 상황에서 품질 규격(Guardband) 완화 요청 대응</span>
+            <span class="text-[10px] bg-slate-800 text-slate-400 px-2 py-0.5 rounded">MRB 심의</span>
+          </div>
+          <p class="text-xs text-slate-300 leading-relaxed">
+            "가드밴드는 소자의 10년 수명을 보장하는 최후 방어선이므로 엔지니어 독단 완화는 절대 금물입니다. <strong>스펙 벗어남이 동작 특성에 미치는 영향을 TCAD 및 신뢰성 데이터로 즉시 검증하고, 리스크가 0.1%라도 있다면 품질보증팀 공식 심의 기구(MRB)의 공식 승인을 거쳐서만 진행</strong>하겠습니다."
+          </p>
+        </div>
+      </div>
+    </section>
+
+    <!-- ======================================================== -->
+    <!-- SECTION 0.5: 반도체 양산기술 엔지니어 상황(IF)면접 6선 -->
+    <!-- ======================================================== -->
+    <section id="sec-semi-pe" class="space-y-4 pt-1">
+      <div class="flex items-center justify-between border-b border-slate-800 pb-2.5">
+        <div class="flex items-center gap-2">
+          <span class="w-6 h-6 rounded-md bg-emerald-950 text-emerald-400 border border-emerald-750 flex items-center justify-center font-bold text-xs">🔬</span>
+          <h2 class="text-base font-bold text-white">반도체 양산기술 상황(IF)면접 실전 답안</h2>
+        </div>
+        <span class="text-[10px] text-emerald-400 font-mono">PE Situation Guide</span>
+      </div>
+
+      <!-- AI 의사결정 위임 범위 핵심 카드 -->
+      <div class="p-4 bg-gradient-to-r from-slate-900 to-emerald-950/40 border border-emerald-800/60 rounded-xl space-y-2">
+        <div class="flex items-center justify-between">
+          <span class="text-xs font-bold text-emerald-400">💡 [토의/면접 핵심] AI에게 공정 의사결정을 어디까지 맡길 것인가?</span>
+          <span class="text-[10px] bg-emerald-900/80 text-emerald-300 px-2 py-0.5 rounded">Human-in-the-Loop</span>
+        </div>
+        <p class="text-xs text-slate-200 leading-relaxed">
+          "초당 수만 건의 <strong>FDC 시계열 데이터 분석과 APC 파라미터 보정값 추천은 AI에게 전면 위임</strong>하여 실시간 이상을 감지하되, 
+          <strong>양산 본 랏(Main Lot) 투입, 레시피 강제 변경, 스펙 인가(Release)는 엔지니어가 물리적 도메인 지식과 모니터 웨이퍼 실측으로 최종 검증하여 승인</strong>하는 안전 인터락 체계를 확립해야 합니다."
+        </p>
+      </div>
+
+      <!-- IF 1 ~ 6 리스트 -->
+      <div class="space-y-3">
+        <!-- IF 1 -->
+        <div class="p-3.5 bg-slate-900 border border-slate-800 rounded-xl space-y-1.5">
+          <div class="flex items-center justify-between">
+            <span class="text-xs font-bold text-slate-200">Q1. 상사 A안(공정 조건 즉시 변경) vs 내 B안(기존 조건 유지 및 FDC 재분석)</span>
+            <span class="text-[10px] bg-slate-800 text-slate-400 px-1.5 py-0.5 rounded">스플릿 제안</span>
+          </div>
+          <p class="text-xs text-slate-400 leading-relaxed">
+            "상사의 A안을 존중하여 신속히 준비하되, 인라인 산포 리스크를 줄이기 위해 <strong>본 랏 적용 전 모니터 웨이퍼 1~2매에 A/B안 스플릿 테스트를 진행하여 결함을 먼저 확인하자고 정중히 건의</strong>하겠습니다. 제 B안은 A안의 리스크를 방어하는 백업 데이터로 상사분을 서포트하겠습니다."
+          </p>
+        </div>
+
+        <!-- IF 2 -->
+        <div class="p-3.5 bg-slate-900 border border-slate-800 rounded-xl space-y-1.5">
+          <div class="flex items-center justify-between">
+            <span class="text-xs font-bold text-rose-400">Q2. 부당한 지시 (스펙 아웃 웨이퍼 강제 릴리즈 압박)</span>
+            <span class="text-[10px] bg-rose-950 text-rose-400 px-1.5 py-0.5 rounded border border-rose-800">품질 골든룰</span>
+          </div>
+          <p class="text-xs text-slate-400 leading-relaxed">
+            "단순 업무 차이인지 사규와 품질 골든 룰을 위반하는 지시인지 구분하겠습니다. OCAP상 불량 의심 랏의 강제 진행이라면 <strong>'제가 규정을 오해했을 수 있으니 FDC 파티클 트렌드와 과거 유사 불량 이력을 바탕으로 위험성을 재검토해주실 수 있겠습니까?'</strong>라고 정중히 여쭙고, 강요 시 사내 QA 공식 절차에 따라 자문을 구하겠습니다."
+          </p>
+        </div>
+
+        <!-- IF 3 -->
+        <div class="p-3.5 bg-slate-900 border border-slate-800 rounded-xl space-y-1.5">
+          <div class="flex items-center justify-between">
+            <span class="text-xs font-bold text-emerald-400">Q3. 기존 비효율 업무 vs 신규 효율 방식 (파이썬/AI 자동 스크리닝)</span>
+            <span class="text-[10px] bg-slate-800 text-slate-400 px-1.5 py-0.5 rounded">히스토리 존중</span>
+          </div>
+          <p class="text-xs text-slate-400 leading-relaxed">
+            "기존 방식이 유지되어 온 고객사 감사 요구조건이나 안전 히스토리를 먼저 확인하겠습니다. 신규 자동화의 안전성을 입증하기 위해 <strong>기존 라인과 2주간 Shadow Mode로 병행 운용하여 '오탐/미탐 0건'의 신뢰성 데이터를 확보</strong>한 뒤, 상사 승인을 얻어 SOP를 개정하겠습니다."
+          </p>
+        </div>
+
+        <!-- IF 4 -->
+        <div class="p-3.5 bg-slate-900 border border-slate-800 rounded-xl space-y-1.5">
+          <div class="flex items-center justify-between">
+            <span class="text-xs font-bold text-amber-400">Q4. 동료와 갈등 (식각 vs 세정 공정, 또는 공정 vs 설비 책임 공방)</span>
+            <span class="text-[10px] bg-slate-800 text-slate-400 px-1.5 py-0.5 rounded">데이터 정렬</span>
+          </div>
+          <p class="text-xs text-slate-400 leading-relaxed">
+            "술자리로 얼버무리지 않고 <strong>'수율 회복'이라는 공동의 목표를 먼저 상기</strong>시키겠습니다. 감정을 배제하고 <strong>챔버 FDC 로그와 KLA 결함 맵 데이터를 테이블에 올려 객관적인 인터페이스 오차를 규명</strong>하겠습니다. 조치 후 가벼운 커피 한잔으로 상호 신뢰를 다지겠습니다."
+          </p>
+        </div>
+
+        <!-- IF 5 -->
+        <div class="p-3.5 bg-slate-900 border border-slate-800 rounded-xl space-y-1.5">
+          <div class="flex items-center justify-between">
+            <span class="text-xs font-bold text-sky-400">Q5. 상사와 의견 충돌 (공정 마진 및 타깃 CD 스펙 설정 이견)</span>
+            <span class="text-[10px] bg-slate-800 text-slate-400 px-1.5 py-0.5 rounded">1-Page 리포트</span>
+          </div>
+          <p class="text-xs text-slate-400 leading-relaxed">
+            "상사분의 거시적 판단 맥락을 먼저 경청하겠습니다. 후속 공정의 브릿지 불량 위험이 명확하다면 감정적 설득 대신 <strong>'TCAD 시뮬레이션 결과와 예상 수율 손실(Yield Loss) 추정치가 담긴 1장짜리 데이터 리포트'</strong>로 조심스럽게 건의하고, 결정 후에는 100% 실행하겠습니다."
+          </p>
+        </div>
+
+        <!-- IF 6 -->
+        <div class="p-3.5 bg-slate-900 border border-slate-800 rounded-xl space-y-1.5">
+          <div class="flex items-center justify-between">
+            <span class="text-xs font-bold text-purple-400">Q6. 좌절감을 맛봤을 때 (램프업 중 알 수 없는 킬러 파티클 폭증)</span>
+            <span class="text-[10px] bg-slate-800 text-slate-400 px-1.5 py-0.5 rounded">회복탄력성</span>
+          </div>
+          <p class="text-xs text-slate-400 leading-relaxed">
+            "수율 급락 시 자책하기보다 <strong>8D 체계와 Fishbone Diagram으로 챔버 부품, 가스 유량, 이송 로봇 진동 센서를 역추적(Post-Mortem)</strong>했습니다. 가스 노즐 노후화에 의한 아킹임을 규명해 교체 주기와 FDC 실시간 알람 인터락을 구축하며 <strong>'좌절은 공정 결함을 완벽히 통제하게 해주는 값진 데이터'</strong>임을 배웠습니다."
+          </p>
+        </div>
+      </div>
+    </section>
+
     <section id="sec-roleplay" class="space-y-4 pt-1">
       <div class="flex items-center justify-between border-b border-slate-800 pb-2.5">
         <div class="flex items-center gap-2">
@@ -634,6 +988,16 @@
 
   <!-- Mobile Bottom Sticky Bar -->
   <div class="fixed bottom-0 left-0 right-0 bg-slate-900/95 border-t border-slate-800 p-2.5 backdrop-blur-md flex items-center justify-around z-50 md:hidden">
+    
+    <a href="#sec-semi-deep-qa" class="flex flex-col items-center text-amber-400 text-[10px] font-bold">
+      <i class="fa-solid fa-microchip text-sm mb-0.5"></i>
+      <span>AI·공정20</span>
+    </a>
+    <a href="#sec-semi-pe" class="flex flex-col items-center text-emerald-400 text-[10px] font-bold">
+      <i class="fa-solid fa-vial-circle-check text-sm mb-0.5"></i>
+      <span>양산IF</span>
+    </a>
+
     <a href="#sec-roleplay" class="flex flex-col items-center text-violet-400 text-[10px]">
       <i class="fa-solid fa-masks-theater text-sm mb-0.5"></i>
       <span>롤플레잉</span>
@@ -667,6 +1031,26 @@
           toast.classList.add('opacity-0');
         }, 2000);
       });
+    }
+
+    
+    function switchDeepQA(tabId) {
+      const aiContent = document.getElementById('deep-ai-content');
+      const procContent = document.getElementById('deep-proc-content');
+      const tabAi = document.getElementById('tab-deep-ai');
+      const tabProc = document.getElementById('tab-deep-proc');
+
+      if (tabId === 'deep-ai') {
+        aiContent.classList.remove('hidden');
+        procContent.classList.add('hidden');
+        tabAi.className = 'flex-1 py-2 rounded-lg border border-amber-600 bg-amber-500/20 text-amber-300 font-bold text-center transition';
+        tabProc.className = 'flex-1 py-2 rounded-lg border border-slate-700 bg-slate-800/80 text-slate-400 font-bold text-center transition';
+      } else {
+        aiContent.classList.add('hidden');
+        procContent.classList.remove('hidden');
+        tabProc.className = 'flex-1 py-2 rounded-lg border border-cyan-600 bg-cyan-500/20 text-cyan-300 font-bold text-center transition';
+        tabAi.className = 'flex-1 py-2 rounded-lg border border-slate-700 bg-slate-800/80 text-slate-400 font-bold text-center transition';
+      }
     }
 
     function switchRoleplay(id) {
