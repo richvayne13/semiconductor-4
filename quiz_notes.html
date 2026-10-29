@@ -644,7 +644,79 @@ header {
         <div><strong>Positive vs Negative PR 공식</strong>: ① <strong>Positive</strong>: 노광부 제거(광분해) / <strong>고해상도·스컴적음·열안정성 우수</strong> but 높은 비용 → <strong>주력 미세 양산</strong> ② <strong>Negative</strong>: 비노광부 제거(광가교) / 접착력 우수 but <strong>스컴·스웰링(Swelling) 심함</strong> → <strong>TSV 관통전극 & 하드마스크 패터닝</strong></div>
       </div>
     </div>
-  </div>
+  
+    <!-- Question 11 -->
+    <div class="card" id="q11">
+      <div class="card-header">
+        <span class="badge badge-success">Q11. EUV 노광 장비 반사 거울 광학계 구성 이유 (t_04)</span>
+        <span style="font-size: 0.85rem; color: var(--text-muted);">AISK 심화해설 1:1 대조 피드백</span>
+      </div>
+      <div class="card-body">
+        <div class="speech-quote">
+          <div class="speech-title">📖 [AISK 3분 심화해설] 출제 질문 및 표준 핵심 내용</div>
+          <div style="font-weight: 600; color: #1e293b; margin-bottom: 8px;">
+            Q11. 극자외선(EUV) 노광 장비가 기존 굴절 렌즈 대신 반사 거울로만 구성된 물리적 이유 2가지와 이를 구현한 다층막 기술에 대해 설명해 보세요.
+          </div>
+          <div style="margin-top: 6px; font-size: 0.88rem; color: #475569; line-height: 1.6;">
+            • <strong>13.5nm 물질 극심 흡수율</strong>: 광자 에너지 약 92eV로 매우 높아 공기 분자(O₂, N₂) 및 석영(SiO₂) 렌즈 내부 전자에 전부 흡수됨 → 장비 내부 초고진공 상태 유지 및 반사 광학계 채택 필수.<br>
+            • <strong>굴절률 물리적 한계</strong>: 13.5nm 대역에서 모든 물질의 굴절률 실효값이 진공(1.0)과 유사한 0.99 수준 수렴 → 매질 간 굴절률 차이가 극도로 미미하여 스넬의 법칙(Snell's Law)에 의한 굴절 집광 불가능.<br>
+            • <strong>Mo/Si 다층막 반사경 & 브래그 반사</strong>: 몰리브덴(Mo)과 실리콘(Si)을 나노미터 두께로 40~50주기 적층, 각 계면 반사광의 위상을 일치시키는 브래그 반사(Bragg reflection) 원리로 거울 1매당 약 70% 반사율 구현.<br>
+            • <strong>광량 감쇄 및 양산 대책</strong>: 반사경 10여 매 통과 시 최종 웨이퍼 도달 광량이 1~2% 수준으로 급감 → SK하이닉스 첨단 1b/1c DRAM 양산에서는 고출력 플라즈마 광원(LPP), 수소 퍼지(반사면 오염 방지), 고투과율 펠리클(Pellicle) 결합 적용.
+          </div>
+        </div>
+
+        <div class="user-answer-box">
+          <div class="user-answer-title">💬 내가 작성한 실전 면접 답변</div>
+          <div style="font-size: 0.9rem; line-height: 1.6; color: #334155;">
+            "짧은파장과 굴절율. 파장이 13.5nm로 짧기 떄문에 광원이 굴절렌즈 사용 시 흡수되버림. 그렇게되면 빛을 모으는 원리의 굴절렌즈를 사용하지 못하기 때문에 브레그반사경을 사용. 브레그반사경은 몰리브덴과 실리콘을 40여겹 나노미터단위로 겹겹이 쌓은 것으로 최대투과율이 70%가까이되고 이를 10개가량 사용하게되면 최종 웨이퍼에 도달하는 빛은 2~3%밖에되지않음, 그래서 광원으로 강력한 lpp광원을 사용하는 것으로 알고있음.<br>
+            두번쨰로 굴절율인데, euv사용하면 진공에서의 굴절율 1.0과 비슷한 0.99여서 빛을모으는원리인 굴절현상을 사용하지못함? 잘모르겠음"
+          </div>
+        </div>
+
+        <div class="diff-block">
+          <div class="diff-title">🎯 1:1 대조 채점 및 심화 피드백</div>
+          <ul class="diff-list">
+            <li>
+              <span class="tag tag-match">일치</span> 
+              <strong>13.5nm 파장 흡수 & 굴절 렌즈 불가</strong>: 13.5nm 극단적 단파장으로 굴절 렌즈 사용 시 빛이 내부에서 흡수되어 집광할 수 없다는 물리적 원인 정확히 적중!
+            </li>
+            <li>
+              <span class="tag tag-match">일치</span> 
+              <strong>굴절률 한계 (0.99 수렴으로 굴절 불가)</strong>: EUV 대역에서 모든 매질의 굴절률이 진공(1.0)과 유사한 0.99에 수렴하여 스넬의 법칙에 의한 빛의 굴절 현상 자체가 발생하지 않는다는 핵심 원리를 정확히 설명함!
+            </li>
+            <li>
+              <span class="tag tag-match">일치</span> 
+              <strong>Mo/Si 다층막 & 브래그 반사경 (40여 주기 적층)</strong>: 몰리브덴(Mo)과 실리콘(Si)을 나노 단위로 40여 겹 적층하여 거울로 제작한다는 핵심 다층막 구조 완벽 적중!
+            </li>
+            <li>
+              <span class="tag tag-match">일치</span> 
+              <strong>반사율 70%, 10매 통과 후 2~3% 감쇄 & LPP 광원</strong>: 거울 1매당 약 70% 반사율, 10여 매 통과 후 최종 도달 광량이 1~2%(답변 2~3%)로 급감하는 점과 강력한 LPP 광원 적용까지 완벽 연계!
+            </li>
+            <li>
+              <span class="tag tag-miss">보완 체크</span> 
+              <strong>광자 에너지(약 92eV) & 초고진공 챔버 유지</strong>: 광자 에너지가 약 92eV로 매우 높아 공기 분자(산소, 질소)도 통과 못하므로 장비 내부를 '초고진공'으로 유지해야 한다는 점 보완.
+            </li>
+            <li>
+              <span class="tag tag-miss">보완 체크</span> 
+              <strong>브래그 반사의 물리적 메커니즘 (위상 보강 간섭)</strong>: 브래그 반사는 각 층 계면에서 반사된 빛의 위상을 일치시켜 보강 간섭(Bragg reflection)을 일으키는 원리임을 1문장 추가하면 완벽.
+            </li>
+            <li>
+              <span class="tag tag-miss">보완 체크</span> 
+              <strong>SK하이닉스 양산 솔루션 (수소 퍼지 & 고투과율 펠리클)</strong>: 광량 손실 및 탄소 오염을 방지하기 위한 '수소 퍼지(Hydrogen Purge)'와 마스크 보호를 위한 '고투과율 펠리클(Pellicle)' 키워드 챙기기.
+            </li>
+          </ul>
+        </div>
+
+        <!-- 100점 심화해설 한눈에 외우기 치트키 -->
+        <div class="cheat-sheet">
+          <div class="cheat-title">💡 [면접 100점 치트키] EUV 노광 장비 반사 광학계 30초 압축 암기공식</div>
+          <div style="font-size: 0.88rem; color: #1e293b; line-height: 1.6;">
+            "EUV는 <strong>13.5nm 극단적 단파장(광자 에너지 92eV)</strong>으로 공기 및 석영 렌즈에 전부 흡수되며, <strong>굴절률이 진공(1.0)과 유사한 0.99</strong>에 수렴해 스넬의 법칙에 의한 굴절 집광이 불가능합니다.<br>
+            따라서 <strong>초고진공 환경</strong>에서 <strong>Mo/Si 40~50주기 다층막의 브래그 반사(위상 보강 간섭, 1매당 70%)</strong>를 활용한 전 구간 반사 광학계를 사용하며, 10여 매 경유 시 <strong>웨이퍼 도달 광량이 1~2%</strong>로 급감하므로 <strong>고출력 LPP 광원, 수소 퍼지, 고투과율 펠리클</strong>을 결합해 양산 수율을 확보합니다."
+          </div>
+        </div>
+      </div>
+    </div>
 
 </div>
 
