@@ -4340,23 +4340,6 @@
             if (old.my_model_script) cur.my_model_script = cleanSpeechText(old.my_model_script);
           }
         });
-      }
-        // 구버전에서 사용자 맞춤 편집(speech, speech_alt, keywords)만 마이그레이션
-        currentTopics = JSON.parse(JSON.stringify(DEFAULT_TOPICS));
-        const prevMap = new Map(prevSaved.map(item => [item.id, item]));
-        currentTopics.forEach(cur => {
-          const old = prevMap.get(cur.id);
-          if (old) {
-            if (old.speech_1m30s && old.speech_1m30s !== cur.speech_1m30s) {
-              // 사용자가 직접 작성/수정한 흔적이 있는 경우 보존
-              if (cur.category === 'personality' || old.my_model_script) {
-                cur.speech_1m30s = old.speech_1m30s;
-              }
-            }
-            if (old.speech_alt) cur.speech_alt = old.speech_alt;
-            if (old.my_model_script) cur.my_model_script = old.my_model_script;
-          }
-        });
       } else {
         currentTopics = JSON.parse(JSON.stringify(DEFAULT_TOPICS));
       }
