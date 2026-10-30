@@ -5489,8 +5489,42 @@
     });
 
     function initDashboard() {
-      loadTopics();
-      renderDashboard();
+      // 🛡️ 자가 치유(Auto-Healing): 캐시 꼬임으로 문항이 0개가 되는 현상 원천 방지
+      try {
+        loadTopics();
+        if (!currentTopics || currentTopics.length === 0) {
+          console.warn('[Auto-Healing] Empty topics detected, resetting to DEFAULT_TOPICS');
+          localStorage.removeItem(STORAGE_KEY);
+          currentTopics = JSON.parse(JSON.stringify(DEFAULT_TOPICS));
+        }
+        // 필터가 GICHUL 등으로 꼬여서 아무것도 안 나오는 경우 방지 (초기 로딩 시 ALL 강제)
+        const savedProc = localStorage.getItem('aisk_ui_learn_filter_proc');
+        if (savedProc === 'GICHUL' || !savedProc) {
+          currentProcessFilter = 'ALL';
+          localStorage.setItem('aisk_ui_learn_filter_proc', 'ALL');
+        }
+        renderDashboard();
+
+        // 렌더링 후 화면에 보이는 카드가 0개라면 즉시 전체(ALL)로 자동 폴백
+        setTimeout(() => {
+          const visibleCards = Array.from(document.querySelectorAll('.topic-section')).filter(s => s.style.display !== 'none');
+          if (visibleCards.length === 0) {
+            console.warn('[Auto-Healing] 0 cards visible, falling back to ALL filter');
+            currentProcessFilter = 'ALL';
+            localStorage.setItem('aisk_ui_learn_filter_proc', 'ALL');
+            localStorage.setItem('aisk_ui_learn_filter_cat', 'all');
+            document.querySelectorAll('.filter-chip').forEach(c => c.classList.toggle('active', c.getAttribute('data-filter') === 'all'));
+            document.querySelectorAll('.proc-chip').forEach(b => b.classList.toggle('active', b.getAttribute('data-proc') === 'ALL'));
+            const searchInput = document.getElementById('searchInput');
+            if (searchInput) searchInput.value = '';
+            applyFilterAndSearch();
+          }
+        }, 100);
+      } catch (err) {
+        console.error('[initDashboard Error]', err);
+        currentTopics = JSON.parse(JSON.stringify(DEFAULT_TOPICS));
+        renderDashboard();
+      }
     }
 
     if (document.readyState === 'loading') {
