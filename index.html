@@ -5045,11 +5045,18 @@
     }
 
     function resetToDefault() {
-      if (confirm('모든 문항 데이터를 초기화하시겠습니까?\n(사용자가 수정한 내용 및 새로 추가한 문항이 모두 초기화됩니다)')) {
+      if (confirm('모든 문항 데이터 및 필터를 초기화하시겠습니까?\n(사용자 편집 내용 및 필터가 초기 상태로 깨끗하게 복구됩니다)')) {
         localStorage.removeItem(STORAGE_KEY);
+        localStorage.removeItem('aisk_ui_learn_filter_cat');
+        localStorage.removeItem('aisk_ui_learn_filter_proc');
+        localStorage.removeItem('aisk_ui_view_mode');
+        currentProcessFilter = 'ALL';
         currentTopics = JSON.parse(JSON.stringify(DEFAULT_TOPICS));
+        const searchInput = document.getElementById('searchInput');
+        if (searchInput) searchInput.value = '';
         renderDashboard();
-        showToast('🔄 모든 문항 데이터가 초기화되었습니다.');
+        selectProcessFilter('ALL');
+        showToast('🔄 모든 문항 데이터 및 필터가 정상 복원되었습니다.');
       }
     }
 
