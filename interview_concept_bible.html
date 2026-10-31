@@ -1,0 +1,589 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>반도체 8대 공정 & 소자 면접 바이블 (W·O·P·E·D·I·M·P & DEV)</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Pretendard:wght@400;500;600;700;800&family=JetBrains+Mono:wght@500;700&display=swap" rel="stylesheet">
+  <style>
+    :root {
+      --bg-primary: #0a0e17;
+      --bg-secondary: #111827;
+      --bg-card: #162032;
+      --bg-card-hover: #1c2942;
+      --border: #24344d;
+      --border-accent: #38bdf8;
+      
+      --text-main: #f8fafc;
+      --text-sub: #94a3b8;
+      --text-muted: #64748b;
+      
+      --accent-blue: #38bdf8;
+      --accent-yellow: #fbbf24;
+      --accent-green: #34d399;
+      --accent-rose: #fb7185;
+      --accent-purple: #c084fc;
+      
+      --badge-w: #f59e0b;
+      --badge-o: #ef4444;
+      --badge-p: #8b5cf6;
+      --badge-e: #06b6d4;
+      --badge-d: #10b981;
+      --badge-i: #ec4899;
+      --badge-m: #eab308;
+      --badge-pkg: #f97316;
+      --badge-dev: #6366f1;
+    }
+
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+    }
+
+    body {
+      font-family: 'Pretendard', -apple-system, BlinkMacSystemFont, system-ui, Roboto, sans-serif;
+      background-color: var(--bg-primary);
+      color: var(--text-main);
+      line-height: 1.6;
+      padding-bottom: 80px;
+    }
+
+    /* Header */
+    header {
+      background: linear-gradient(180deg, #131c2e 0%, #0a0e17 100%);
+      border-bottom: 1px solid var(--border);
+      padding: 24px 20px;
+      position: sticky;
+      top: 0;
+      z-index: 100;
+      backdrop-filter: blur(12px);
+    }
+
+    .header-inner {
+      max-width: 1400px;
+      margin: 0 auto;
+      display: flex;
+      flex-direction: column;
+      gap: 16px;
+    }
+
+    .title-row {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      flex-wrap: wrap;
+      gap: 12px;
+    }
+
+    .title-group h1 {
+      font-size: 1.5rem;
+      font-weight: 800;
+      letter-spacing: -0.02em;
+      background: linear-gradient(135deg, #38bdf8 0%, #a78bfa 100%);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+
+    .title-group p {
+      color: var(--text-sub);
+      font-size: 0.88rem;
+      margin-top: 4px;
+    }
+
+    .nav-links {
+      display: flex;
+      gap: 8px;
+    }
+
+    .nav-btn {
+      padding: 7px 14px;
+      font-size: 0.82rem;
+      font-weight: 600;
+      color: var(--text-main);
+      background: #1f2937;
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      text-decoration: none;
+      transition: all 0.2s ease;
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      cursor: pointer;
+    }
+
+    .nav-btn:hover {
+      background: #374151;
+      border-color: var(--accent-blue);
+      color: var(--accent-blue);
+    }
+
+    /* Search & Filter Bar */
+    .controls-row {
+      display: flex;
+      gap: 12px;
+      flex-wrap: wrap;
+      align-items: center;
+      justify-content: space-between;
+    }
+
+    .search-box {
+      position: relative;
+      flex: 1;
+      min-width: 280px;
+    }
+
+    .search-input {
+      width: 100%;
+      background: #151e2f;
+      border: 1px solid var(--border);
+      border-radius: 10px;
+      padding: 10px 16px 10px 40px;
+      color: #fff;
+      font-size: 0.92rem;
+      font-family: inherit;
+      outline: none;
+      transition: border-color 0.2s, box-shadow 0.2s;
+    }
+
+    .search-input:focus {
+      border-color: var(--accent-blue);
+      box-shadow: 0 0 0 3px rgba(56, 189, 248, 0.15);
+    }
+
+    .search-icon {
+      position: absolute;
+      left: 14px;
+      top: 50%;
+      transform: translateY(-50%);
+      color: var(--text-muted);
+      pointer-events: none;
+    }
+
+    .filter-tabs {
+      display: flex;
+      gap: 6px;
+      overflow-x: auto;
+      padding-bottom: 2px;
+      max-width: 100%;
+    }
+
+    .tab-btn {
+      padding: 7px 12px;
+      background: #182235;
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      color: var(--text-sub);
+      font-size: 0.8rem;
+      font-weight: 600;
+      cursor: pointer;
+      white-space: nowrap;
+      transition: all 0.2s;
+    }
+
+    .tab-btn:hover {
+      color: #fff;
+      border-color: var(--accent-blue);
+    }
+
+    .tab-btn.active {
+      background: #0284c7;
+      border-color: #38bdf8;
+      color: #ffffff;
+      box-shadow: 0 2px 8px rgba(2, 132, 199, 0.3);
+    }
+
+    /* Main Container */
+    .container {
+      max-width: 1400px;
+      margin: 24px auto;
+      padding: 0 20px;
+    }
+
+    .stats-bar {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 16px;
+      font-size: 0.85rem;
+      color: var(--text-muted);
+    }
+
+    .badge-count {
+      color: var(--accent-blue);
+      font-weight: 700;
+    }
+
+    /* Grid of Concepts */
+    .concept-grid {
+      display: grid;
+      grid-template-columns: 1fr;
+      gap: 20px;
+    }
+
+    /* Concept Card */
+    .concept-card {
+      background: var(--bg-card);
+      border: 1px solid var(--border);
+      border-radius: 14px;
+      overflow: hidden;
+      transition: transform 0.2s, border-color 0.2s, box-shadow 0.2s;
+    }
+
+    .concept-card:hover {
+      border-color: rgba(56, 189, 248, 0.4);
+      box-shadow: 0 6px 20px rgba(0, 0, 0, 0.25);
+    }
+
+    .card-header {
+      padding: 16px 20px;
+      background: rgba(17, 24, 39, 0.6);
+      border-bottom: 1px solid var(--border);
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      flex-wrap: wrap;
+      gap: 10px;
+    }
+
+    .card-title-group {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      flex-wrap: wrap;
+    }
+
+    .category-badge {
+      font-size: 0.72rem;
+      font-weight: 700;
+      padding: 3px 8px;
+      border-radius: 6px;
+      letter-spacing: 0.04em;
+      text-transform: uppercase;
+    }
+
+    .badge-W { background: rgba(245, 158, 11, 0.15); color: #fbbf24; border: 1px solid rgba(245, 158, 11, 0.3); }
+    .badge-O { background: rgba(239, 68, 68, 0.15); color: #f87171; border: 1px solid rgba(239, 68, 68, 0.3); }
+    .badge-P { background: rgba(139, 92, 246, 0.15); color: #c084fc; border: 1px solid rgba(139, 92, 246, 0.3); }
+    .badge-E { background: rgba(6, 182, 212, 0.15); color: #22d3ee; border: 1px solid rgba(6, 182, 212, 0.3); }
+    .badge-D { background: rgba(16, 185, 129, 0.15); color: #34d399; border: 1px solid rgba(16, 185, 129, 0.3); }
+    .badge-I { background: rgba(236, 72, 153, 0.15); color: #f472b6; border: 1px solid rgba(236, 72, 153, 0.3); }
+    .badge-M { background: rgba(234, 179, 8, 0.15); color: #facc15; border: 1px solid rgba(234, 179, 8, 0.3); }
+    .badge-PKG { background: rgba(249, 115, 22, 0.15); color: #fb923c; border: 1px solid rgba(249, 115, 22, 0.3); }
+    .badge-DEV { background: rgba(99, 102, 241, 0.15); color: #818cf8; border: 1px solid rgba(99, 102, 241, 0.3); }
+
+    .card-title {
+      font-size: 1.15rem;
+      font-weight: 700;
+      color: var(--accent-yellow);
+      letter-spacing: -0.01em;
+    }
+
+    .copy-btn {
+      background: #1e293b;
+      border: 1px solid var(--border);
+      color: var(--text-sub);
+      padding: 5px 10px;
+      border-radius: 6px;
+      font-size: 0.75rem;
+      font-weight: 600;
+      cursor: pointer;
+      transition: all 0.2s;
+    }
+
+    .copy-btn:hover {
+      background: var(--accent-blue);
+      color: #0f172a;
+      border-color: var(--accent-blue);
+    }
+
+    /* Card Content 4 Sections */
+    .card-body {
+      padding: 20px;
+      display: grid;
+      grid-template-columns: 1fr;
+      gap: 16px;
+    }
+
+    .section-row {
+      background: rgba(15, 23, 42, 0.45);
+      border-radius: 10px;
+      padding: 14px 16px;
+      border-left: 4px solid var(--border);
+    }
+
+    .section-row.def { border-left-color: #38bdf8; }
+    .section-row.app { border-left-color: #34d399; }
+    .section-row.sol { border-left-color: #fb7185; }
+    .section-row.plus { border-left-color: #c084fc; }
+
+    .section-label {
+      font-size: 0.8rem;
+      font-weight: 700;
+      letter-spacing: 0.02em;
+      margin-bottom: 6px;
+      display: flex;
+      align-items: center;
+      gap: 6px;
+    }
+
+    .label-def { color: #38bdf8; }
+    .label-app { color: #34d399; }
+    .label-sol { color: #fb7185; }
+    .label-plus { color: #c084fc; }
+
+    .section-content {
+      font-size: 0.92rem;
+      color: #e2e8f0;
+      line-height: 1.65;
+      word-break: keep-all;
+    }
+
+    /* Keywords Footer */
+    .card-footer {
+      padding: 10px 20px;
+      background: rgba(15, 23, 42, 0.7);
+      border-top: 1px solid var(--border);
+      display: flex;
+      gap: 6px;
+      flex-wrap: wrap;
+      align-items: center;
+    }
+
+    .footer-label {
+      font-size: 0.75rem;
+      color: var(--text-muted);
+      margin-right: 4px;
+    }
+
+    .kw-tag {
+      background: #1e293b;
+      color: #94a3b8;
+      font-size: 0.72rem;
+      padding: 2px 7px;
+      border-radius: 4px;
+      border: 1px solid rgba(255, 255, 255, 0.05);
+    }
+
+    /* Toast */
+    #toast {
+      position: fixed;
+      bottom: 24px;
+      right: 24px;
+      background: #0284c7;
+      color: #fff;
+      padding: 10px 18px;
+      border-radius: 8px;
+      font-size: 0.85rem;
+      font-weight: 600;
+      box-shadow: 0 4px 12px rgba(0,0,0,0.4);
+      opacity: 0;
+      transform: translateY(10px);
+      transition: opacity 0.3s, transform 0.3s;
+      pointer-events: none;
+      z-index: 1000;
+    }
+
+    #toast.show {
+      opacity: 1;
+      transform: translateY(0);
+    }
+
+    @media (max-width: 768px) {
+      .title-group h1 { font-size: 1.25rem; }
+      .card-body { padding: 14px; gap: 12px; }
+      .section-row { padding: 10px 12px; }
+    }
+  </style>
+</head>
+<body>
+
+  <!-- Toast Notification -->
+  <div id="toast">복사 완료!</div>
+
+  <!-- Header -->
+  <header>
+    <div class="header-inner">
+      <div class="title-row">
+        <div class="title-group">
+          <h1>⚡ 반도체 8대 공정 & 소자 면접 바이블</h1>
+          <p>W · O · P · E · D · I · M · PKG 핵심 용어별 [개념정의 · 공정적용 · 문제해결 · 플러스] 4단 면접 마스터</p>
+        </div>
+        <div class="nav-links">
+          <a href="index.html" class="nav-btn">🏠 AISK 홈</a>
+          <a href="notes.html" class="nav-btn">📝 손글씨 노트</a>
+          <button class="nav-btn" onclick="exportToWordFormat()">📋 전체 텍스트 복사</button>
+        </div>
+      </div>
+
+      <div class="controls-row">
+        <!-- Search -->
+        <div class="search-box">
+          <span class="search-icon">🔍</span>
+          <input type="text" id="searchInput" class="search-input" placeholder="개념명, 원리, 문제해결 키워드 검색 (예: 초크랄스키, APC, DIBL, ALD, EUV)..." oninput="filterCards()">
+        </div>
+
+        <!-- Filter Tabs -->
+        <div class="filter-tabs">
+          <button class="tab-btn active" onclick="setCategory('ALL')">전체보기 (47)</button>
+          <button class="tab-btn" onclick="setCategory('W')">W · 웨이퍼 (5)</button>
+          <button class="tab-btn" onclick="setCategory('O')">O · 산화 (4)</button>
+          <button class="tab-btn" onclick="setCategory('P')">P · 포토 (5)</button>
+          <button class="tab-btn" onclick="setCategory('E')">E · 식각 (5)</button>
+          <button class="tab-btn" onclick="setCategory('D')">D · 증착 (7)</button>
+          <button class="tab-btn" onclick="setCategory('I')">I · 이온주입 (6)</button>
+          <button class="tab-btn" onclick="setCategory('M')">M · 금속배선 (3)</button>
+          <button class="tab-btn" onclick="setCategory('PKG')">PKG · 패키징 (5)</button>
+          <button class="tab-btn" onclick="setCategory('DEV')">소자/DRAM (7)</button>
+        </div>
+      </div>
+    </div>
+  </header>
+
+  <!-- Main Content -->
+  <main class="container">
+    <div class="stats-bar">
+      <div>표시 중인 문항: <span id="visibleCount" class="badge-count">47</span>개</div>
+      <div>형식: <strong>개념정의 2~3줄 · 공정적용 2~3줄 · 문제해결 2~3줄 · 플러스 2~3줄</strong></div>
+    </div>
+
+    <div class="concept-grid" id="conceptGrid">
+      <!-- Generated by JS -->
+    </div>
+  </main>
+
+  <script>
+    const CONCEPTS = [{"category": "W", "category_name": "W · 웨이퍼 제조", "title": "초크랄스키법 (CZ) & 네킹 (Necking)", "keywords": ["초크랄스키", "CZ", "잉곳", "단결정", "네킹", "Dislocation", "열충격"], "def": "초크랄스키(CZ)법은 고순도 Poly-Si 용융액(약 1420℃)에 단결정 종자(Seed)를 접촉시킨 후 회전시키며 서서히 인상(Pulling)하여 원통형 단결정 잉곳을 성장시키는 공정입니다. 네킹(Necking)은 Seed 접촉 직후 굵기를 2~3mm로 급격히 가늘게 유지하며 인상하는 초기 필수 공정입니다.", "app": "Seed가 고온 용융액에 닿을 때 발생하는 극심한 열충격 전위(Thermal Shock Dislocation)를 잉곳 외부 표면으로 빠져나가게 유도하여, 이후 성장하는 잉곳 전체를 결함 없는 완전한 단결정(Zero-dislocation) 격자로 형성하는 핵심 역할을 합니다.", "sol": "잉곳 절단 후 X-ray 토포그래피나 Secco 에칭을 통해 전위 밀도(EPD)를 전수 검사합니다. 만약 잉곳 중심부에서 슬립(Slip)이나 전위가 검출되면 네킹 구간의 인상 속도(Pulling rate)가 불규칙했거나 Seed 침적 시 온도 제어 실패이므로, 네킹 직경 제어 알고리즘과 히터 핫존(Hot-zone) 온도를 재캘리브레이션합니다.", "plus": "성장 파라미터 : 인상 속도(V)와 고액 계면 온도 구배(G)의 비율인 V/G 비율이 핵심 파라미터입니다. V/G 비율이 임계치보다 크면 공공 결함(Vacancy, COP)이 생기고, 작으면 격자간 원자 결함(Interstitials, OISF)이 발생하므로 V/G 윈도우를 미세하게 자동 제어해야 합니다."}, {"category": "W", "category_name": "W · 웨이퍼 제조", "title": "자기장 인가 잉곳 성장 (MCZ, Magnetic CZ)", "keywords": ["MCZ", "자기장", "로렌츠힘", "산소농도", "도펀트균일도", "석영도가니"], "def": "초크랄스키 잉곳 성장 시 도가니 외부에 초전도 전자석을 설치하여 융액 내부에 수천 가우스(Gauss) 수준의 강력한 수평(Horizontal) 또는 수직(Vertical) 자기장을 인가하는 고난도 단결정 성장 기술입니다.", "app": "용융 실리콘은 액체 금속이므로 자기장 속에서 움직일 때 로렌츠 힘(유도 전자기 제동력)을 받아 열대류가 억제됩니다. 이를 통해 고온에서 석영 도가니(SiO2)가 녹아 융액으로 유입되는 불필요한 격자간 산소(Oi) 농도를 급감시키고, 도펀트 편석(Segregation)에 의한 농도 불균일 산포를 정밀 제어합니다.", "sol": "웨이퍼 중심부와 에지부 간 산소 농도 편차가 규격을 초과(>15%)할 경우, 융액 열대류 억제 불균형이 원인입니다. 인가 자기장의 축 대칭 자속 밀도를 실시간 측정하고, 도가니 회전수(C/R)와 잉곳 회전수(S/R) 비율을 보정하여 고액 계면 형상을 평탄하게 유지합니다.", "plus": "막질/소자 파라미터 : 산소 농도가 너무 낮으면 고온 공정 시 웨이퍼 휨을 버티는 기계적 강도가 떨어지고 게터링(IG) 효과가 사라지며, 너무 높으면 산소 침전물(BMD)이 게이트 산화막이나 접합부에 형성되어 누설전류를 유발하므로 10~15 ppma 타깃 관리가 필수적입니다."}, {"category": "W", "category_name": "W · 웨이퍼 제조", "title": "기판 도핑 및 P-type 기판 / 웰 (Well) 엔지니어링", "keywords": ["기판도핑", "P타입", "보론", "전자이동도", "Well", "NMOS"], "def": "잉곳 성장 시 3족 원소(주로 붕소, B)를 주입해 P형 단결정 기판을 제작하고, 이후 소자 제조 시 이온주입을 통해 국소적인 N-Well과 P-Well을 형성하여 CMOS를 구성하는 기초 엔지니어링입니다.", "app": "주요 스위칭 채널로 사용되는 NMOS는 전자가 캐리어이므로 정공 대비 이동도가 약 2~3배 빨라 소자 스피드에 유리합니다. NMOS를 형성하기 위해서는 P형 기판(또는 P-Well)이 기본 베이스로 필수 적용됩니다.", "sol": "웨이퍼 로트 간 문턱전압(Vth)이 집단 시프트되는 경우 기판의 초기 비저항(Resistivity) 산포를 의심해야 합니다. 4-Point Probe로 면저항을 측정하여 보론 도펀트 농도를 역산하고, 편석 계수(k0=0.8)에 따라 잉곳 꼬리(Tail) 쪽으로 갈수록 도핑 농도가 진해지는 현상을 감안한 인상 속도 레시피를 보정합니다.", "plus": "기판 파라미터 : 벌크 기판의 비저항은 일반적으로 1~10 Ω·cm 수준으로 유지합니다. 래치업(Latch-up) 방지를 위해 고농도 기판 위에 얇은 저농도 에피택셜 층을 기상 성장시킨 P/P+ 에피 웨이퍼(Epi-wafer)를 첨단 로직 및 D램 양산에 표준으로 채택합니다."}, {"category": "W", "category_name": "W · 웨이퍼 제조", "title": "면저항 (Rs) & 고농도 도핑 비선형성 (이온화 불순물 산란)", "keywords": ["면저항", "도핑농도", "이온화불순물산란", "비선형성", "캐리어이동도", "4-Point Probe"], "def": "면저항(Sheet Resistance, Rs)은 단위 면적당 박막이나 접합의 저항값(Rs = ρ / t)입니다. 도핑 농도를 높이면 전도성 캐리어 밀도가 증가하여 면저항이 감소하지만, 10^18 cm^-3 이상의 고농도에서는 저항 감소율이 급격히 둔화되는 비선형적 특성을 보입니다.", "app": "소스/드레인 접합 저항 및 배선 콘택 저항을 낮추기 위해 도핑 농도를 극대화하지만, 도펀트 수가 늘어날수록 이온화된 불순물 원자와 캐리어 간 쿨롱 척력/인력에 의한 충돌('이온화 불순물 산란')이 지배적이 되어 캐리어 이동도가 크게 하락합니다.", "sol": "고농도 도핑을 진행했음에도 면저항 개선이 정체되고 접합 누설전류가 급증한다면, 주입된 도펀트가 실리콘 치환 위치에 들어가지 못하고 뭉쳐있는 클러스터링(Clustering) 현상을 점검합니다. RTA(급속열처리) 온도와 시간을 올려 활성화율(Activation Rate)을 올리거나, 레이저 스파이크 어닐링으로 고용도 한계를 돌파합니다.", "plus": "측정/소재 파라미터 : 면저항은 4-Point Probe 장비의 듀얼 컨피규레이션으로 측정합니다. 도펀트 원자 번호가 클수록(As, Sb 등) 산란 단면적이 커져 이동도 저하가 심하므로, 초미세 접합 형성 시 도펀트 고유 활성화 에너지와 확산 계수를 고려한 선택이 요구됩니다."}, {"category": "W", "category_name": "W · 웨이퍼 제조", "title": "결정면 특성 : (100) vs (110) & FinFET 채널 배치", "keywords": ["결정면", "100면", "110면", "전자이동도", "정공이동도", "FinFET", "계면트랩"], "def": "실리콘 단결정 격자의 원자 배열 방향에 따른 결정면입니다. (100)면은 표면 원자 밀도가 낮아 댕글링 본드가 적은 면이며, (110)면은 특정 방향으로 원자 배열이 조밀하여 정공(Hole)의 유효 질량이 가벼워지는 면입니다.", "app": "평면(Planar) MOSFET은 계면 트랩 밀도(Dit)가 가장 낮고 전자 이동도가 빠른 (100) 웨이퍼를 표준으로 사용합니다. 반면 3차원 입체 구조인 FinFET에서는 핀(Fin) 상부 표면은 (100)면이지만 핀의 양측벽 채널은 (110)면이 되므로, 측벽을 지나는 PMOS의 정공 이동도가 평면 대비 2배 이상 획기적으로 향상됩니다.", "sol": "FinFET 공정 후 NMOS 대비 PMOS의 구동 전류(Ion) 밸런스가 무너지거나 측벽 게이트 절연막 누설이 발생하면, 핀 측벽 식각 프로파일의 결정학적 거칠기(LWR)와 산화 속도 차이를 점검합니다. (110)면은 (100)면보다 산화 속도가 약 1.2~1.5배 빠르므로 측벽 희생 산화막 공정 시 산화 두께 타깃을 재설정합니다.", "plus": "막질별 계면 파라미터 : Si/SiO2 계면 결함 밀도(Dit)는 (100)면이 ~10^10 cm^-2 eV^-1 수준으로 (111)이나 (110)면(~10^11)보다 10배 우수합니다. HKMG 적용 시에도 (100)과 (110) 면의 쌍극자(Dipole) 형성 메커니즘이 다르므로 유효 일함수(EWF) 튜닝 시 결정면 방향을 고려해야 합니다."}, {"category": "O", "category_name": "O · 산화 공정", "title": "건식 산화 (Dry Oxidation) vs 습식 산화 (Wet Oxidation)", "keywords": ["건식산화", "습식산화", "Deal-Grove", "Gate Oxide", "수증기", "계면특성"], "def": "고온(800~1100℃) 전기로(Furnace)에서 순수 산소 가스(O2)만을 반응원료로 사용하는 건식 산화와, 수소와 산소를 연소시켜 생성한 수증기(H2O)를 투입하는 습식 산화로 구분됩니다.", "app": "건식 산화는 성장 속도가 느려 얇고 치밀한 양질의 박막을 형성하므로 트랜지스터 게이트 산화막(Gate Oxide)이나 터널 산화막에 적용됩니다. 습식 산화는 성장 속도가 건식 대비 약 5~10배 빨라 두꺼운 절연막이 필요한 STI 매립 라이너, 소자 분리용 필드 산화막, 이온주입 마스킹 산화막에 적용됩니다.", "sol": "게이트 산화막 절연파괴전압(BV)이 떨어지고 누설전류(SILC)가 발생하면 산화 분위기 내 수분 오염이나 전기로 석영 튜브(Quartz tube)의 중금속 오염을 점검합니다. 수분은 Si-OH 본드를 만들어 트랩을 형성하므로 초순수 가스 라인 누출을 검사하고 염소(TCA/HCl) 가스를 인시튜로 주입해 중금속을 휘발성 착물로 제거합니다.", "plus": "반응 메커니즘 비교 : 건식(Si + O2 -> SiO2)은 산소 분자의 실리콘 침투 확산도가 낮아 느리게 성장합니다. 습식(Si + 2H2O -> SiO2 + 2H2)은 수증기의 고체 내 용해도가 산소보다 600배 이상 높아 빠른 산화가 가능하나, 수소 결합 부산물로 인해 막질 밀도가 상대적으로 다공성입니다."}, {"category": "O", "category_name": "O · 산화 공정", "title": "Deal-Grove 모델 (선형-포물선 성장 법칙)", "keywords": ["Deal-Grove", "선형영역", "포물선영역", "표면반응속도", "확산속도", "산화막두께"], "def": "실리콘 열산화 속도를 설명하는 대표적 물리 모델로, xo^2 + A*xo = B(t + tau) 수식으로 표현됩니다. 산화막이 얇은 초기에는 표면 화학반응 속도(B/A)가 지배하는 선형(Linear) 영역이며, 산화막이 두꺼워지면 산화종이 산화막을 뚫고 지나가는 확산 속도(B)가 지배하는 포물선(Parabolic) 영역으로 전이됩니다.", "app": "초미세 게이트 산화막 제어에서는 표면 반응 속도가 지배하는 얇은 선형 영역의 정밀성이 핵심이며, STI나 두꺼운 웰 마스크 산화막 제어에서는 확산 저항을 극복하는 포물선 영역의 고온/압력 공정 최적화가 필수적입니다.", "sol": "목표 산화막 두께 대비 실제 인라인 엘립소메트리 계측 두께가 얇거나 두껍게 나오는 경우, 공정 온도와 가스 유량의 챔버 내 온도 균일도를 점검합니다. 표면 반응 계수와 확산 계수 모두 아레니우스 지수 함수로 온도에 극도로 민감하므로 히터 존별 써모커플(Thermocouple) 오프셋을 즉각 보정합니다.", "plus": "초기 건식 산화의 한계 : 딜-그로브 모델은 20nm 이하 극박 건식 산화 영역에서 실제 성장 속도가 이론값보다 비정상적으로 빠른 현상(초기 가속 산화)을 정확히 설명하지 못합니다. 따라서 초미세 공정에서는 질소 분압을 조절하거나 RTO(급속열산화) 챔버를 적용해 원자 단위 두께를 제어합니다."}, {"category": "O", "category_name": "O · 산화 공정", "title": "열예산 (Thermal Budget)", "keywords": ["열예산", "Thermal Budget", "불순물재확산", "USJ", "SCE", "RTA"], "def": "반도체 제조 전체 공정 동안 웨이퍼가 받는 온도(T)와 시간(t)의 총 노출량(적분 T dt)을 의미합니다. 공정 후반부로 갈수록 허용되는 잔여 열예산 한계가 급격히 줄어듭니다.", "app": "열예산이 과도하게 소모되면 기껏 이온주입으로 형성해 둔 소스/드레인의 초미세 얕은 접합(USJ) 프로파일이 횡방향 및 깊이 방향으로 재확산(Dopant Out-diffusion)되어 채널 길이가 짧아지고 심각한 단채널 효과(SCE) 및 펀치스루를 유발합니다.", "sol": "단품 트랜지스터 평가에서 문턱전압 롤오프나 DIBL이 급격히 악화될 경우 이전 고온 스텝들의 서멀 로그(Thermal Log)를 분석합니다. 기존 Furnace 기반의 장시간 열처리 공정을 수 초 내로 완료하는 스파이크 RTA나 수 밀리초 단위의 레이저 밀리초 어닐링(LSA)으로 대체하여 열예산을 획기적으로 차단합니다.", "plus": "막질별 열예산 제약 : 게이트 유전체로 고유전율(High-k) 막질을 도입한 이후, 800℃ 이상의 고온 노출 시 High-k 결정화로 누설전류가 급증하고 실리사이드 열화가 발생하므로, 메탈 게이트 및 박막 형성 공정은 400~500℃ 이하 저온 열예산 윈도우 내에서 완결되어야 합니다."}, {"category": "O", "category_name": "O · 산화 공정", "title": "STI (소자 분리 공정) & LOCOS Bird's Beak 극복", "keywords": ["STI", "LOCOS", "Birds Beak", "소자분리", "트렌치", "CMP", "누설전류"], "def": "과거 실리콘 질화막을 마스크로 선택적 열산화를 진행하던 LOCOS 방식의 횡방향 산화 버즈빅(Bird's Beak) 한계를 극복하기 위해, 실리콘 기판을 수직 트렌치로 식각하고 절연막(HDP-CVD/SOD SiO2)을 매립한 후 CMP로 평탄화하는 얕은 트렌치 격리 기술입니다.", "app": "버즈빅으로 인해 소자 간 격리 영역이 옆으로 번져 활성 영역(Active Area)을 침범하는 면적 손실을 0으로 만들어, 트랜지스터 간격을 수십 나노미터 이하로 축소시키는 첨단 반도체 표준 소자 분리 기술입니다.", "sol": "소자 분리 영역 인근에서 접합 누설전류(Junction leakage)가 상승하면 트렌치 식각 시 상단 코너의 날카로운 엣지(Sharp corner)에 기인한 전계 집중(Corner conduction) 현상을 확인합니다. 식각 직후 라운딩 산화(Corner Rounding Oxidation)를 진행하여 모서리를 둥글게 다듬고 라이너 산화막을 치밀하게 형성합니다.", "plus": "공정 주요 파라미터 : 트렌치 깊이(보통 200~300nm), 트렌치 측벽 테이퍼 각도(80~85° 유지로 보이드 없는 매립 보장), CMP 후 질화막 대비 산화막 디싱(Dishing) 및 침식(Erosion) 방지가 양품 수율의 핵심 파라미터입니다."}, {"category": "P", "category_name": "P · 포토 노광 공정", "title": "Rayleigh 해상도 수식 (R = k1 * lambda / NA) & 개구수 (NA)", "keywords": ["레일리", "해상도", "R", "NA", "파장", "k1", "개구수"], "def": "포토 장비가 물리적으로 분리하여 전사할 수 있는 최소 선폭(해상도, R)을 결정짓는 핵심 광학 수식입니다. 노광 광원의 파장(lambda)에 비례하고 렌즈의 빛 집광 능력을 나타내는 개구수(NA = n * sin(theta))에 반비례하며, 공정 변수 계수(k1)에 의해 스케일링됩니다.", "app": "더 미세한 선폭(R 축소)을 패터닝하기 위해 파장 단축(ArF 193nm -> EUV 13.5nm), 침지(Immersion) 기술을 통한 굴절률(n) 증가로 고NA 구현, 초미세화에 따른 High-NA(0.33 -> 0.55) EUV 장비 도입의 근거가 됩니다.", "sol": "웨이퍼 에지나 특정 샷에서 패턴 분해능이 떨어져 브릿지(Bridge) 불량이 발생하면 유효 k1 마진 부족을 진단합니다. 조명계(Illumination)를 Annular, Dipole, Quadrupole 등 오프축 조명(OAI)으로 전환하고, 위상 천이 마스크(PSM)와 광학 근접 보정(OPC)을 적용해 회절광 간섭을 극대화합니다.", "plus": "트레이드오프 파라미터 : R을 개선하기 위해 NA를 높이면 해상도는 좋아지지만 초점심도(DOF)는 NA^2에 반비례하여 급격히 좁아집니다. 초점 마진이 수십 나노미터 이하로 축소되므로 극도로 완벽한 웨이퍼 평탄화(CMP) 및 인라인 자동 초점(Auto-focus) 제어가 동반되어야 합니다."}, {"category": "P", "category_name": "P · 포토 노광 공정", "title": "초점심도 (DOF, Depth of Focus)", "keywords": ["DOF", "초점심도", "공정마진", "수직마진", "디포커스", "CMP"], "def": "노광 시 렌즈의 광축 방향(수직 Z축)으로 초점이 선명하게 맺힌 상태를 유지할 수 있는 수직적 공정 마진 한계치(DOF = k2 * lambda / NA^2)입니다.", "app": "웨이퍼 표면의 미세한 단차, 척(Chuck)의 평탄도 오차, PR 막 두께 편차 등이 존재하더라도 패턴의 왜곡이나 선폭(CD) 변화 없이 정상적인 패턴 프로파일을 형성할 수 있는 허용 두께 범위를 결정합니다.", "sol": "웨이퍼 전면에서 특정 다이의 패턴 CD가 굵어지거나 프로파일이 사다리꼴로 무너지는 디포커스(Defocus)가 나타나면, 척 레벨링 센서 에러나 하부 막질의 국소 토폴로지(단차)를 확인합니다. 고정밀 레벨링 맵핑을 재수행하고 노광 전 하부 유전막의 CMP 디싱 스펙을 타이트하게 조입니다.", "plus": "공정 파라미터 : 노광 파장이 짧아지고 NA가 0.33 이상으로 커진 EUV 공정에서는 DOF가 100nm 이하로 극단적으로 축소됩니다. 이를 극복하기 위해 PR 도포 두께를 기존 100nm 이상에서 30~40nm 극박막으로 낮추고 하부에 무기 하드마스크(SOC/SOG)를 적용합니다."}, {"category": "P", "category_name": "P · 포토 노광 공정", "title": "Positive PR vs Negative PR & 화학증폭형 (CAR)", "keywords": ["Positive PR", "Negative PR", "CAR", "PAG", "광산발생제", "해상도", "팽윤현상"], "def": "빛을 받은 영역이 현상액(TMAH)에 녹아 제거되는 Positive PR과, 반대로 빛을 받은 영역이 가교 반응(Cross-linking)을 일으켜 남아있는 Negative PR로 분류됩니다. 첨단 공정에서는 광산발생제(PAG)를 첨가해 광반응 효율을 수백 배 증폭시키는 화학증폭형(CAR) PR을 표준으로 사용합니다.", "app": "Positive PR은 현상 시 잔여 PR 패턴이 현상액을 흡수해 부풀어 오르는 팽윤(Swelling) 현상이 없어 미세 패턴 해상도에 훨씬 우수하므로 초미세 로직 및 메모리 메인 패터닝에 전량 적용됩니다. Negative PR은 접착력과 화학적 내식각성이 우수하여 후공정 두꺼운 범프 패터닝 등에 선택적으로 활용됩니다.", "sol": "현상 후 패턴 모서리의 거칠기(LER/LWR)가 심하거나 현상 잔여물(Scum)이 관찰되면 노광 후 베이크(PEB) 공정의 온도 편차나 PAG의 산(Acid) 확산 제어 실패를 점검합니다. PEB 플레이트 온도를 ±0.1℃ 단위로 제어하고 팹 내 염기성 아민(Amine) 가스 오염 농도를 1 ppb 이하로 관리합니다.", "plus": "EUV 신소재 트렌드 : EUV 노광에서는 광자 수가 부족하여 유기물 기반 CAR PR의 미세 패턴 붕괴 및 거칠기 한계가 발생합니다. 이에 따라 EUV 흡수율이 높은 금속(Sn, In 등) 산화물 나노 입자를 기반으로 한 무기물 MOx(Metal Oxide) PR이 차세대 핵심 소재로 도입되고 있습니다."}, {"category": "P", "category_name": "P · 포토 노광 공정", "title": "EUV 마스크 (Mo/Si 다층 브래그 반사경) & LPP 광원", "keywords": ["EUV마스크", "Mo/Si", "브래그반사경", "LPP", "주석드롭릿", "EUV펠리클"], "def": "13.5nm 파장의 EUV 빛은 공기뿐 아니라 석영 렌즈 등 모든 물질에 강하게 흡수되므로, 투과형 마스크 대신 몰리브덴(Mo)과 실리콘(Si) 박막을 약 40~50쌍 교대로 겹겹이 쌓아 보강 간섭을 유도하는 다층 반사경(Bragg Reflector) 구조 마스크를 사용합니다. 광원은 고출력 CO2 레이저를 주석(Sn) 액적에 발사해 플라즈마를 발생시키는 LPP(Laser Produced Plasma) 방식을 씁니다.", "app": "빛의 굴절을 이용할 수 없는 EUV 스캐너 내부를 고진공 챔버화하고, 반사 마스크 및 특수 반사 거울계(Mirror Optics)를 적용하여 7nm 이하 초미세 패턴을 단일 노광(Single Exposure)으로 형성합니다.", "sol": "다층 박막 반사 마스크는 단 하나의 원자 단위 파티클이나 기포가 하부에 존재해도 위상 결함(Phase Defect)이 되어 인쇄 불량을 유발합니다. 화학선(Actinic) 블랭크 마스크 검사기를 통해 위상 결함을 찾아내고, 흡수체 패턴 아래로 결함을 숨기는 Defect-aware 패턴 배치 알고리즘을 적용합니다.", "plus": "주요 수치 파라미터 : Mo/Si 다층막의 이론적 최대 반사율은 약 70%입니다. 빛이 스캐너 내부의 10여 개 반사 거울과 마스크를 거치면서 지수함수적으로 감쇠되어 웨이퍼 도달 광량이 1~2% 수준에 불과하므로, LPP 광원 파워를 250W~500W 이상으로 상향시키는 장비 개선이 지속되고 있습니다."}, {"category": "P", "category_name": "P · 포토 노광 공정", "title": "포톤 스토캐스틱스 (Photon Stochastics / Shot Noise)", "keywords": ["스토캐스틱스", "포톤샷노이즈", "선폭거칠기", "LWR", "미세브릿지", "EUV이슈"], "def": "EUV는 파장이 매우 짧아(13.5nm) 광자 1개가 가지는 에너지가 ArF 빛 대비 약 14배 큽니다. 동일한 광량을 웨이퍼에 조사할 때 도달하는 광자(Photon)의 절대 개수가 1/14로 급감하여, 공간적 광자 분포의 통계적 요동(Shot Noise)이 극대화되는 현상입니다.", "app": "초미세 콘택홀이나 미세 라인 패터닝 시 특정 위치에 광자가 통계적으로 부족하게 도달하면 PR 반응이 불완전해져 패턴이 끊어지는 오픈(Open) 불량이나 인접 라인끼리 붙는 브릿지(Bridge) 불량이 무작위(Random)로 발생합니다.", "sol": "인라인 결함 검사에서 비주기적 미세 오픈/브릿지가 증가하면 노광 도즈(Dose) 부족과 PR의 광자 감도 불균형을 확인합니다. 노광 도즈량을 올려 웨이퍼 단위 면적당 입사 광자 수를 늘리고, PAG 효율이 높고 산 확산 거리가 짧은 고밀도 PR 레시피로 교체합니다.", "plus": "트레이드오프 파라미터 (RLS Trade-off) : 포토 공정에서는 해상도(Resolution, R), 선폭 거칠기(LWR, L), 감도(Sensitivity, S) 3가지가 서로 상충 관계에 있습니다. 도즈량을 높이면 스토캐스틱 결함과 LWR은 개선되지만 노광 시간이 길어져 생산성(웨이퍼 wph)이 감소하므로 최적의 절충점을 도출해야 합니다."}, {"category": "E", "category_name": "E · 식각 공정", "title": "식각 공정 APC (자동 압력 제어기) & 챔버 압력 제어", "keywords": ["APC", "자동압력제어", "스로틀밸브", "챔버압력", "MFP", "플라즈마밀도"], "def": "APC(Auto Pressure Controller)는 식각 챔버 내부의 압력을 설정된 타깃 값으로 일정하게 유지하기 위해, 진공 게이지(바라트론 게이지)의 피드백 신호를 받아 스로틀 밸브(Throttle Valve)의 개도각을 실시간 정밀 제어하는 자동 배기 제어 시스템입니다.", "app": "압력은 플라즈마 내 이온과 라디칼의 평균자유행로(MFP)와 충돌 빈도를 결정짓는 절대적 파라미터입니다. 압력이 낮아지면 충돌이 줄어 이온의 직진성과 비등방성이 극대화되고, 압력이 높아지면 라디칼 밀도가 증가해 등방성 화학 식각 속도가 증가하므로 프로파일 제어의 핵심입니다.", "sol": "식각 중 CD 산포가 튀거나 플라즈마 아킹(Arcing)이 발생하면 APC 스로틀 밸브 축의 파우더/폴리머 고착이나 진공 게이지 제로점 드리프트를 점검합니다. 압력 헌팅(Hunting) 주기 로그를 분석하고, 밸브 클리닝 및 듀얼 압력 게이지 상호 교차 검증을 통해 APC 이상을 조기 차단합니다.", "plus": "막질별 주요 식각 파라미터 : (1) 산화막(SiO2) - 고에너지 이온 충돌과 CF 기반 고분자 패시베이션이 핵심 (C4F8, C4F6 가스, 고바이어스 파워), (2) 질화막(Si3N4) - CH2F2, CHF3 등 수소 함유 가스로 산화막 대비 선택비 확보, (3) 폴리실리콘(Poly-Si) - Cl2, HBr 가스를 사용하여 자발적 등방성 반응을 억제하고 수직 이방성 확보, (4) 금속막(Al, W) - Cl2, BCl3 가스로 고유 자생 산화막을 파괴한 후 휘발성 AlCl3 배출 촉진이 핵심입니다."}, {"category": "E", "category_name": "E · 식각 공정", "title": "습식 식각 (Wet Etch) vs 건식 식각 (Dry Etch)", "keywords": ["습식식각", "건식식각", "등방성", "비등방성", "선택비", "화학식각", "플라즈마"], "def": "액체 케미컬 에천트(HF, H3PO4 등)와의 순수 자발적 화학반응을 이용하는 습식 식각과, 진공 챔버 내 플라즈마의 반응성 이온과 라디칼을 이용하는 건식 식각으로 분류됩니다.", "app": "습식 식각은 모든 방향으로 동일하게 깎이는 등방성(Isotropic) 특성을 가지며 하부막 대비 선택비가 월등히 우수하여 박막 전면 박리(Strip)나 세정(Clean)에 적용됩니다. 건식 식각은 전기장으로 가속된 이온의 수직 충돌을 이용해 수직벽을 깎아내는 비등방성(Anisotropic) 가공이 가능하여 초미세 회로 패턴 형성에 필수 적용됩니다.", "sol": "미세 선폭 패터닝 중 습식 공정을 무리하게 적용하면 마스크 아래가 파고들어가는 심각한 언더컷(Undercut)으로 패턴이 쓰러집니다. 미세 패턴 영역은 즉시 RIE 건식 식각으로 전환하고, 잔류 부산물 제거가 필요할 때만 극히 짧은 딥(Dip) 형태의 희석 습식 세정을 진행합니다.", "plus": "선택비 파라미터 : 습식 식각은 질화막 박리 시 인산(H3PO4)을 160℃로 가열하여 산화막 대비 50:1 이상의 극단적 고선택비를 얻을 수 있습니다. 반면 건식 식각은 물리적 이온 충돌이 수반되므로 마스크 및 하부막과의 선택비 확보가 훨씬 까다로워 식각 가스 화학 조성 제어가 핵심입니다."}, {"category": "E", "category_name": "E · 식각 공정", "title": "플라즈마 쉬스 전압 (Sheath Voltage) & 이온 충돌 메커니즘", "keywords": ["플라즈마", "쉬스전압", "Sheath", "양이온가속", "수직프로파일", "자기바이어스"], "def": "플라즈마 벌크 내에서 전자의 이동 속도가 무거운 이온보다 훨씬 빨라 챔버 벽과 전극 표면에 음전하가 먼저 축적됩니다. 이로 인해 플라즈마 벌크는 양전위, 전극 및 웨이퍼 표면은 음전위가 형성되며, 이 계면의 전위차 영역을 쉬스(Sheath)라고 부릅니다.", "app": "쉬스 영역에 형성된 강력한 수직 전기장에 의해 플라즈마의 양이온(Ar+, CFx+ 등)이 웨이퍼 표면으로 수직 가속되어 직각으로 입사합니다. 이 물리적 충돌 에너지가 표면의 화학 결합을 끊고 부산물 탈착을 유도하여 완벽한 수직 비등방성 식각 프로파일을 달성합니다.", "sol": "식각 프로파일이 수직이 되지 못하고 아래로 갈수록 퍼지는 보잉(Bowing)이나 슬로프(Taper) 현상이 발생하면 쉬스 전압 부족 또는 이온 충돌 직진성 저하를 의심합니다. 하부 전극의 RF 바이어스 파워(Bias Power)를 올려 쉬스 전압을 높이고, 챔버 압력을 낮추어 이온의 평균자유행로(MFP)를 확보합니다.", "plus": "역할 분담 : 플라즈마 내 화학종인 라디칼(Radical)은 전기적 중성이라 쉬스 전기장의 영향을 받지 않고 열확산하여 표면과 자발적 화학반응을 일으켜 식각 속도를 높입니다. 반면 양이온은 쉬스 전압에 의해 방향성을 획득하여 물리적 타격을 담당하는 시너지 효과(이온 유도 식각)가 발생합니다."}, {"category": "E", "category_name": "E · 식각 공정", "title": "식각 선택비 (Selectivity) & 마이크로 로딩 효과 (Loading Effect)", "keywords": ["식각선택비", "로딩효과", "패턴밀도", "에천트소모", "마이크로로딩", "APC"], "def": "선택비(Selectivity)는 목표 식각 대상막의 식각 속도와 마스크(또는 하부 베이스막)의 식각 속도 비율(S = ER_target / ER_mask)입니다. 로딩 효과는 식각 면적의 조밀도(패턴 밀도)에 따라 반응 가스(에천트)의 국소적 소모율이 달라져 식각 속도가 불균일해지는 현상입니다.", "app": "초고종횡비(HARC) 콘택홀이나 깊은 트렌치 식각 시 얇은 하부 접합막을 뚫지 않으려면 고선택비 에칭이 필수적이며, 패턴이 빽빽한 셀(Cell) 영역과 듬성듬성한 페리(Peri) 영역 간의 식각 깊이를 동일하게 제어하기 위해 로딩 효과를 억제해야 합니다.", "sol": "패턴 밀도가 높은 다이 중심부의 홀 깊이가 외곽부보다 얕게 식각되는 로딩 에러가 발생하면, 반응 가스 유입량 대비 에천트 고갈이 원인입니다. 총 가스 유량을 증대시키고 배기 밸브(APC) 제어로 챔버 압력을 최적화하며, 펄스 플라즈마(Pulsed RF)를 적용해 플라즈마 Off 구간 동안 반응종이 충분히 홀 바닥까지 확산 공급되도록 조절합니다.", "plus": "막질별 선택비 파라미터 : 산화막(SiO2) 식각 시에는 C:F 비율이 높은 플루오로카본 가스(C4F8, C4F6)를 사용하여 실리콘 표면에 탄소 고분자(Polymer) 보호막을 형성시킴으로써 실리콘 대비 산화막 선택비를 20:1 이상으로 끌어올립니다."}, {"category": "E", "category_name": "E · 식각 공정", "title": "원자층 식각 (ALE, Atomic Layer Etching)", "keywords": ["ALE", "원자층식각", "자기포화", "표면개질", "원자단위제어", "3D구조"], "def": "기존 연속 플라즈마 식각과 달리, 화학적 표면 흡착(개질) 단계와 물리적 이온 충돌(제거) 단계를 시간적으로 완벽히 분리하여 1사이클당 단 1개의 단원자층(Sub-nanometer)씩 정밀하게 제어하며 깎아내는 차세대 디지털 식각 기술입니다.", "app": "GAA(Gate-All-Around) 나노시트 사이의 극미세 희생층 선택 식각, 3D 낸드 초미세 홀 바닥 손상 최소화, 초박막 High-k 게이트 유전막 패터닝 시 원자 단위의 손상 없는 무결점 수직 식각을 구현합니다.", "sol": "ALE 공정 중 1사이클당 식각량(EPC)이 자기포화 한계를 벗어나 과도하게 증가한다면, 2단계 탈착 스텝에서 인가된 아르곤 이온 에너지의 문턱치 초과를 점검합니다. 이온 에너지를 물리적 스퍼터링 임계 전압(약 20~30eV) 이하로 정밀하게 하향 제어하여 자발적 손상을 차단합니다.", "plus": "CVD/ALD와의 대비 : ALD가 표면 자기포화 흡착 후 퍼지를 통해 1원자층을 '증착'하는 기술이라면, ALE는 염소(Cl2) 가스로 1원자층 표면만을 화학적으로 반응성 있게 변형(개질)시킨 후 저에너지 Ar+ 이온으로 오직 변형된 층만 '제거'하는 완벽한 대칭적 반대 공정입니다."}, {"category": "D", "category_name": "D · 박막 증착 공정", "title": "CVD 종류 비교 (APCVD vs LPCVD vs PECVD)", "keywords": ["CVD", "APCVD", "LPCVD", "PECVD", "대류", "스텝커버리지", "플라즈마증착"], "def": "기상 반응 가스를 주입하여 웨이퍼 표면에서 화학 반응을 통해 고체 박막을 증착하는 공정입니다. 대기압에서 진행하는 APCVD, 저압(0.1~10 Torr)과 고온을 이용하는 LPCVD, 플라즈마 에너지를 보조로 활용하는 PECVD로 진화했습니다.", "app": "LPCVD는 분자의 평균자유행로(MFP)가 길어 단차 피복성(Step Coverage)과 막질 순도가 우수하여 고온을 견디는 Poly-Si, 질화막(Si3N4), HTO 증착에 쓰입니다. PECVD는 열 대신 플라즈마 전자를 이용해 200~400℃ 저온 증착이 가능하므로, 열에 약한 알루미늄/구리 금속 배선 형성 후 층간 절연막(IMD) 및 최종 보호막(Passivation)에 적용됩니다.", "sol": "PECVD 공정 후 소자의 문턱전압 편차가 심해지고 박막 내 수소 함량이 높게 측정되면, 불완전 플라즈마 해리로 인한 Si-H 결합 증가 및 플라즈마 유기 손상(PID)을 진단합니다. 고주파(HF)와 저주파(LF) 듀얼 주파수 파워 비율을 조정하여 이온 폭격 세기를 조절하고 박막의 압축/인장 스트레스를 0으로 보정합니다.", "plus": "공정 윈도우 비교 : APCVD는 장비가 단순하나 기체 대류에 의한 파티클 오염이 심해 최신 팹에서는 거의 배제됩니다. LPCVD는 우수한 스텝커버리지 대비 600~800℃ 고온이 필수적이므로 금속 배선 이후 공정에는 절대로 사용할 수 없다는 열예산 한계가 있습니다."}, {"category": "D", "category_name": "D · 박막 증착 공정", "title": "원자층 증착 (ALD, Atomic Layer Deposition)", "keywords": ["ALD", "원자층증착", "자기포화반응", "전구체", "단차피복성", "DRAM커패시터"], "def": "전구체(Precursor) 주입 -> 퍼지(Purge) -> 반응 가스(Reactant) 주입 -> 퍼지(Purge)의 4단계를 순차적으로 교대로 반복하여, 웨이퍼 표면의 활성 사이트와만 반응하는 화학적 자기포화반응(Self-limiting reaction)을 이용하는 원자 단위 박막 증착 기술입니다.", "app": "반응종들이 표면 흡착 자리와 1:1로만 결합하므로 기하학적 형태에 무관하게 두께가 완벽히 균일합니다. 이에 따라 100:1 이상의 초고종횡비를 갖는 DRAM 실린더형 커패시터 유전막(ZrO2/Al2O3) 및 FinFET/GAA의 High-k 게이트 산화막 증착에 독점적으로 적용됩니다.", "sol": "ALD 공정임에도 박막 두께가 사이클 수에 비례하지 않고 위치별로 두껍게 증착되는 비정상 CVD 반응이 감지되면 퍼지 시간 부족을 확인합니다. 잔류 전구체가 기상에서 반응 가스와 직접 만나 파티클을 생성한 것이므로, 비활성 질소(N2) 퍼지 시간과 펌핑 속도를 올려 기상 반응을 원천 차단합니다.", "plus": "공정 파라미터 (ALD 온도 윈도우) : ALD는 온도가 너무 낮으면 전구체가 응축되거나 반응 활성화 에너지가 부족해지고, 온도가 너무 높으면 전구체가 스스로 열분해되어 제어 불능 상태가 됩니다. 따라서 포화 흡착만이 유지되는 'ALD Temperature Window' 내 정밀 제어가 필수입니다."}, {"category": "D", "category_name": "D · 박막 증착 공정", "title": "박막 균일도 (Uniformity) 영향도 : Cox, Vth 및 RC 지연", "keywords": ["Uniformity", "균일도", "Cox", "Vth", "누설전류", "RC딜레이"], "def": "웨이퍼 1장 내(Within Wafer) 또는 웨이퍼 간(Wafer-to-Wafer) 박막 두께 및 물리적 조성의 균일한 정도를 나타내는 백분율 지표((최대값 - 최소값) / (2 * 평균값) * 100%)입니다.", "app": "게이트 유전막의 두께 균일도가 1%만 틀어져도 게이트 정전용량(Cox = eps / tox)이 달라져 트랜지스터의 문턱전압(Vth) 산포가 발생하고 오프 누설전류가 급증합니다. 금속 배선이나 층간 절연막(ILD)에서는 배선 저항(R)과 기생 커패시턴스(C)의 곱인 RC 지연 편차가 심화되어 칩 타이밍 에러를 유발합니다.", "sol": "웨이퍼 에지부의 박막 두께가 중심부보다 얇아지는 돔(Dome) 형태 산포가 나타나면 가스 인젝터 노즐의 유량 분배 불균형이나 척 히터의 존별 온도 편차를 점검합니다. 멀티 샤워헤드 가스 분배비와 엣지 링(Edge ring) 온도를 보정하여 공정 챔버 내 가스 유동을 층류(Laminar flow)로 제어합니다.", "plus": "주요 관리 스펙 : 첨단 D램 및 파운드리 팹에서는 핵심 게이트 산화막의 경우 균일도를 0.5% 미만, 두께 1옹스트롬(0.1nm) 이내로 통제하는 초극단적 관리가 이루어집니다."}, {"category": "D", "category_name": "D · 박막 증착 공정", "title": "박막 두께 계측 장비 비교 : 엘립소메트리 vs 반사간섭계 vs XRF vs TEM", "keywords": ["엘립소메트리", "반사간섭계", "XRF", "TEM", "비파괴검사", "복소굴절률"], "def": "투명/반투명 절연막 두께와 복소 굴절률(n, k)을 편광 변화 역산으로 측정하는 분광 엘립소메트리(SE), 수직 입사광의 간섭 파형 주기로 초고속 전수 검사하는 반사율 분광간섭계, 불투명 금속막 두께를 X선 형광으로 측정하는 XRF, FIB로 단면을 잘라 원자 격자를 직관 검증하는 투과전자현미경(TEM)의 계측 체계입니다.", "app": "양산 인라인에서는 비파괴 초고속 광학 계측기(SE, 반사간섭계)로 수초 내에 수십 개 포인트를 전수 측정하여 두께 산포를 모니터링하고, 금속막(Cu, W)은 XRF를 사용하며, 신공정 셋업이나 불량 분석 시에는 TEM으로 물리적 원자 단면을 최종 확증합니다.", "sol": "엘립소메트리 계측 시 피팅(Fitting) 오차인 GOF(Goodness of Fit)가 0.9 이하로 떨어지면 박막 표면의 거칠기나 이종 복합막 계면 믹싱을 점검합니다. 광학 분산 모델(Tauc-Lorentz 등)을 실제 막질 물성에 맞게 재튜닝하고 필요 시 TEM 단면 데이터와 크로스 체크하여 보정 인자를 업데이트합니다.", "plus": "계측기별 특성 요약 : 반사간섭계는 측정 속도가 가장 빠르나 흡수율이 있는 다층 박막에 취약하고, 엘립소메트리는 초박막(~1nm)과 광학 상수를 동시 측정 가능하나 모델링 복잡도가 높으며, TEM은 가장 정확하지만 시편 파괴와 긴 분석 시간이 소요됩니다."}, {"category": "D", "category_name": "D · 박막 증착 공정", "title": "단차 피복성 (Step Coverage) & 종횡비 (Aspect Ratio)", "keywords": ["스텝커버리지", "Step Coverage", "종횡비", "Aspect Ratio", "보이드", "오버행"], "def": "종횡비(Aspect Ratio)는 패턴의 입구 폭 대비 깊이(깊이/폭)의 비율입니다. 단차 피복성(Step Coverage)은 패턴 상부 평탄면의 박막 두께 대비 깊은 홈의 측벽(Bottom/Side)에 증착된 박막 두께의 백분율(t_bottom / t_top * 100%)을 의미합니다.", "app": "3D 낸드의 200단 이상 채널 홀 매립이나 D램 커패시터 증착 시 종횡비가 50~100 이상으로 치솟습니다. 이때 스텝커버리지가 불량하면 입구 쪽만 두껍게 쌓여 입구가 먼저 막히는 오버행(Overhang) 현상이 발생하고, 내부에 텅 빈 공동인 심각한 보이드(Void)와 심(Seam)이 발생합니다.", "sol": "절연막 매립 후 CMP 과정에서 크랙이 발생하거나 보이드가 드러나면 증착 공정의 점착 계수(Sticking Coefficient)를 점검합니다. 점착 계수가 낮을수록 분자가 표면과 충돌 후 바로 달라붙지 않고 깊은 홈 바닥까지 튕겨 들어가 고르게 증착되므로, PVD 대신 LPCVD나 100% 스텝커버리지를 갖는 ALD로 전환합니다.", "plus": "주요 증착별 피복성 서열 : PVD (직진성으로 30~50% 미만) << PECVD (50~70%) < LPCVD (80~90%) << ALD (95~100%)."}, {"category": "D", "category_name": "D · 박막 증착 공정", "title": "박막 응력 (Thin Film Stress) : 인장 (Tensile) vs 압축 (Compressive)", "keywords": ["박막응력", "Tensile", "Compressive", "웨이퍼휨", "Stress", "이동도향상"], "def": "웨이퍼 기판과 증착된 박막 간의 열팽창계수(CTE) 차이나 박막 내부 격자 부정합으로 인해 발생하는 기계적 스트레스입니다. 박막이 수축하려 하여 기판을 오목하게 당기는 인장 응력(Tensile Stress)과, 박막이 팽창하려 하여 기판을 볼록하게 밀어내는 압축 응력(Compressive Stress)으로 나뉩니다.", "app": "응력이 과도하면 웨이퍼가 휘어져(Warpage) 포토 노광 시 디포커스가 발생하거나 박막 크랙(Crack), 박리(Peeling)가 발생합니다. 반면 엔지니어링된 스트레스는 소자 채널 영역에 실리콘 격자 변형을 유발하여 전자 이동도를 높이는 SiGe 소스/드레인(PMOS 압축 스트레스) 기술이나 SiN 캡핑막(NMOS 인장 스트레스) 기술로 적극 활용됩니다.", "sol": "웨이퍼의 글로벌 휨 계측치(Bow/Warp)가 수십 마이크로미터를 초과하여 정전 척(E-Chuck) 척킹 에러가 뜨면, 증착 가스 비율과 후속 열처리 냉각 속도를 확인합니다. PECVD 질화막 증착 시 SiH4/NH3 유량비 및 RF 주파수 파워를 튜닝하여 막 내부 원자 간 충돌 밀도를 조절함으로써 잔류 응력을 제로(Zero-stress)로 상쇄시킵니다.", "plus": "캐리어 이동도 향상 메커니즘 : 실리콘 격자를 수평으로 잡아당기는 인장 스트레스는 전도대 전자의 유효 질량을 낮춰 NMOS 전자 이동도를 최대 50% 향상시키며, 실리콘 격자를 압축하는 응력은 가전자대 분열을 유도해 PMOS 정공 이동도를 최대 100% 이상 증대시킵니다."}, {"category": "D", "category_name": "D · 박막 증착 공정", "title": "CMP (화학적 기계적 연마) 3대 요소 & 표면 결함 제어", "keywords": ["CMP", "슬러리", "패드", "컨디셔너", "프레스톤", "디싱", "에로전"], "def": "슬러리(Slurry) 케미컬에 의한 화학적 산화/연화 반응과, 연마 패드(Pad) 및 연마 입자의 회전 마찰에 의한 기계적 제거를 복합적으로 작용시켜 웨이퍼 표면의 요철을 원자 단위 수준으로 거울처럼 평탄화하는 글로벌 평탄화 공정입니다.", "app": "STI 트렌치 매립 후 평탄화, 금속 다마신 배선 공정에서 트렌치 외부의 과잉 구리/텅스텐 제거, 고단수 적층 공정 전 광역 평탄화를 통해 포토 공정의 초점심도(DOF) 마진을 확보하는 데 필수적으로 쓰입니다.", "sol": "연마 후 광폭 패턴 중심부가 움푹 파이는 디싱(Dishing)이나 미세 밀집 패턴 영역의 절연막이 과도하게 깎이는 에로전(Erosion)이 발생하면 연마 속도 불균형을 점검합니다. 프레스톤(Preston) 방정식(MRR = Kp * P * V)에 따라 연마 헤드의 존별 압력(Pressure)을 차등 제어하고, 고선택비 슬러리(연마 정지막에서 멈추는 슬러리)로 전환합니다.", "plus": "소모품 3대 파라미터 : 슬러리(pH, 연마제 연마 입자 크기/농도), 패드(경도, 기공률, 그루브 형상), 컨디셔너(다이아몬드 디스크로 패드 표면 글레이징을 방지하고 표면 거칠기 재생)가 연마율(MRR)과 스크래치 결함을 결정하는 3대 핵심 변수입니다."}, {"category": "I", "category_name": "I · 이온 주입 공정", "title": "이온 주입기 4대 핵심 모듈 (이온원 / 질량분석기 / 가속관 / 패러데이컵)", "keywords": ["이온주입기", "질량분석자석", "로렌츠힘", "가속관", "패러데이컵", "도즈량"], "def": "고체나 기체 화합물로부터 플라즈마 아크를 일으켜 양이온을 뽑아내는 이온원(Ion Source), 로렌츠 힘을 이용해 목적 이온만을 질량 대 전하비(m/q)로 정확히 선별하는 질량 분석 자석, 고전압을 인가해 에너지를 부여하는 가속관, 도즈량을 전하량 적분으로 실시간 계측하는 패러데이 컵(Faraday Cup)으로 구성됩니다.", "app": "고온 확산 공정과 달리 상온에서 독립적으로 도핑 깊이(에너지 keV)와 도핑 농도(도즈량 ions/cm2)를 1% 오차 미만으로 초정밀 제어하여 트랜지스터의 문턱전압 조절, 웰 형성, 소스/드레인 접합 형성을 수행합니다.", "sol": "이온 주입 후 웨이퍼 전면의 시트 저항(Rs)이 목표치보다 현저히 높게 튀는 경우 질량 분석 슬릿(Slit)의 정렬 틀어짐이나 질량 분석 자석의 자기장 편차를 의심합니다. B11 주입 시 동위원소인 분자 이온 오염이 없는지 매스 스펙트럼(Mass spectrum)을 스캔하고 슬릿 위치를 재정렬합니다.", "plus": "정전 척과 빔 스캐닝 : 빔 스캐너와 틸팅 스테이션을 결합하여 웨이퍼 전면에 균일하게 빔을 조사합니다. 고밀도 도핑 시 웨이퍼 표면에 양전하가 축적되는 차징(Charging) 현상으로 게이트 산화막 파괴가 유발될 수 있으므로, 플라즈마 플러드 건(Electron Flood Gun)으로 전자를 공급해 전하를 중화시킵니다."}, {"category": "I", "category_name": "I · 이온 주입 공정", "title": "Dose (도즈량) vs Doping 농도 차이 및 계측법 (Faraday Cup vs SIMS)", "keywords": ["Dose", "도핑농도", "FaradayCup", "SIMS", "2차이온질량분석", "단위면적", "단위부피"], "def": "Dose(도즈량, Phi)는 단위 면적당 주입된 총 이온의 개수(ions/cm^2)이며, Doping 농도(N)는 깊이 방향으로 분포된 단위 부피당 불순물 원자의 밀도(atoms/cm^3)입니다. Dose는 깊이에 따른 농도 프로파일을 적분한 값입니다.", "app": "Dose는 트랜지스터의 문턱전압 이동량(delta Vth = q*Phi / Cox)을 직접 결정짓고, Doping 농도 프로파일은 공핍층 폭, 접합 항복전압, 내부 전계 강도 등 소자의 물리적 스케일링 특성을 결정합니다.", "sol": "공정 중 Dose는 패러데이 컵에 포집된 빔 전류(Beam Current)를 시간 적분(Q = integral I dt)하여 웨이퍼를 파괴하지 않고 인시튜(In-situ)로 실시간 계측 제어합니다. 반면 깊이별 정밀 Doping 농도는 고에너지 일차 이온으로 표면을 스퍼터링하며 튀어나오는 이차 이온의 질량을 분석하는 SIMS(Secondary Ion Mass Spectrometry) 장비로 파괴 분석합니다.", "plus": "SIMS 계측 파라미터 : SIMS는 10^14 cm^-3 수준의 극미량 도펀트까지 검출 가능한 압도적 민감도를 가지지만, 매트릭스 효과(Matrix Effect)로 인해 계면 근처에서 측정 왜곡이 발생할 수 있으므로 표준 시편(Standard Sample) 기반의 신중한 정량 보정이 수반되어야 합니다."}, {"category": "I", "category_name": "I · 이온 주입 공정", "title": "Doping Profile 제어의 중요성 : Retrograde Well & 경사 접합", "keywords": ["도핑프로파일", "RetrogradeWell", "경사접합", "이동도향상", "기생바이폴라"], "def": "도핑 프로파일(Doping Profile)은 실리콘 기판 깊이에 따른 도펀트 불순물 농도의 공간적 분포 곡선입니다. Retrograde Well은 표면 쪽 농도는 낮추고 내부 깊은 쪽 농도는 높게 설계한 역경사 도핑 구조입니다.", "app": "표면 채널 영역의 도핑 농도를 낮추면 이온화 불순물 산란이 줄어들어 캐리어 이동도와 구동 전류(Ion)가 대폭 향상되며, 반대로 기판 깊은 영역의 농도를 높여두면 소스/드레인 공핍층이 내부로 파고드는 펀치스루를 원천 봉쇄하고 래치업(Latch-up)을 방어합니다.", "sol": "접합 누설전류가 급증하거나 접합 커패시턴스(Cj)가 너무 커져 신호 전달 속도가 둔화되는 문제가 생기면, 접합 경계면의 급격한 농도 구배(Step Junction)를 점검합니다. 이온 주입 에너지와 도즈를 다단 분할 주입하여 농도가 완만하게 변하는 경사 접합(Graded Junction)을 형성함으로써 공핍층 내 피크 전계를 완화시킵니다.", "plus": "오믹 컨택 접합과의 연계 : 트랜지스터 단자 최상부와 금속 배선이 만나는 실리사이드 접합부에는 10^20 cm^-3 이상의 고농도 도핑을 형성하여 쇼트키 에너지 장벽 두께를 양자 터널링이 가능한 수 나노미터 이하로 얇게 만들어 완벽한 오믹 컨택을 완성합니다."}, {"category": "I", "category_name": "I · 이온 주입 공정", "title": "이온 채널링 (Ion Channeling) & 틸팅 / PAI 공정", "keywords": ["채널링", "이온채널링", "틸팅", "PAI", "프리아몰퍼스", "격자원자", "꼬리형성"], "def": "단결정 실리콘 웨이퍼의 특정 원자 격자 평면 방향으로 고에너지 이온을 주입할 때, 이온이 격자 원자와의 큰 각도 핵 충돌 없이 원자 원주 사이의 빈 통로(Channel)를 따라 마치 터널을 지나듯 예상 깊이보다 훨씬 깊숙이 뚫고 들어가는 물리 현상입니다.", "app": "채널링이 발생하면 도핑 프로파일 끝단에 깊고 긴 꼬리(Tail)가 형성되어 접합 깊이(Xj)가 걷잡을 수 없이 깊어지므로, 초미세 트랜지스터의 소스/드레인이 서로 맞닿아 쇼트가 나는 치명적인 단채널 효과를 초래합니다.", "sol": "인라인 SIMS 프로파일 분석 시 깊이 방향으로 도펀트 테일이 비정상적으로 연장된 것이 관찰되면 틸트/트위스트 각도 오류를 확인합니다. 웨이퍼 법선 축을 7° 기울이고(Tilt) 회전각을 22° 비트는(Twist) 틸팅 주입을 적용하거나, 무거운 불활성 이온(Ge, Si)을 먼저 주입해 표면 격자를 깨뜨려 비정질화시키는 PAI(Pre-Amorphization Implantation) 공정을 선행합니다.", "plus": "도펀트 질량 파라미터 : 가벼운 붕소(B) 이온은 질량이 작아 핵 저지능보다 전자 저지능이 우세하여 채널링 발생 확률이 가장 높습니다. 반면 무거운 비소(As)나 안티몬(Sb)은 원자 반경이 크고 핵 충돌 단면적이 커서 채널링 현상이 상대적으로 적습니다."}, {"category": "I", "category_name": "I · 이온 주입 공정", "title": "USJ (Ultra Shallow Junction) & LDD / Halo 엔지니어링", "keywords": ["USJ", "초미세접합", "LDD", "Halo", "Pocket", "핫캐리어", "DIBL"], "def": "채널 내부로 소스/드레인이 파고드는 것을 막기 위해 접합 깊이(Xj)를 수십 나노미터 이하로 극히 얕게 만든 초미세 접합(USJ) 기술과, 게이트 가장자리 하부에 저농도 접합을 연장하는 LDD(Lightly Doped Drain), 드레인 하부에 기판과 동일한 타입의 고농도 도핑을 감싸주는 Halo(Pocket) 이온주입의 결합 구조입니다.", "app": "드레인 측 게이트 모서리의 급격한 피크 전계를 완화하여 핫 캐리어 주입(HCI)에 의한 게이트 절연막 파괴를 방지(LDD의 역할)하고, 드레인 공핍층이 소스 공핍층 쪽으로 확장되는 것을 원천 차단하여 DIBL 및 펀치스루를 방어(Halo의 역할)합니다.", "sol": "트랜지스터 신뢰성 스트레스 테스트 후 핫 캐리어 열화로 온전류(Ion)가 급감하거나 대기 상태 누설전류(Ioff)가 상승하면 LDD 스페이서 두께와 Halo 도즈량을 점검합니다. 스페이서 질화막 식각 두께를 타이트하게 맞추고 저에너지/고경사도(Tilt 30~45°) Halo 주입 에너지를 최적화합니다.", "plus": "열공정 연계 : 기껏 극저에너지(수백 eV)로 얕게 주입해 둔 USJ 도펀트가 후속 활성화 어닐링 시 붕소의 과도 증속 확산(TED) 현상으로 인해 깊어져 버릴 수 있습니다. 따라서 USJ 활성화는 승온 속도가 200℃/s 이상인 스파이크 RTA나 마이크로초 단위의 플래시 램프 어닐링(FLA)과 반드시 패키지로 연계됩니다."}, {"category": "I", "category_name": "I · 이온 주입 공정", "title": "도펀트 활성화 어닐링 (RTA / Laser Spike Annealing)", "keywords": ["어닐링", "RTA", "LSA", "격자복원", "치환형자리", "활성화율", "TED"], "def": "고에너지 이온 충돌로 심각하게 파괴된 실리콘 단결정 격자의 손상(Damage)과 결함을 고온 열에너지로 복원하고, 격자 간 틈새에 떠돌던 도펀트 불순물을 전기적으로 활성화되는 실리콘 치환형 원자 위치로 이동시키는 열처리 공정입니다.", "app": "이온 주입 직후의 실리콘은 비정질화되어 저항이 무한대에 가깝고 캐리어를 방출하지 못하므로, 어닐링을 거쳐야만 비로소 본래의 도핑 전도도 특성을 발현하고 접합 결함에 의한 누설전류를 제거할 수 있습니다.", "sol": "이온 주입 완료 후 접합 누설전류가 급증하고 다이오드 특성이 무너지면 잔류 전위 루프와 미복원 엔드오브레인지(EOR) 결함을 점검합니다. 어닐링 피크 온도를 도펀트 고용도 한계 근처(1000~1050℃)로 올리고 냉각 프로파일을 정밀 제어합니다.", "plus": "차세대 기술 (Laser Annealing) : 10nm 이하 첨단 노드에서는 일반 RTA의 1~2초 노출 시간마저도 도펀트 확산을 유발하여 용납되지 않습니다. 이에 따라 웨이퍼 표면 수십 나노미터만 국소 가열하여 열확산 시간을 0으로 수렴시키는 레이저 스파이크 어닐링(LSA, 유지 시간 수 밀리초)이 필수 양산 장비로 정착되었습니다."}, {"category": "M", "category_name": "M · 금속 배선 공정", "title": "금속 재료 특성 비교 (Al vs Cu vs W)", "keywords": ["Al", "Cu", "W", "알루미늄", "구리", "텅스텐", "다마신", "비저항"], "def": "반도체 칩 내부의 전기 신호 및 전원을 연결하는 3대 금속 재료입니다. 비저항은 Cu(1.7 uOhm*cm) < Al(2.7) < W(5.6) 순이며, 융점은 W(3422℃) > Cu(1085℃) > Al(660℃) 순으로 반대 양상을 보입니다.", "app": "구리(Cu)는 낮은 비저항과 압도적인 신뢰성으로 핵심 다층 인터커넥트 메인 배선에 독점 적용됩니다. 텅스텐(W)은 녹는점이 높고 스텝커버리지가 뛰어난 CVD 증착이 가능하여 트랜지스터와 제1 금속층을 연결하는 미세 콘택/비아 플러그(Contact Plug)에 적용됩니다. 알루미늄(Al)은 식각 부산물 휘발성이 좋아 패턴 식각이 쉬우므로 최상부 패드(Pad) 전극 등에 제한적으로 사용됩니다.", "sol": "미세 금속 배선의 RC 지연으로 인한 칩 구동 속도 지연이 발생할 때 과거 알루미늄 배선은 한계에 직면했습니다. 배선 저항을 40% 이상 낮추기 위해 구리(Cu)로 전면 교체하였으며, 구리는 식각 가스와 반응해도 휘발성 부산물이 나오지 않아 식각이 불가능하므로 절연막을 먼저 파고 구리를 채운 뒤 깎아내는 듀얼 다마신(Dual Damascene) 공정으로 문제를 해결했습니다.", "plus": "확산 방지층 필수성 : 구리는 실리콘 및 산화막 내부로의 확산 계수가 극도로 빨라, 확산 시 딥 레벨 트랩을 형성해 소자를 즉사시킵니다. 따라서 구리 배선 주위에는 반드시 얇고 치밀한 Ta/TaN 또는 TiN 배리어 메탈(Barrier Metal)을 PVD/ALD로 완벽히 둘러싸야 합니다."}, {"category": "M", "category_name": "M · 금속 배선 공정", "title": "일렉트로마이그레이션 (Electromigration, EM) & 보이드 / 힐록", "keywords": ["일렉트로마이그레이션", "EM", "전자바람", "보이드", "힐록", "Void", "Hillock"], "def": "고밀도 전류(>10^5 A/cm^2)가 흐르는 미세 금속 배선에서 가속된 전자의 흐름(전자 바람, Electron Wind)이 금속 원자와 연속 충돌하며 운동량을 전달하여, 금속 원자가 전자의 이동 방향으로 물리적으로 밀려 이동하는 현상입니다.", "app": "원자가 빠져나간 음극(Cathode) 쪽에는 공동인 보이드(Void)가 형성되어 배선 저항이 증가하다가 결국 단선(Open)을 유발하고, 원자가 누적된 양극(Anode) 쪽에는 금속 뿔인 힐록(Hillock)이 솟아올라 층간 절연막을 찢고 인접 배선과 단락(Short)을 일으키는 대표적 신뢰성 파괴 모드입니다.", "sol": "고온 가속 수명 시험(HTOL)에서 특정 파워 배선의 오픈 불량이 반복되면 금속 배선의 전류 밀도 설계 룰(Design Rule) 위반을 진단합니다. 배선 폭을 넓혀 전류 밀도를 허용치 이하로 낮추고, 결정립계 확산 활성화 에너지가 Al(0.5~0.7 eV)보다 훨씬 높은 Cu(1.0~1.2 eV)를 적용하여 EM 수명을 100배 이상 극대화합니다.", "plus": "블랙의 방정식 (Black's Equation) : MTTF = A * J^-n * exp(Ea / kT). 평균 고장 수명(MTTF)은 전류 밀도(J)의 제곱에 반비례하고 활성화 에너지(Ea)에 지수함수적으로 비례합니다. 구리 배선 표면에 CoWP 같은 금속 캡핑 레이어를 씌우면 표면 원자 이동 경로를 봉쇄해 EM 저항성을 추가로 대폭 향상시킵니다."}, {"category": "M", "category_name": "M · 금속 배선 공정", "title": "오믹 접합 (Ohmic Contact) vs 쇼트키 접합 (Schottky) & 실리사이드", "keywords": ["오믹접합", "쇼트키", "일함수", "실리사이드", "쇼트키장벽", "터널링"], "def": "금속과 반도체가 접합할 때 일함수 차이에 의해 에너지 장벽(Schottky Barrier)이 생겨 한쪽 방향으로만 전류가 흐르는 정류 특성을 쇼트키 접합이라 하며, 전압과 전류가 옴의 법칙처럼 선형적 비례 관계를 갖는 무저항 양방향 접합을 오믹 접합이라 합니다.", "app": "트랜지스터의 소스, 드레인, 게이트 단자에서 외부 신호와 전력을 왜곡과 전압 강하 없이 주고받기 위해서는 완벽한 저저항 오믹 접합이 필수적입니다.", "sol": "접합 계면에 자연 산화막이나 오염이 남아 원치 않는 쇼트키 장벽이 형성되어 콘택 저항(Rc)이 급증할 경우, 반도체 계면 표면에 10^20 cm^-3 이상의 초고농도 도핑을 진행합니다. 공핍층 두께를 수 나노미터 이하로 극단적으로 얇게 만들어 전자가 에너지 장벽을 뚫고 지나가는 양자역학적 터널링(Field Emission)을 유도하여 오믹 접합을 강제 구현합니다.", "plus": "실리사이드(Silicide) 공정 : 실리콘 위에 전이 금속(Ni, Co, Ti)을 증착하고 열처리하여 금속-실리콘 화합물인 실리사이드(NiSi, CoSi2)를 자체 정렬(Self-Aligned, Salicide)로 형성시킵니다. 실리콘보다 저항이 수십 배 낮고 쇼트키 장벽 높이를 낮춰 첨단 로직의 콘택 저항을 획기적으로 낮춥니다."}, {"category": "PKG", "category_name": "PKG · 패키징 공정", "title": "HBM (High Bandwidth Memory) & 실리콘 인터포저", "keywords": ["HBM", "수직적층", "메모리월", "인터포저", "광대역폭", "2.5D패키징"], "def": "여러 개의 DRAM 다이를 수직으로 쌓아 올린 후 수천 개의 TSV(관통 전극)로 상하를 직접 연결하고, 베이스 로직 다이 위에 얹어 GPU와 초미세 배선을 갖춘 2.5D 실리콘 인터포저(Interposer) 위에서 수평으로 밀결합한 초고대역폭 메모리입니다.", "app": "기존 PCB 기판 기반의 DDR/GDDR 메모리가 가졌던 핀 수 제한과 물리적 거리로 인한 데이터 전송 병목 현상인 '메모리 월(Memory Wall)'을 완전히 깨부수어, AI 가속기(GPU/TPU)의 거대 언어 모델 연산에 필수적 데이터 대역폭(초당 1TB 이상)을 공급합니다.", "sol": "HBM 적층 다이 간 고속 신호 전송 시 신호 왜곡(Skew)이나 크로스토크 노이즈가 발생하면 인터포저 내부의 초미세 구리 배선 저항과 TSV 커패시턴스를 점검합니다. 인터포저 배선 룰을 1 um 이하로 정밀 가공하고 배선 층간 저유전율(Low-k) 절연막을 채택하여 신호 지연을 차단합니다.", "plus": "HBM 세대별 스펙 확장 : HBM3E(8단/12단 적층, 1024비트 버스 폭)에서 차세대 HBM4로 진화하면서 16단 수직 적층으로 용량이 확대되고, I/O 핀 수가 2배인 2048비트로 확장되어 인터페이스 데이터 전송 속도가 비약적으로 배가됩니다."}, {"category": "PKG", "category_name": "PKG · 패키징 공정", "title": "TSV (Through Silicon Via, 실리콘 관통 전극)", "keywords": ["TSV", "관통전극", "수직배선", "와이어본딩대체", "기생인덕턴스", "보쉬에칭"], "def": "웨이퍼 실리콘 벌크 칩을 수직으로 완전히 관통하는 미세 구멍(Via Hole)을 뚫고 내부에 절연막, 배리어 메탈, 구리(Cu) 전도체를 완벽히 매립하여 칩의 상단과 하단을 수직 직선 경로로 연결하는 초정밀 3차원 전극 관통 기술입니다.", "app": "과거 칩 가장자리를 금선으로 길게 둘러 연결하던 와이어 본딩(Wire Bonding)을 전면 대체합니다. 신호 배선 거리를 수 밀리미터에서 수십 마이크로미터로 1/100 이하로 단축시켜 기생 저항 및 인덕턴스를 제거하고 전력 소모를 대폭 줄입니다.", "sol": "수천 개의 TSV 전극 중 단 1개라도 연결이 끊기면 전체 HBM 스택이 폐기되므로, TSV 내부 구리 전기도금 시 보이드 발생 유무를 검사합니다. 비아 식각은 보쉬(Bosch) 딥 실리콘 에칭(DRIE)으로 수직벽을 뚫고, 바닥부터 구리를 차오르게 하는 보텀업(Bottom-up) 전기도금 케미컬 첨가제를 최적화합니다.", "plus": "공정 순서 분류 : 트랜지스터 형성 전에 뚫는 'Via-First', 트랜지스터 형성 후 금속 배선 전에 뚫는 'Via-Middle', 금속 배선까지 모두 끝난 후 웨이퍼 후면에서 뚫는 'Via-Last'로 나뉩니다. 열예산과 공정 정밀도 측면에서 'Via-Middle' 방식이 첨단 HBM 양산의 표준으로 사용됩니다."}, {"category": "PKG", "category_name": "PKG · 패키징 공정", "title": "MR-MUF (Mass Reflow MUF) vs NCF (Non-Conductive Film)", "keywords": ["MR-MUF", "NCF", "방열성능", "보이드제거", "액상에폭시", "SK하이닉스"], "def": "적층된 다이들 사이에 마이크로 범프를 접합하고 공간을 절연체로 채우는 첨단 패키징 방식입니다. NCF는 칩을 쌓을 때마다 필름형 비전도성 접착제를 사전에 붙여 열압착(TCB)하는 방식이며, MR-MUF는 수천 개 범프를 한 번에 열로 녹여 일괄 솔더링(Mass Reflow)한 뒤 칩 사이사이에 액체 상태의 보호재(에폭시 몰딩 컴파운드)를 주입해 한 번에 굳히는 기술입니다.", "app": "SK하이닉스가 HBM3 및 HBM3E 시장에서 독보적 수율과 방열 특성을 달성하게 한 핵심 기술입니다. 압력으로 짓누르지 않아 다이에 물리적 스트레스가 적고, 열전도율이 높은 액상 에폭시 충진으로 칩의 열을 외부로 신속히 방출합니다.", "sol": "다단 적층 HBM에서 칩 사이 충진재 내부에 미세 에어포켓이 남으면 고온 구동 시 팽창하여 칩 박리나 쇼트를 일으킵니다. MR-MUF는 진공 분위기에서 유동성이 뛰어난 초미세 실리카 필러 함유 액상 몰드 물질을 가압 주입하여 보이드 발생을 제로화합니다.", "plus": "열전도도 비교 : MR-MUF에 사용되는 액상 몰딩 소재는 NCF 고체 필름 대비 열전도율이 약 2.5배 우수합니다. 이에 따라 HBM 적층 단수가 8단에서 12단, 16단으로 높아질수록 발생하는 극심한 발열 제어 측면에서 압도적인 기술적 우위를 점합니다."}, {"category": "PKG", "category_name": "PKG · 패키징 공정", "title": "패키징 열전달 & Warpage (열팽창계수 CTE 불일치 휨)", "keywords": ["열전달", "방열", "Warpage", "CTE불일치", "휨현상", "TIM"], "def": "HBM 등 고성능 3차원 적층 칩에서 좁은 체적 내 수십 개의 다이가 고속 동작하며 방출하는 집적 열을 외부로 빼내는 방열 엔지니어링과, 실리콘 칩(CTE 2.6 ppm/℃), 에폭시 몰딩재(EMC, 10~15 ppm/℃), 기판(15~18 ppm/℃) 간의 열팽창계수(CTE) 불일치로 인해 칩이 활처럼 휘는 Warpage 현상입니다.", "app": "방열이 실패하면 메모리 셀의 데이터 보존 시간(tREF)이 급감하여 칩이 뻗어버리며, Warpage가 심해지면 솔더 범프 간 연결이 들뜨는 오픈(Open) 불량이나 인접 볼끼리 합선되는 쇼트(Short) 불량이 발생합니다.", "sol": "섀도 모아레(Shadow Moire) 광학 장비로 온도 변화에 따른 칩의 휨 변위를 실시간 측정합니다. 실리카 필러 함량을 높여 EMC의 열팽창계수를 실리콘과 최대한 유사하게 매칭시키고, 패키지 상부에 고열전도성 열계면물질(TIM) 및 구리 히트싱크(Heat Sink)를 부착해 방열 경로를 최단화합니다.", "plus": "HBM 고단화 한계 : 12단, 16단으로 적층 수가 늘어날수록 칩 내부 중심부 코어 다이의 열이 외부로 빠져나오기 어렵습니다. 이에 따라 다이 사이 접착층의 두께를 마이크로미터 이하로 줄이고 열전도율이 우수한 차세대 나노 필러 소재 개발이 활발히 진행 중입니다."}, {"category": "PKG", "category_name": "PKG · 패키징 공정", "title": "하이브리드 본딩 (Cu-Cu Direct Hybrid Bonding)", "keywords": ["하이브리드본딩", "Cu-Cu접합", "범프리스", "피치축소", "HBM4", "표면평탄화"], "def": "다이와 다이를 접합할 때 전통적으로 중간 매개체로 사용하던 마이크로 솔더 범프(Solder Bump)를 완전히 없애고, 초평탄화된 절연막(SiO2-SiO2)과 구리 패드(Cu-Cu)를 원자 단위로 다이렉트 결합시키는 차세대 범프리스(Bumpless) 본딩 기술입니다.", "app": "마이크로 범프는 솔더 볼이 옆으로 눌려 터지는 쇼트 한계 때문에 피치(간격)를 10 um 이하로 줄이기 어렵습니다. 하이브리드 본딩은 피치를 1 um 이하로 축소시켜 단위 면적당 수직 연결 통로 밀도를 10배 이상 폭증시키고, 두께를 극도로 얇게 만들어 16단 이상의 초고단수 HBM4 패키징 표준으로 도입됩니다.", "sol": "Cu-Cu 직접 접합 시 계면에 단 1개의 나노 파티클만 있어도 영구적인 접합 보이드가 발생하여 단선 불량으로 이어집니다. 접합 직전 웨이퍼 표면 거칠기(Ra)를 0.5nm 이하로 극단적인 CMP 평탄화를 진행하고, 플라즈마 표면 활성화 및 클래스 1 이하의 최고 청정 진공 룸에서 본딩을 완결합니다.", "plus": "본딩 메커니즘 : 상온에서 먼저 절연막 표면의 친수성 수소결합을 통해 SiO2-SiO2를 가접합한 후, 약 300~350℃로 가열합니다. 이때 구리(Cu)의 열팽창계수가 산화막보다 커서 구리가 팽창하여 돌출되며, 구리 원자 상호 확산에 의해 금속학적 단일 결합이 완성됩니다."}, {"category": "DEV", "category_name": "DEV · 반도체 소자", "title": "DRAM 1T-1C 동작 원리 (쓰기 / 읽기 / 파괴적 읽기 & Restore)", "keywords": ["DRAM", "1T-1C", "동작원리", "파괴적읽기", "Restore", "센스앰프", "프리차지"], "def": "1개의 트랜지스터(스위치)와 1개의 커패시터(전하 저장소)로 구성된 DRAM의 핵심 동작 메커니즘입니다. 쓰기는 비트라인에 전압을 걸고 워드라인을 열어 커패시터를 충/방전시키는 과정이며, 읽기는 비트라인을 1/2 VDD로 프리차지한 후 워드라인을 켜서 전하 공유(Charge Sharing)로 발생하는 미세 전압 변화(delta V)를 감지 증폭하는 과정입니다.", "app": "정보를 순차적이 아닌 임의 주소로 즉시 접근(Random Access)할 수 있어 속도가 매우 빠르고 집적도가 높아 컴퓨터 및 서버의 메인 메모리로 사용됩니다. 단, 읽기 동작 시 커패시터 전하가 비트라인으로 방출되어 원래 데이터가 지워지는 '파괴적 읽기(Destructive Readout)' 특성을 가집니다.", "sol": "읽기 동작 직후 센스 앰프(Sense Amplifier)가 미세 전압차(delta V)를 증폭하여 감지함과 동시에, 원래 읽었던 데이터 레벨(VDD 또는 0V)을 커패시터에 즉시 다시 밀어 넣어주는 재충전(Restore) 동작을 1사이클 내에 하드웨어적으로 자동 수행합니다.", "plus": "커패시터 전하 보존 한계 (Refresh) : 커패시터에 저장된 전하는 서브트레숄드 누설전류 및 접합 누설전류로 인해 시간이 지나면 자연 방전됩니다. 데이터 소실을 막기 위해 전하가 완전히 빠지기 전 주기적으로 모든 셀을 다시 읽고 써주는 리프레시(Refresh) 동작(통상 수십 ms 주기)이 DRAM의 고유 필수 제어 스펙입니다."}, {"category": "DEV", "category_name": "DEV · 반도체 소자", "title": "2D DRAM vs 차세대 3D DRAM (4F2 & 수직/적층 구조)", "keywords": ["3D DRAM", "2D DRAM", "4F2", "6F2", "플로팅바디", "Vertical TR", "스케일링"], "def": "웨이퍼 평면 위에 트랜지스터와 커패시터를 수평으로 배치하던 기존 2D DRAM(6F^2 구조)의 미세화 한계를 돌파하기 위해, 셀 면적을 4F^2로 줄이는 수직 채널 트랜지스터(VCT) 및 3차원 적층형 커패시터 구조로 전환하는 차세대 메모리 기술입니다.", "app": "DRAM 셀 크기가 10nm 초반 이하로 진입하면서 커패시터 간 간격 협소화에 따른 브릿지 불량과 트랜지스터 누설전류가 물리적 한계에 부딪혔습니다. 3D DRAM은 셀을 3차원으로 적층하여 집적도를 수 배 끌어올리고 대역폭을 극대화합니다.", "sol": "수직 채널 또는 기판이 절연된 구조에서 발생하는 플로팅 바디 효과(Floating Body Effect)로 인한 문턱전압 불안정 문제를 해결해야 합니다. 채널 바디를 접지와 연결하는 백 바이어스 컨택 라인을 신설하거나 완전 공핍형(FD) 박막 채널 구조를 적용해 바디 전하 축적을 방지합니다.", "plus": "페리 회로 배치 혁신 (PUC / COP) : 3D 낸드의 기술을 응용하여 메모리 셀 구동을 담당하는 주변회로(Peri: 센스앰프, 디코더 등)를 셀 아래 하부 웨이퍼에 먼저 만들고 그 위에 셀을 쌓아 올리는 PUC(Peri Under Cell) 기술이 D램 넷다이(Net die) 증대의 핵심 경쟁력입니다."}, {"category": "DEV", "category_name": "DEV · 반도체 소자", "title": "단채널 효과 (SCE) 4대 핵심 현상", "keywords": ["단채널효과", "SCE", "VT Roll-off", "DIBL", "Punch-through", "GIDL"], "def": "게이트 길이(채널 길이 L)가 수십 나노미터 이하로 미세화되면서, 게이트 전압이 채널 전하를 온전히 장악하지 못하고 소스/드레인의 전계가 채널 영역을 침범하여 트랜지스터의 스위칭 제어 능력이 상실되는 현상입니다.", "app": "문턱전압이 감소하는 Vth 롤오프, 드레인 고전압이 채널 장벽을 강제로 무너뜨리는 DIBL, 소스와 드레인 공핍층이 기판 하부에서 맞닿아 대전류가 새는 펀치스루(Punch-through), 드레인-게이트 오버랩 영역의 밴드 간 터널링 누설인 GIDL 등 4대 파괴 현상으로 발현됩니다.", "sol": "단채널 효과를 억제하기 위해 공정적으로 접합 깊이를 얕게 하는 USJ, 게이트 산화막 두께(tox) 축소, 채널 공핍 제어를 위한 Halo 이온주입을 적용하며, 평면 트랜지스터의 물리적 한계 도달 시 채널의 3면을 감싸는 FinFET 및 4면을 완전히 포위하는 GAA(Gate-All-Around) 3차원 소자 구조로 전환하여 게이트 정전 장악력을 회복합니다.", "plus": "스케일링 길이 (Natural Length, lambda) 수식 : lambda = sqrt((eps_si / eps_ox) * tox * tsi). 게이트의 채널 지배력을 높여 SCE를 방어하려면 채널 실리콘 두께(tsi)를 극단적으로 얇게 깎고 유전율이 높은 High-k 박막(eps_ox 증대)을 도입해야 한다는 것을 명확히 제시하는 핵심 물리 지표입니다."}, {"category": "DEV", "category_name": "DEV · 반도체 소자", "title": "DIBL (Drain-Induced Barrier Lowering) & 5대 개선책", "keywords": ["DIBL", "드레인유기장벽감소", "에너지장벽", "Halo주입", "High-k", "소자스케일링"], "def": "게이트 길이가 짧은 미세 소자에서 드레인에 높은 전압(V_D)을 인가할 때, 드레인의 강한 전계가 채널 내부 깊숙이 침투하여 소스와 채널 사이의 전도대 에너지 장벽(Potential Barrier)을 강제로 끌어내리는 현상입니다.", "app": "게이트 전압을 아직 가하지 않았음에도 드레인 전압에 의해 에너지 장벽이 낮아져 전자가 소스에서 드레인으로 무단 월담하게 되므로, 문턱전압이 떨어지고 오프 상태 누설전류(Ioff)가 수백 배 폭증하여 칩의 대기 전력이 급증합니다.", "sol": "DIBL 수치(delta Vth / delta Vd, 보통 mV/V 단위)를 100 mV/V 이하로 방어하기 위한 5대 개선책은 (1) 게이트 절연막 EOT 축소(High-k 도입), (2) 초미세 얕은 접합(USJ) 형성, (3) 드레인 하부 Halo/Pocket 이온주입, (4) 채널 실리콘 두께(tsi) 박막화, (5) FinFET/GAA 3D 멀티게이트 채택입니다.", "plus": "측정 파라미터 : DIBL = (Vth_linear - Vth_saturation) / (Vdd - Vdrain_low). 선형 영역(Vd=0.05V)의 Vth와 포화 영역(Vd=VDD)의 Vth 차이를 전압차로 나누어 정량 평가하며, 이 값이 크면 스위치로서의 소자 신뢰성이 완전히 결여된 것으로 판정합니다."}, {"category": "DEV", "category_name": "DEV · 반도체 소자", "title": "Subthreshold Current & SS (Subthreshold Swing)", "keywords": ["SS", "서브트레숄드", "스윙", "누설전류", "60mV/dec", "스위칭속도"], "def": "문턱전압(Vth) 이하의 꺼진 상태(Off-state)에서 채널 확산 전류 메커니즘으로 인해 미세하게 흐르는 누설전류를 Subthreshold Current라 하며, 드레인 전류를 10배(1 decade) 변화시키는 데 필요한 게이트 전압의 크기를 Subthreshold Swing(SS, 단위 mV/dec)이라 합니다.", "app": "SS 수치가 작을수록 트랜지스터가 Off 상태에서 On 상태로 급격하고 날카롭게 전환(Sharp Switching)됨을 의미하며, 이는 동일한 구동 전류(Ion)를 내면서도 오프 누설전류(Ioff)를 최소화할 수 있는 소자의 핵심 품질 척도입니다.", "sol": "SS = ln(10) * (kT/q) * (1 + Cdep / Cox). 상온(300K)에서 물리적 열역학 한계치는 약 60 mV/dec입니다. SS가 100 mV/dec 이상으로 늘어져 누설이 심해지면, 게이트 유전용량(Cox)을 극대화하기 위해 High-k 박막을 적용하고 기판 공핍 커패시턴스(Cdep)를 0으로 만들기 위해 완전 공핍형 FD-SOI 또는 FinFET 구조로 전환합니다.", "plus": "초저전력 한계 돌파 : 기존 MOSFET은 열적 캐리어 볼츠만 분포 한계로 인해 SS를 절대로 60 mV/dec 이하로 내릴 수 없습니다. 이 한계를 깨기 위해 밴드 간 양자 터널링을 이용하는 TFET(Tunneling FET)이나 강유전체 음의 커패시턴스를 이용하는 NCFET이 차세대 연구 소자로 주목받고 있습니다."}, {"category": "DEV", "category_name": "DEV · 반도체 소자", "title": "High-k / Metal Gate (HKMG)", "keywords": ["HKMG", "High-k", "Metal Gate", "EOT", "양자터널링", "하프늄", "페르미준위핀닝"], "def": "미세화에 따라 게이트 산화막(SiO2) 두께가 1nm 이하로 얇아지면서 직접 양자 터널링 누설전류가 폭증하는 문제를 해결하기 위해, 유전율이 높은 하프늄 옥사이드(HfO2, k 약 25)를 도입하고 기존 폴리실리콘 게이트의 공핍화 및 페르미 준위 핀닝을 방지하기 위해 금속 게이트(TiN, TaN, Al 등)를 복합 채택한 구조입니다.", "app": "물리적 박막 두께를 두껍게 유지하여 양자 터널링에 의한 오프 스테이트 누설전류를 수만 배 차단하면서도, 전기적 등가 산화막 두께(EOT)를 1nm 이하로 얇게 만들어 강력한 게이트 정전 용량(Cox)을 확보합니다.", "sol": "Metal Gate 적용 시 NMOS와 PMOS의 문턱전압을 각각 독립적으로 맞추기 위해 일함수(Work Function) 조절이 요구됩니다. 게이트를 먼저 형성하고 후속 고온 열처리를 거치는 Gate-First 방식 대신, 희생 폴리실리콘을 먼저 세우고 고온 어닐링 완료 후 파내어 저온에서 금속을 채우는 Gate-Last (RMG, Replacement Metal Gate) 공정을 도입해 유효 일함수 열화를 방지합니다.", "plus": "계면층(IL, Interfacial Layer)의 중요성 : 실리콘 채널 바로 위에 High-k를 직접 증착하면 계면 결함 밀도(Dit)가 급증하고 이동도가 파괴됩니다. 따라서 실리콘과 High-k 사이에 약 0.5~0.7nm 수준의 초박막 고품질 SiO2 또는 SiON 계면층을 인시튜로 형성하는 정밀 엔지니어링이 수반됩니다."}, {"category": "DEV", "category_name": "DEV · 반도체 소자", "title": "SOI (Silicon On Insulator) & 플로팅 바디 효과 (Floating Body)", "keywords": ["SOI", "PD-SOI", "FD-SOI", "BOX", "플로팅바디", "Kink", "기생커패시턴스"], "def": "벌크 실리콘 웨이퍼 기판 대신, 실리콘 기판 위에 매립 산화물 절연층(BOX, Buried Oxide)을 깔고 그 위에 얇은 단결정 실리콘 채널층을 형성한 특수 기판 구조입니다. 실리콘 활성층 두께에 따라 부분 공핍형(PD-SOI)과 완전 공핍형(FD-SOI)으로 구분됩니다.", "app": "소스/드레인 접합 하부가 절연막(BOX)과 맞닿아 있어 접합 기생 커패시턴스(Junction Cap)를 80% 이상 획기적으로 제거합니다. 신호 지연이 극감하여 고주파 RF 칩과 초저전력 모바일 IoT 칩셋에 탁월한 전력 효율을 제공합니다.", "sol": "PD-SOI에서는 채널 하부 기판(Body)이 전기적으로 고립되어 있어, 임팩트 이온화로 발생한 다수 캐리어(정공)가 빠져나가지 못하고 축적되어 바디 전위가 흔들리는 '플로팅 바디 효과(Floating Body Effect)'와 전류-전압 곡선이 꺾이는 킹크(Kink) 현상이 발생합니다. 채널 실리콘 두께를 10nm 이하로 극단적으로 얇게 만들어 바디 전체가 항상 공핍화되는 완전 공핍형 FD-SOI를 채택하여 플로팅 바디 문제를 원천 제거합니다.", "plus": "백 바이어스(Back Biasing) 제어 : FD-SOI 기판은 BOX 절연막 하부의 기판에 전압(Back-bias)을 인가하여 소자의 문턱전압(Vth)을 소프트웨어적으로 실시간 조절할 수 있습니다. 고성능이 필요할 땐 Vth를 낮춰 속도를 높이고, 슬립 모드에선 Vth를 높여 누설전류를 제로화하는 동적 튜닝이 가능합니다."}];
+    let currentCategory = 'ALL';
+    let currentQuery = '';
+
+    function renderCards(list) {
+      const grid = document.getElementById('conceptGrid');
+      grid.innerHTML = '';
+
+      if (list.length === 0) {
+        grid.innerHTML = '<div style="text-align:center; padding: 60px; color: #94a3b8; font-size: 1.1rem;">검색 결과가 없습니다. 다른 검색어를 입력해 보세요.</div>';
+        document.getElementById('visibleCount').innerText = '0';
+        return;
+      }
+
+      document.getElementById('visibleCount').innerText = list.length;
+
+      list.forEach((item, index) => {
+        const card = document.createElement('div');
+        card.className = 'concept-card';
+
+        const kwHtml = item.keywords.map(k => `<span class="kw-tag">#${k}</span>`).join(' ');
+
+        card.innerHTML = `
+          <div class="card-header">
+            <div class="card-title-group">
+              <span class="category-badge badge-${item.category}">${item.category_name}</span>
+              <h2 class="card-title">#${item.title}</h2>
+            </div>
+            <button class="copy-btn" onclick="copyCardContent(${index})">📋 복사</button>
+          </div>
+          <div class="card-body">
+            <div class="section-row def">
+              <div class="section-label label-def">📌 개념정의</div>
+              <div class="section-content">${item.def}</div>
+            </div>
+            <div class="section-row app">
+              <div class="section-label label-app">⚙️ 공정적용</div>
+              <div class="section-content">${item.app}</div>
+            </div>
+            <div class="section-row sol">
+              <div class="section-label label-sol">🛠️ 문제해결</div>
+              <div class="section-content">${item.sol}</div>
+            </div>
+            <div class="section-row plus">
+              <div class="section-label label-plus">💡 플러스 (파라미터 / 트레이드오프)</div>
+              <div class="section-content">${item.plus}</div>
+            </div>
+          </div>
+          <div class="card-footer">
+            <span class="footer-label">핵심태그:</span>
+            ${kwHtml}
+          </div>
+        `;
+        grid.appendChild(card);
+      });
+    }
+
+    function filterCards() {
+      currentQuery = document.getElementById('searchInput').value.trim().toLowerCase();
+      
+      const filtered = CONCEPTS.filter(item => {
+        const matchCat = (currentCategory === 'ALL' || item.category === currentCategory);
+        if (!matchCat) return false;
+
+        if (!currentQuery) return true;
+
+        const str = (
+          item.title + ' ' + 
+          item.category_name + ' ' + 
+          item.def + ' ' + 
+          item.app + ' ' + 
+          item.sol + ' ' + 
+          item.plus + ' ' + 
+          item.keywords.join(' ')
+        ).toLowerCase();
+
+        return str.includes(currentQuery);
+      });
+
+      renderCards(filtered);
+    }
+
+    function setCategory(cat) {
+      currentCategory = cat;
+      document.querySelectorAll('.tab-btn').forEach(btn => {
+        btn.classList.toggle('active', btn.innerText.includes(cat) || (cat === 'ALL' && btn.innerText.includes('전체')));
+      });
+      filterCards();
+    }
+
+    function showToast(msg) {
+      const t = document.getElementById('toast');
+      t.innerText = msg;
+      t.classList.add('show');
+      setTimeout(() => t.classList.remove('show'), 2000);
+    }
+
+    function copyCardContent(index) {
+      const item = CONCEPTS[index];
+      const text = `#${item.title}\n` +
+        `개념정의 : ${item.def}\n` +
+        `공정적용 : ${item.app}\n` +
+        `문제해결 : ${item.sol}\n` +
+        `플러스 : ${item.plus}`;
+
+      navigator.clipboard.writeText(text).then(() => {
+        showToast(`'${item.title}' 복사 완료!`);
+      });
+    }
+
+    function exportToWordFormat() {
+      const fullText = CONCEPTS.map(item => {
+        return `#${item.title}\n` +
+          `개념정의 : ${item.def}\n` +
+          `공정적용 : ${item.app}\n` +
+          `문제해결 : ${item.sol}\n` +
+          `플러스 : ${item.plus}`;
+      }).join('\n\n');
+
+      navigator.clipboard.writeText(fullText).then(() => {
+        showToast('전체 개념이 워드 양식 텍스트로 복사되었습니다!');
+      });
+    }
+
+    // Init
+    renderCards(CONCEPTS);
+  </script>
+</body>
+</html>
