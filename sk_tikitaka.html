@@ -1,0 +1,557 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>SK하이닉스 자소서 티키타카 (단일 경험 3단계 Why 프레임워크)</title>
+  <style>
+    :root {
+      --bg: #0b0f19;
+      --card-bg: #151d30;
+      --accent: #38bdf8;
+      --text: #f8fafc;
+      --text-muted: #94a3b8;
+      --border: #243049;
+      --q-bg: #1e1b4b;
+      --q-border: #6366f1;
+      --a-bg: #064e3b;
+      --a-border: #10b981;
+      --guide-bg: rgba(56, 189, 248, 0.08);
+      --guide-border: #38bdf8;
+    }
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Pretendard", sans-serif;
+      background-color: var(--bg);
+      color: var(--text);
+      line-height: 1.6;
+      padding: 24px;
+    }
+    .container { max-width: 920px; margin: 0 auto; }
+    header {
+      margin-bottom: 28px;
+      padding-bottom: 16px;
+      border-bottom: 1px solid var(--border);
+    }
+    h1 { font-size: 24px; color: var(--text); display: flex; align-items: center; gap: 8px; }
+    .subtitle { color: var(--text-muted); font-size: 13.5px; margin-top: 6px; }
+    
+    .framework-badge {
+      display: inline-block;
+      background: rgba(99, 102, 241, 0.2);
+      color: #a5b4fc;
+      border: 1px solid #6366f1;
+      border-radius: 4px;
+      padding: 3px 8px;
+      font-size: 12px;
+      font-weight: 600;
+      margin-bottom: 12px;
+    }
+
+    .topic-section {
+      background: var(--card-bg);
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      padding: 24px;
+      margin-bottom: 28px;
+      box-shadow: 0 4px 20px rgba(0,0,0,0.4);
+    }
+    .topic-title {
+      font-size: 18px;
+      color: var(--accent);
+      margin-bottom: 16px;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+    .draft-box {
+      background: rgba(0,0,0,0.3);
+      border-left: 4px solid var(--text-muted);
+      padding: 14px 18px;
+      border-radius: 4px;
+      margin-bottom: 24px;
+      font-size: 13.5px;
+      color: #cbd5e1;
+    }
+    .draft-label { font-weight: bold; color: #e2e8f0; margin-bottom: 6px; }
+    
+    .step-card {
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      margin-bottom: 20px;
+      overflow: hidden;
+    }
+    .step-header {
+      background: rgba(255,255,255,0.03);
+      padding: 10px 16px;
+      font-weight: 600;
+      font-size: 13px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      border-bottom: 1px solid var(--border);
+    }
+    .tag {
+      padding: 2px 8px;
+      border-radius: 4px;
+      font-size: 11px;
+      font-weight: 700;
+    }
+    .tag-why { background: rgba(245, 158, 11, 0.15); color: #fbbf24; border: 1px solid #f59e0b; }
+    
+    .chat-bubble { padding: 14px 18px; font-size: 14px; }
+    .q-bubble { background: var(--q-bg); color: #e0e7ff; border-left: 4px solid var(--q-border); }
+    .q-bubble strong { color: #a5b4fc; }
+    .a-bubble { background: rgba(6, 78, 59, 0.4); color: #ccfbf1; border-left: 4px solid var(--a-border); }
+    .a-box-item { margin-bottom: 12px; }
+    .example-box {
+      background: var(--guide-bg);
+      border-left: 3px solid var(--guide-border);
+      padding: 10px 14px;
+      border-radius: 4px;
+      font-size: 13px;
+      color: #e0f2fe;
+    }
+    .pending { color: #94a3b8; font-style: italic; }
+    
+    .before-after-box {
+      margin-top: 24px;
+      background: rgba(16, 185, 129, 0.08);
+      border: 1px solid rgba(16, 185, 129, 0.3);
+      border-radius: 8px;
+      padding: 16px 20px;
+      display: none;
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <header>
+      <div class="framework-badge">3단계 Why 의사결정 공식 실전 적용</div>
+      <h1>🎯 [경험 1] 웹게이지 미세라인 감지 로직 개발</h1>
+      <p class="subtitle">하나의 경험을 깊게 파고들어 지원자의 '진짜 판단 기준과 엔지니어링 철학'을 완성하는 티키타카</p>
+    </header>
+
+    <div class="topic-section">
+      <!-- 기존 초안 -->
+      <div class="draft-box">
+        <div class="draft-label">📝 기존 자기소개서 내용 (미세라인 감지 로직)</div>
+        <p>"비전 검사기에 잡히지 않는 고질 불량인 '미세라인'이 발생하여, 육안으로 음영 차이를 확인해야 해서 지속적인 양산 Loss가 발생하고 있었습니다. 스캔 방식 측정기인 웹게이지 로딩 데이터를 분석하여 Dynamic threshold와 지수이동평균 EMA를 적용한 감지 로직을 개발해 설비에 연동했습니다. 그 결과 미세라인 Loss를 50% 개선하고 목표 수율을 달성해 CEO 포상을 받았습니다."</p>
+      </div>
+
+      <!-- Q1 / A1 -->
+      <div class="step-card" id="card-q1">
+        <div class="step-header">
+          <span class="tag tag-why">Why 1 (문제 상황 & 숨은 리스크)</span>
+          <span>공식: 왜 그 상황에서 A(개선/결정)가 필요하다고 생각했나?</span>
+        </div>
+        <div class="chat-bubble q-bubble">
+          <strong>면접관 질문 1 (Why 1):</strong><br>
+          "비전 검사기에서 잡히지 않아 육안으로 보던 미세라인에 대해, <strong>왜 그 시점에서 굳이 '웹게이지 데이터 기반 자동 감지 로직(A)'이라는 해결책이 반드시 필요하다고 판단하셨습니까?</strong><br>
+          실제 테스트나 양산에서 발생했던 구체적인 수치(오류 빈도, Loss 등)와, 비전 검사기상 정상으로 통과되어 후속 공정으로 넘어갔을 때 발생할 '숨은 치명적 리스크'는 구체적으로 무엇이었나요?"
+        </div>
+        <div class="chat-bubble a-bubble" id="ans-1">
+          <div class="a-box-item">
+            <strong>👤 호준님 답변 1 (핵심 원문):</strong><br>
+            "비전 검사기에는 라인 불량이 잡히지 않았기 때문에, 사고를 전환하여 단위면적당 무게를 측정하는 웹게이지 데이터에 주목했습니다. RAW DATA를 분석해보면 국부적인 저하가 있을 거라고 생각했습니다. 리스크는 수율 저하입니다."
+          </div>
+          <div class="example-box">
+            <strong>💡 질문 1 예시 답변 (참고용):</strong><br>
+            "비전 검사기는 표면 결함만 감지하여 음영 차이가 1% 미만인 미세라인은 '정상 제품'으로 통과(Silently Passed)시키고 있었습니다. 문제는 이 미세라인이 코팅 두께의 불균일을 의미하여, 후속 롤프레스(압연) 공정에서 전극 단선(주름)을 유발하거나 고객사 배터리 셀에서 국부 발열을 초래할 수 있는 치명적 시한폭탄이었다는 점입니다. 100Lot 분석 결과 국부적 Data Shift가 분명히 존재함을 확인했고, 비전의 한계를 방치하면 후속 공정의 대형 품질 사고로 이어지므로 웹게이지 원시 데이터를 활용한 자동 감지 로직 도입이 시급하다고 판단했습니다."
+          </div>
+        </div>
+      </div>
+
+      <!-- Q2 / A2 -->
+      <div class="step-card" id="card-q2">
+        <div class="step-header">
+          <span class="tag tag-why">Why 2 (트레이드오프 & 선택)</span>
+          <span>공식: 왜 B(다른 대안)가 아니라 A를 선택했나? (무엇을 포기하고 무엇을 취했는가)</span>
+        </div>
+        <div class="chat-bubble q-bubble">
+          <strong>면접관 질문 2 (Why 2):</strong><br>
+          "비전 검사기 카메라의 해상도를 높이거나 별도 고성능 비전 장비를 새로 구매·도입하는 방법(B), 혹은 오퍼레이터 육안 검사를 강화하는 방법도 있었을 텐데, <strong>왜 기존 스캔 장비인 웹게이지의 데이터와 지수이동평균(EMA)/Dynamic Threshold를 활용한 소프트웨어적 로직 개발(A)을 선택하셨습니까?</strong><br>
+          시간, 비용, 연산 부하 등에서 무엇을 감수(포기)하고 무엇을 우선시한 결정이었나요?"
+        </div>
+        <div class="chat-bubble a-bubble" id="ans-2">
+          <div class="a-box-item">
+            <strong>👤 호준님 답변 2 (핵심 원문):</strong><br>
+            "엔지니어는 우선순위를 고려해야 된다고 생각을 합니다. 먼저 저비용부터 비파괴 검사, 그리고 파괴를 하더라도 실제로 확증할 수 있는 검사 이 순서로 진행을 해야 된다고 생각을 하고요. 그래서 비용과 리스크가 전혀 없는 웹게이지 로우 데이터를 확인했습니다. 확인한 결과 국부적인 저하를 발견했고 이러한 국부적인 저하의 로직을 적용하면 충분히 이 미세 라인을 잡아낼 수 있는 로직을 개발할 수 있을 거라고 생각을 했습니다."
+          </div>
+          <div class="example-box">
+            <strong>💡 질문 2 예시 답변 (참고용):</strong><br>
+            "고성능 비전 검사기 하드웨어 신규 도입(B)은 수억 원의 비용과 수개월의 발주·셋업 리드타임이 걸려 당장의 양산 Loss를 막을 수 없었습니다. 반면 기존 웹게이지 데이터를 활용하는 방법(A)은 장비 개조 비용이 들지 않고 즉시 적용 가능하다는 명확한 이점이 있었습니다. 다만 웹게이지는 롤 전체를 지그재그로 스캔하므로 실시간 연산 노이즈가 심하다는 단점이 있었습니다. 저는 비용과 도입 시간을 아끼는 대신, 노이즈로 인한 오알람(False Alarm) 리스크를 감수하고 이를 수학적인 Dynamic Threshold와 EMA 가중치 튜닝을 통해 정밀하게 필터링하는 엔지니어링적 돌파구를 선택했습니다."
+          </div>
+        </div>
+      </div>
+
+      <!-- Q3 / A3 -->
+      <div class="step-card" id="card-q3">
+        <div class="step-header">
+          <span class="tag tag-why">Why 3 (엔지니어링 철학 & 기준)</span>
+          <span>공식: 왜 그 판단 기준이 나에게 중요했나?</span>
+        </div>
+        <div class="chat-bubble q-bubble">
+          <strong>면접관 질문 3 (Why 3):</strong><br>
+          "비전 검사기가 잡지 못하는 영역을 스캔 데이터의 수학적 모델링으로 극복하셨는데, <strong>'하드웨어 탓이나 검사기 한계 탓으로 돌리지 않고, 기존에 흐르던 다른 센서 데이터를 교차 분석해 끝까지 잡아내겠다'는 그 판단 기준은 호준님에게 왜 그토록 중요했습니까?</strong><br>
+          엔지니어로서 어떤 가치관과 설계 철학이 있었기에 그런 판단을 내릴 수 있었나요?"
+        </div>
+        <div class="chat-bubble a-bubble" id="ans-3">
+          <div class="a-box-item">
+            <strong>👤 호준님 답변 3 (핵심 원문 - 현장 의사결정의 본질):</strong><br>
+            "양산기술 엔지니어는 <strong>우선순위를 정하는 것이 핵심</strong>입니다. 왜냐하면 우선순위를 어떻게 설정하느냐에 따라 현장의 대응 방안이 완전히 달라지기 때문입니다. 예를 들어 <strong>'단순 홀드 후 다음 Lot을 진행시켜도 되는 상황인지'</strong>, 아니면 <strong>'이미 생산된 Lot 전체의 Risk Range를 전수 선별하고 근본 개선안을 수립해야 하는 상황인지'</strong>를 분간하는 것은 정확한 우선순위 기준이 필요하며, 이는 곧바로 <strong>수율, 고객 납기, 나아가 회사의 시장 경쟁력</strong>까지 직결되기 때문입니다."
+          </div>
+          <div class="example-box">
+            <strong>💡 질문 3 예시 답변 (참고용):</strong><br>
+            "엔지니어의 역할은 '장비가 안 잡히니 어쩔 수 없다'며 문제를 방치하는 것이 아니라, 현장에 존재하는 모든 물리적 신호(Signal)를 연결해 품질의 사각지대를 없애는 것이기 때문입니다. 특히 양산 현장에서 결함이 '검사기에는 정상'으로 통과되는 것은 후속 작업자와 고객사를 속이는 것과 같습니다. 비전이 못 보면 무게(로딩) 데이터를 보고, 그것도 안 되면 전압을 봐서라도 결함의 물리적 징후를 추적해 내는 집착이야말로 고객에게 무결점 제품만을 인도해야 하는 양산기술 엔지니어의 가장 근본적인 책임감이라고 믿었습니다."
+          </div>
+        </div>
+      </div>
+
+      <!-- 최종 완성 소제목 및 첫 답변 -->
+      <div class="before-after-box" id="final-box" style="display: block;">
+        <div style="font-weight: 700; color: #34d399; margin-bottom: 12px; font-size: 16px;">
+          🎯 3단계 Why 의사결정 기준으로 완성한 [자소서 소제목 & 두괄식 첫 문단]
+        </div>
+
+        <div style="background: rgba(239, 68, 68, 0.1); border-left: 3px solid #ef4444; padding: 12px 16px; border-radius: 4px; margin-bottom: 14px; font-size: 13.5px;">
+          <strong style="color: #f87171;">🔴 기존 초안 (1차원적 서술 - 판단 기준 부재):</strong><br>
+          "비전 검사기에 잡히지 않는 고질 불량인 '미세라인'이 발생하여, 육안으로 음영 차이를 확인해야 해서 지속적인 양산 Loss가 발생하고 있었습니다. 스캔 방식 측정기인 웹게이지 데이터를 분석하여 감지 로직을 개발했습니다."
+        </div>
+
+        <div style="background: rgba(16, 185, 129, 0.12); border-left: 3px solid #10b981; padding: 16px 20px; border-radius: 6px; font-size: 14.5px; line-height: 1.75; color: #f1f5f9;">
+          <strong style="color: #34d399; font-size: 15.5px;">🟢 고득점 완성본 (자소서 소제목 & 두괄식 첫 문단):</strong><br>
+          <div style="font-weight: bold; font-size: 16px; color: #38bdf8; margin: 8px 0 12px 0;">
+            [수율과 납기를 결정짓는 기준: 비전의 한계를 인라인 Raw Data 모델링으로 돌파하다]
+          </div>
+          저는 <strong>"우선순위의 명확한 판단 기준이 현장 대응의 성패와 고객 납기, 수율을 결정짓는다"</strong>는 엔지니어링 원칙을 가지고 있습니다. 
+          비전 검사기에 잡히지 않는 미세라인 불량이 발생했을 때, 단순 홀드 후 방치하면 수율 Loss와 납기 지연으로 이어지고, 고가의 신규 검사기 도입은 시간과 비용 리스크가 컸습니다. 
+          이에 저는 <strong>'현장 리스크 제로와 즉각적 품질 확보'를 최우선</strong>으로 두고, 기존 설비에 흐르는 <strong>'인라인 웹게이지 Raw Data'</strong>에 주목했습니다. 
+          표면 검사의 한계를 넘어 단위면적당 무게의 미세한 국부 저하(1% 미만)를 포착한 뒤, Dynamic Threshold와 EMA 기반의 독자 감지 로직을 개발하여 <strong>미세라인 Loss 50% 개선 및 수율 0.12% 향상</strong>을 달성했습니다.
+        </div>
+      </div>
+    </div>
+
+    <!-- [경험 2] 미세조절장치 전동화 및 디지털화 -->
+    <div class="topic-section" id="topic-shim">
+      <div class="framework-badge">3단계 Why 의사결정 공식 실전 적용</div>
+      <div class="topic-title">
+        <span>📍 [경험 2] 코팅 Shim 미세조절장치 모터구동 전동화 & 디지털화</span>
+      </div>
+
+      <!-- 기존 초안 -->
+      <div class="draft-box">
+        <div class="draft-label">📝 기존 자기소개서 내용 (미세조절장치)</div>
+        <p>"신규 모델 개발단계에서 고객사가 제시한 타이트한 누적공차 Spec과 공정능력을 만족시켜야 하는 상황이었으나, 병목(Bottleneck)은 작업자가 다이얼게이지를 수동으로 조정하는 과정에서 생긴 작업자 간 편차였습니다. 고감속비 웜기어, 소형모터, LVDT 센서를 연동한 정량적 제어 시스템을 구축하고 회전수에 따른 코팅폭 변화량을 정량화했습니다. 그 결과 셋업 Loss 18% 개선, 전체 수율 0.2% 향상을 달성했습니다."</p>
+      </div>
+
+      <!-- Q1 / A1 -->
+      <div class="step-card" id="card-shim-q1">
+        <div class="step-header">
+          <span class="tag tag-why">Why 1 (문제 상황 & 숨은 리스크)</span>
+          <span>공식: 왜 그 상황에서 A(개선/결정)가 필요하다고 생각했나?</span>
+        </div>
+        <div class="chat-bubble q-bubble">
+          <strong>면접관 질문 1 (Why 1):</strong><br>
+          "신규 모델에서 작업자가 다이얼게이지로 수동 조절하던 방식을 <strong>왜 그 시점에서 굳이 '모터 구동 및 LVDT 센서 기반의 전동화 시스템(A)'으로 개조해야만 한다고 판단하셨습니까?</strong><br>
+          당시 작업자 수동 조절 시 발생하던 구체적인 편차 수치나 셋업 지연 시간은 어느 정도였고, 만약 이를 전동화하지 않고 그대로 양산으로 넘어갔다면 어떤 '치명적인 위험(품질 실패, 납기 실패 등)'이 발생할 상황이었나요?"
+        </div>
+        <div class="chat-bubble a-bubble" id="ans-shim-1">
+          <div class="a-box-item">
+            <strong>👤 호준님 답변 1 (핵심 원문):</strong><br>
+            "수동 조절을 해서 로스가 많이 나는 상황이었고, 회전운동을 직선운동으로 바꾼다면 해결할 수 있다고 생각했습니다. 그래서 회전운동을 직선운동으로 변환시키는 모터와 웜기어를 적용했습니다. 뿐만 아니라 물리적인 변위를 직접 측정해야 백래시를 잡을 수 있었기 때문에 LVDT를 반영했습니다."
+          </div>
+          <div class="example-box">
+            <strong>💡 질문 1 예시 답변 (참고용):</strong><br>
+            "고객사가 요구한 신규 모델의 공차 스펙은 기존 대비 절반 수준으로 타이트해졌는데, 수동 다이얼게이지 방식은 작업자 숙련도에 따라 셋업 편차가 최대 ±15㎛까지 발생했습니다. 특히 모델 교체 때마다 목표 치수에 도달하기까지 3~4회의 반복적인 코팅 및 폐기(Scrap) 테스트가 발생하여 셋업당 40분 이상의 시간과 수율 Loss가 누적되고 있었습니다. 이대로 양산에 진입하면 고객사의 엄격한 누적공차(Cpk 1.33 이상)를 맞추지 못해 전량 출하 반려 및 납기 지연이라는 치명적 리스크가 예견되었기에, 사람의 손을 완전히 배제하는 전동화 개발이 불가피했습니다."
+          </div>
+        </div>
+      </div>
+
+      <!-- Q2 / A2 -->
+      <div class="step-card" id="card-shim-q2">
+        <div class="step-header">
+          <span class="tag tag-why">Why 2 (트레이드오프 & 선택)</span>
+          <span>공식: 왜 B(다른 대안)가 아니라 A를 선택했나? (무엇을 포기하고 무엇을 취했는가)</span>
+        </div>
+        <div class="chat-bubble q-bubble">
+          <strong>면접관 질문 2 (Why 2):</strong><br>
+          "작업자들을 더 철저히 교육하거나 셋업 매뉴얼(SOP)을 세분화하여 숙련도를 높이는 운영적 대안(B1), 혹은 장비 제조사(Vendor)에 수억 원을 주고 완성형 헤드 설비를 통째로 교체 발주하는 대안(B2)도 있었을 텐데, <strong>왜 호준님이 직접 웜기어, 모터, LVDT를 조합해 인하우스(In-house)로 장비를 개조·전동화하는 방식(A)을 선택하셨습니까?</strong><br>
+          당시 일정, 개조 비용, 양산 라인 테스트 Loss 등에서 무엇을 감수(포기)하고 무엇을 얻기 위한 결정이었나요?"
+        </div>
+        <div class="chat-bubble a-bubble" id="ans-shim-2">
+          <div class="a-box-item" style="margin-bottom: 14px;">
+            <strong>👤 호준님 핵심 대안 비교 답변 (기계·센서 엔지니어링 검토):</strong><br>
+            "웜기어와 LVDT 채택 전, 기계적 특성과 현장 환경을 고려해 두 가지 대안을 면밀히 비교했습니다.<br>
+            1) <strong>기어류 (일반 기어·볼스크류 vs 웜기어)</strong>: 코팅액 토출 시 발생하는 강한 역방향 유압으로 인해 일반 기어류는 모터 전원이 꺼지면 뒤로 밀리는 백드라이빙(Back-driving) 현상이 발생합니다. 반면 웜기어는 나사선 리드각에 의한 <strong>구조적 역구동 방지(Self-locking)</strong>가 가능해 토출 압력에도 세팅값이 절대로 밀리지 않아 채택했습니다.<br>
+            2) <strong>센서류 (모터 엔코더·레이저 vs LVDT)</strong>: 모터 엔코더는 회전수만 셀 뿐 기어 간 기계적 백래시(유격) 오차를 반영하지 못하고, 광학 레이저는 슬러리 흄 오염에 취약했습니다. 따라서 기계적 백래시 오차를 완벽히 배제하고 실제 끝단 변위를 ㎛ 단위로 직접 접촉 실측할 수 있는 <strong>LVDT를 최종 채택</strong>했습니다.<br>
+            이 과정에서 코팅폭 정량화를 위한 실증 DOE를 진행하며 <strong>'양산 원자재 테스트 Loss'를 감수</strong>했으나, 영구적인 재현성을 얻기 위해 반드시 지불해야 할 통제된 비용이었습니다."
+          </div>
+          <div class="example-box">
+            <strong>💡 질문 2 예시 답변 (참고용):</strong><br>
+            "작업자 교육(B1)은 사람의 휴먼 에러를 구조적으로 없앨 수 없어 재현성에 한계가 있었고, 외주 설비 교체(B2)는 6개월 이상의 제작 납기와 수억 원의 투자비가 발생해 고객사의 신규 모델 양산 일정을 맞출 수 없었습니다. 반면 인하우스 전동화(A)는 최소 비용으로 신규 양산 일정 내에 즉각적인 개조가 가능했습니다. 다만, 모터 회전량에 따른 실제 코팅폭 변화량을 마이크로미터 단위로 정량화하는 DOE 검증 과정에서 '계획된 원자재 및 라인 테스트 Loss'를 감수해야 했습니다. 하지만 이는 불확실한 수동 조작에 방치하는 것에 비하면 충분히 감수할 가치가 있는 통제된 비용이었습니다."
+          </div>
+        </div>
+      </div>
+
+      <!-- Q3 / A3 -->
+      <div class="step-card" id="card-shim-q3">
+        <div class="step-header">
+          <span class="tag tag-why">Why 3 (엔지니어링 철학 & 기준)</span>
+          <span>공식: 왜 그 판단 기준이 나에게 중요했나?</span>
+        </div>
+        <div class="chat-bubble q-bubble">
+          <strong>면접관 질문 3 (Why 3):</strong><br>
+          "기계적 백래시(Backlash) 오차를 막기 위해 LVDT 센서로 실시간 변위를 측정하고 모터 회전수를 정량화하여 '누가 잡아도 동일한 중심값'을 만들었습니다. <strong>'작업자의 감이나 손맛에 의존하던 영역을 데이터와 피드백 제어로 기필코 디지털화하겠다'는 이 판단 기준은 호준님에게 왜 그토록 중요했습니까?</strong><br>
+          나노 단위 초미세 공정을 다루는 반도체 양산기술 관점에서 이 경험은 어떤 의미가 있습니까?"
+        </div>
+        <div class="chat-bubble a-bubble" id="ans-shim-3">
+          <div class="a-box-item">
+            <strong>👤 호준님 답변 3 (핵심 원문 - 엔지니어링 철학):</strong><br>
+            "제 엔지니어링의 본질은 <strong>'누가, 언제, 어떻게 설비를 돌리든 항상 같은 결과를 내는 시스템'</strong>이어야 한다는 것입니다. 초기 단계의 아주 작은 편차를 방치하면 누적 공차로 인해 최종 결과에 엄청난 오차를 불러오고, 이는 고스란히 <strong>수율 저하와 품질 불량</strong>으로 직결되기 때문입니다. 오직 한 사람의 감에 기대지 않는 <strong>'안정된 공정관리와 절대적인 재현성'</strong>을 구축하기 위해 전동화와 디지털화를 결단했습니다."
+          </div>
+          <div class="example-box">
+            <strong>💡 질문 3 예시 답변 (참고용):</strong><br>
+            "양산 라인의 수율과 품질은 '어떤 작업자가 투입되느냐'라는 운에 맡겨져서는 안 되며, 24시간 365일 언제나 동일한 물리적 재현성을 보장해야 한다는 것이 제 엔지니어링 신념이기 때문입니다. 특히 반도체 포토의 웨이퍼 스테이지나 식각 챔버의 갭 제어처럼 나노 단위 스케일로 갈수록 미세한 백래시나 셋업 산포는 곧바로 전체 웨이퍼 폐기(Scrap)로 이어집니다. 감과 매뉴얼을 넘어 하드웨어와 피드백 제어 시스템으로 '변수를 통제하는 힘'만이 극한의 수율을 보장하는 유일한 길이라고 확신했습니다."
+          </div>
+        </div>
+      </div>
+
+      <!-- 최종 완성 소제목 및 첫 답변 -->
+      <div class="before-after-box" id="final-shim-box" style="display: block;">
+        <div style="font-weight: 700; color: #34d399; margin-bottom: 12px; font-size: 16px;">
+          🎯 3단계 Why 의사결정 기준으로 완성한 [자소서 소제목 & 두괄식 첫 문단]
+        </div>
+
+        <div style="background: rgba(239, 68, 68, 0.1); border-left: 3px solid #ef4444; padding: 12px 16px; border-radius: 4px; margin-bottom: 14px; font-size: 13.5px;">
+          <strong style="color: #f87171;">🔴 기존 초안 (1차원적 서술 - 판단 기준 부재):</strong><br>
+          "신규 모델 개발단계에서 고객사가 제시한 타이트한 누적공차 Spec과 공정능력을 만족시켜야 하는 상황이었으나, 병목은 작업자가 다이얼게이지를 수동으로 조정하는 과정에서 생긴 작업자간 편차였습니다. 전동화 시스템을 개발하여 수율을 개선했습니다."
+        </div>
+
+        <div style="background: rgba(16, 185, 129, 0.12); border-left: 3px solid #10b981; padding: 16px 20px; border-radius: 6px; font-size: 14.5px; line-height: 1.75; color: #f1f5f9;">
+          <strong style="color: #34d399; font-size: 15.5px;">🟢 고득점 완성본 (자소서 소제목 & 두괄식 첫 문단):</strong><br>
+          <div style="font-weight: bold; font-size: 16px; color: #38bdf8; margin: 8px 0 12px 0;">
+            [100% 동일한 재현성: 수동 다이얼의 편차를 LVDT 피드백 제어로 디지털화하다]
+          </div>
+          저는 <strong>"누가, 언제, 어떻게 설비를 가동하든 항상 100% 동일한 결과를 내는 시스템을 구축하는 것"</strong>이 양산기술의 본질이라고 확신합니다. 
+          신규 모델의 타이트한 누적 공차 기준 앞에서도 작업자 손맛에 기댄 수동 다이얼 셋업은 매 교대조마다 편차를 유발해 대형 수율 손실의 뇌관이 되고 있었습니다. 
+          이에 저는 작업자 교육이라는 불확실한 대안 대신, <strong>코팅액 토출압에 의한 역밀림을 원천 차단하는 '웜기어의 Self-locking 구조'</strong>와 <strong>기계적 백래시 오차를 극복하는 'LVDT 접촉식 변위 센서'</strong>를 융합하여 인하우스 전동화 시스템을 설계했습니다. 
+          모터 회전당 코팅폭 변화량을 마이크로미터 단위로 정량화하여 <strong>셋업 Loss 18% 단축 및 전체 수율 0.2% 향상</strong>을 달성했습니다.
+        </div>
+      </div>
+    </div>
+
+    <!-- [경험 3] 고객향 인라인 송부데이터 검토 자동화 프로그램 -->
+    <div class="topic-section" id="topic-data">
+      <div class="framework-badge">3단계 Why 의사결정 공식 실전 적용</div>
+      <div class="topic-title">
+        <span>📍 [경험 3] 고객향 인라인(IPQC) 송부데이터 검토 자동화 프로그램 개발</span>
+      </div>
+
+      <!-- 기존 초안 -->
+      <div class="draft-box">
+        <div class="draft-label">📝 기존 자기소개서 내용 (인라인 검사데이터 자동화)</div>
+        <p>"신규 모델 생산에서 고객사가 모든 Lot에 대한 인라인 검사기 Data를 요청했습니다. 사내 여러 시스템에서 헌팅 Data를 제거해야 해서 엔지니어가 매일 2시간을 수작업으로 데이터를 다운받고 발라내는 비효율이 있었습니다. Python과 GUI를 활용해 IoT 데이터 자동 다운로드, 룰 기반 헌팅 노이즈 제거, 공정능력 그래프 대시보드를 구축해 팀 업무 공수를 월 40시간 이상 100% 절감했습니다."</p>
+      </div>
+
+      <!-- Q1 / A1 -->
+      <div class="step-card" id="card-data-q1">
+        <div class="step-header">
+          <span class="tag tag-why">Why 1 (문제 상황 & 숨은 리스크)</span>
+          <span>공식: 왜 그 상황에서 A(개선/결정)가 필요하다고 생각했나?</span>
+        </div>
+        <div class="chat-bubble q-bubble">
+          <strong>면접관 질문 1 (Why 1):</strong><br>
+          "고객사(T사)가 모든 Lot의 인라인 검사 데이터를 요구했을 때, 엔지니어들이 매일 2시간씩 수작업으로 처리하던 방식을 <strong>왜 그 시점에서 굳이 '파이썬 기반 자동 검토 프로그램(A)'으로 전면 자동화해야만 한다고 판단하셨습니까?</strong><br>
+          단순히 '2시간 작업이 귀찮고 공수가 든다'는 불편함을 넘어, 수작업을 방치했을 때 고객사와의 신뢰나 납기, 혹은 인적 오류(Human Error) 측면에서 발생할 수 있었던 '숨은 치명적 리스크'는 구체적으로 무엇이었나요?"
+        </div>
+        <div class="chat-bubble a-bubble" id="ans-data-1">
+          <div class="a-box-item">
+            <strong>👤 호준님 답변 1 (핵심 원문):</strong><br>
+            "먼저 매일 반복되는 공수가 크기도 했지만, 헌팅(Hunting) 노이즈 데이터를 수작업으로 발라내고 스크랩(Scrap) 처리하는 과정에서 <strong>휴먼 에러로 인한 오판정 및 데이터 누락 오류가 반드시 발생할 것 같아 선제적으로 취한 조치</strong>였습니다."
+          </div>
+          <div class="example-box">
+            <strong>💡 질문 1 예시 답변 (참고용):</strong><br>
+            "단순한 2시간의 공수 낭비보다 훨씬 심각했던 것은 **'고객사 출하 승인 지연'과 '휴먼 에러로 인한 신뢰도 추락'**이라는 시한폭탄이었습니다. 고객사는 매 Lot마다 송부된 인라인 데이터와 Cpk를 보고 출하를 승인하는데, 수작업으로 헌팅 데이터를 거르다 보면 작업자의 실수로 이상치가 섞여 들어가 고객사 Audit이나 출하 반려로 이어질 위험이 컸습니다. 또한 야간이나 주말 교대 시 데이터 전송이 지연되면 완제품이 창고에 묶여 고객사 조립 라인 가동이 멈추는 막대한 납기 지연 리스크가 있었기에, 사람의 손을 거치지 않는 무결점 자동화 파이프라인 구축이 필수적이었습니다."
+          </div>
+        </div>
+      </div>
+
+      <!-- Q2 / A2 -->
+      <div class="step-card" id="card-data-q2">
+        <div class="step-header">
+          <span class="tag tag-why">Why 2 (트레이드오프 & 선택)</span>
+          <span>공식: 왜 B(다른 대안)가 아니라 A를 선택했나? (무엇을 포기하고 무엇을 취했는가)</span>
+        </div>
+        <div class="chat-bubble q-bubble">
+          <strong>면접관 질문 2 (Why 2):</strong><br>
+          "사내 IT 부서나 전산팀에 정식 시스템 개발을 의뢰하는 표준 방식(B1)도 있었을 테고, 인턴이나 보조 인력을 배치해 엑셀 매크로로 때우는 대안(B2)도 있었을 것입니다. <strong>왜 엔지니어 본업을 하면서 직접 단독으로 Python 스크립트, 노이즈 필터링 로직, 팀원용 원클릭 GUI 대시보드(A)까지 개발하는 길을 선택하셨습니까?</strong><br>
+          당시 본인의 개발 리소스와 업무 부담 등에서 무엇을 감수하고 무엇을 얻기 위한 결정이었나요?"
+        </div>
+        <div class="chat-bubble a-bubble" id="ans-data-2">
+          <div class="a-box-item">
+            <strong>👤 호준님 답변 2 (핵심 원문):</strong><br>
+            "<strong>당장 출하 대응이 가능해야 했기 때문</strong>입니다. IT 부서 의뢰 등은 수개월이 걸려 즉시 대응이 불가능했습니다. 정규 업무 외 단독 개발을 하는 공수를 부담하더라도, <strong>현장 도메인을 가장 잘 아는 제가 직접 파이썬으로 룰 기반 노이즈 제거 로직을 짜고 직관적인 GUI를 배포하는 것이 옳다고 판단</strong>했습니다."
+          </div>
+          <div class="example-box">
+            <strong>💡 질문 2 예시 답변 (참고용):</strong><br>
+            "사내 IT 부서에 시스템 구축을 정식 요청(B1)하면 요구사항 검토와 결재, 외주 개발까지 최소 6개월 이상이 소요되어 당장의 신규 양산 납기를 맞출 수 없었습니다. 또한 IT 개발자는 실제 라인의 계측 센서 노이즈나 헌팅 데이터의 도메인 특성을 이해하지 못해 겉핥기 프로그램이 될 가능성이 컸습니다. 제 개인의 업무 시간이 가중되는 부담을 감수하더라도, 현장 도메인을 가장 잘 아는 제가 직접 개발해야 불량 이상치를 정확히 걸러낼 수 있다고 판단했습니다. 코딩을 모르는 오퍼레이터와 팀원들도 클릭 한 번으로 쓸 수 있도록 직관적 GUI로 배포하여 즉각적인 공수 절감을 만들어냈습니다."
+          </div>
+        </div>
+      </div>
+
+      <!-- Q3 / A3 -->
+      <div class="step-card" id="card-data-q3">
+        <div class="step-header">
+          <span class="tag tag-why">Why 3 (엔지니어링 철학 & 기준)</span>
+          <span>공식: 왜 그 판단 기준이 나에게 중요했나?</span>
+        </div>
+        <div class="chat-bubble q-bubble">
+          <strong>면접관 질문 3 (Why 3):</strong><br>
+          "단순히 혼자 쓰고 끝내는 개인 스크립트에 그치지 않고, 룰 기반 노이즈 제거와 HTML 대시보드, 팀원용 GUI까지 구축해 팀 전체 공수를 40시간 이상 없앴습니다. <strong>'엔지니어가 단순 반복 데이터 수작업에 묶여 있어서는 안 되며, 자동화 시스템을 통해 팀의 엔지니어링 리소스를 고부가가치 분석에 집중시켜야 한다'는 이 판단 기준은 호준님에게 왜 그토록 중요했습니까?</strong><br>
+          스마트 팹(Smart Fab)을 지향하는 SK하이닉스 양산기술 관점에서 어떤 철학과 연결됩니까?"
+        </div>
+        <div class="chat-bubble a-bubble" id="ans-data-3">
+          <div class="a-box-item">
+            <strong>👤 호준님 답변 3 (핵심 원문 - 엔지니어링 철학):</strong><br>
+            "엔지니어의 시간과 역량은 <strong>단순 반복 오퍼레이션이 아니라 이상 징후를 분석하고 이상 발생 기준을 정하는 고부가가치 문제 해결에 투입되어야 한다고 생각하기 때문</strong>입니다. 팀 전체의 불필요한 공수를 지워주는 것만으로도 팀원들이 본연의 공정 분석에 집중하여 <strong>팀의 궁극적인 KPI(수율·품질)를 달성하는 데 결정적인 도움</strong>이 될 것이라 확신했습니다."
+          </div>
+          <div class="example-box">
+            <strong>💡 질문 3 예시 답변 (참고용):</strong><br>
+            "엔지니어의 진짜 존재 가치는 '데이터를 손으로 다운받고 엑셀을 다듬는 단순 오퍼레이션'이 아니라, '그 데이터가 가리키는 공정 산포의 물리적 원인을 파헤치고 수율을 개선하는 고도화 분석'에 있기 때문입니다. 수만 대의 설비와 테라바이트급 데이터가 쏟아지는 반도체 스마트 팹에서 엔지니어가 수작업에 매몰되는 순간 품질 개선 속도는 뒤처질 수밖에 없습니다. 데이터 흐름을 자동화해 팀원들이 오직 공정 혁신에만 몰입할 수 있는 환경을 만드는 것이야말로 양산 경쟁력을 극대화하는 엔지니어의 진짜 역할이라고 확신했습니다."
+          </div>
+        </div>
+      </div>
+
+      <!-- 최종 완성 소제목 및 첫 답변 -->
+      <div class="before-after-box" id="final-data-box" style="display: block;">
+        <div style="font-weight: 700; color: #34d399; margin-bottom: 12px; font-size: 16px;">
+          🎯 3단계 Why 의사결정 기준으로 완성한 [자소서 소제목 & 두괄식 첫 문단]
+        </div>
+
+        <div style="background: rgba(239, 68, 68, 0.1); border-left: 3px solid #ef4444; padding: 12px 16px; border-radius: 4px; margin-bottom: 14px; font-size: 13.5px;">
+          <strong style="color: #f87171;">🔴 기존 초안 (1차원적 서술 - 단순 공수 절감 나열):</strong><br>
+          "신규 모델 생산에서 고객사가 모든 Lot에 대한 인라인 검사기 Data를 요청했습니다. 사내 여러 시스템에서 헌팅 Data를 제거해야 해서 엔지니어가 일 2시간을 수작업으로 Data를 다운받고 발라내는 비효율이 있었습니다. Python과 GUI로 자동화하여 월 40시간을 절감했습니다."
+        </div>
+
+        <div style="background: rgba(16, 185, 129, 0.12); border-left: 3px solid #10b981; padding: 16px 20px; border-radius: 6px; font-size: 14.5px; line-height: 1.75; color: #f1f5f9;">
+          <strong style="color: #34d399; font-size: 15.5px;">🟢 고득점 완성본 (자소서 소제목 & 두괄식 첫 문단):</strong><br>
+          <div style="font-weight: bold; font-size: 16px; color: #38bdf8; margin: 8px 0 12px 0;">
+            [고부가가치 엔지니어링: 도메인 기반 노이즈 제거와 원클릭 GUI로 휴먼 에러를 원천 차단하다]
+          </div>
+          저는 <strong>"엔지니어의 역량은 단순 반복 오퍼레이션이 아닌, 데이터의 이상 징후를 분석하고 수율 기준을 수립하는 고부가가치 문제 해결에 집중되어야 한다"</strong>는 신념을 지니고 있습니다. 
+          고객사 인라인 데이터 송부 업무에서 매일 2시간의 공수 낭비는 물론, 헌팅 노이즈를 수작업으로 스크랩하는 과정에서 발생할 오판정과 휴먼 에러 위험이 상존하고 있었습니다. 
+          수개월이 걸리는 외주 IT 개발을 기다리기보다 당장의 출하 승인을 책임져야 했기에, <strong>현장 도메인을 가장 잘 아는 제가 직접 개발 공수를 감수하고 Python 기반의 '룰 기반 노이즈 필터링 로직'과 '원클릭 GUI'를 단독 구축</strong>했습니다. 
+          그 결과 잠재적 출하 반려 리스크를 선제 차단함과 동시에 <strong>팀 수작업 공수를 월 40시간 이상 100% 절감</strong>하여 팀원들이 핵심 공정 KPI에 몰입할 수 있는 환경을 만들었습니다.
+        </div>
+      </div>
+    </div>
+
+    <!-- [경험 4] 1×7 수직 Bridge Kernel 이미지 처리 엔진 (100만 장 전수 선별) -->
+    <div class="topic-section" id="topic-bridge">
+      <div class="framework-badge">3단계 Why 의사결정 공식 실전 적용</div>
+      <div class="topic-title">
+        <span>📍 [경험 4] 1×7 수직 Bridge Kernel 이미지 처리 엔진 개발 (출하지연 방어)</span>
+      </div>
+
+      <!-- 기존 초안 -->
+      <div class="draft-box">
+        <div class="draft-label">📝 기존 자기소개서 내용 (이미지 처리 엔진 개발)</div>
+        <p>"출하를 앞두고 '실오라기 형태의 Burr' 이슈로 출하가 지연되어 100만 장 불량 선별이 필요했습니다. 실오라기 Burr가 점선처럼 끊겨 노이즈로 오인(미검)되는 문제를 해결하기 위해, 결함이 세로로 뻗는다는 도메인 특성을 살려 1×7 수직 Bridge Kernel을 적용했습니다. 그 결과 장당 5ms 속도로 72시간 내 100만 장 선별을 완수하여 납기 내 출하 지연을 막았습니다."</p>
+      </div>
+
+      <!-- Q1 / A1 -->
+      <div class="step-card" id="card-bridge-q1">
+        <div class="step-header">
+          <span class="tag tag-why">Why 1 (문제 상황 & 숨은 리스크)</span>
+          <span>공식: 왜 그 상황에서 A(개선/결정)가 필요하다고 생각했나?</span>
+        </div>
+        <div class="chat-bubble q-bubble">
+          <strong>면접관 질문 1 (Why 1):</strong><br>
+          "출하 직전 실오라기 Burr 결함이 발생했을 때, <strong>왜 그 시점에서 굳이 '72시간 내 100만 장 전수 선별을 위한 자체 알고리즘(A)' 개발이 반드시 필요하다고 판단하셨습니까?</strong><br>
+          실오라기 Burr 결함을 지닌 제품이 고객사(T사 배터리 팩/셀 조립)로 그대로 유출되었을 때 발생할 '치명적인 물리적 품질 리스크'와, 100만 장 전수 선별이 늦어졌을 때의 '납기/비즈니스 손실'은 구체적으로 무엇이었나요?"
+        </div>
+        <div class="chat-bubble a-bubble" id="ans-bridge-1">
+          <div class="a-box-item">
+            <strong>👤 호준님 답변 1 (현장 리스크 핵심):</strong><br>
+            "실오라기 Burr는 전극 단면의 미세 금속 이물로, 배터리 조립 시 분리막 손상 및 내부 단락을 유발할 수 있는 치명 결함이었습니다. 특히 반제품 Biz 특성상 고객사(T사) 라인 셧다운 및 전량 리콜이라는 비즈니스 실패로 이어질 수 있었고, 72시간 내 100만 장 출하 납기를 지키지 못하면 출하 지연 손실이 막대했기에 단 한 건의 미검도 없는 초고속 전수 선별 알고리즘이 시급했습니다."
+          </div>
+          <div class="example-box">
+            <strong>💡 질문 1 예시 답변 (참고용):</strong><br>
+            "실오라기 Burr는 전극 단면의 미세 금속 이물로, 배터리 조립 시 분리막(Separator)을 찢어 내부 단락(Short)과 화재를 유발할 수 있는 '치명 결함(Critical Defect)'이었습니다. 고객사인 T사의 반제품 Biz 특성상 단 1개의 Burr 유출도 전량 리콜과 라인 셧다운으로 이어질 수 있었습니다. 또한 100만 장 출하가 72시간 내에 클로징되지 않으면 고객사 전기차 조립 라인이 멈추는 천문학적인 배상금 및 계약 파기 위험이 있었기에, 단 한 건의 미검도 허용하지 않으면서 72시간 내 100만 장을 완벽히 선별해내는 초고속 검사 알고리즘 개발이 절대적으로 필요했습니다."
+          </div>
+        </div>
+      </div>
+
+      <!-- Q2 / A2 -->
+      <div class="step-card" id="card-bridge-q2">
+        <div class="step-header">
+          <span class="tag tag-why">Why 2 (트레이드오프 & 선택)</span>
+          <span>공식: 왜 B(다른 대안)가 아니라 A를 선택했나? (무엇을 포기하고 무엇을 취했는가)</span>
+        </div>
+        <div class="chat-bubble q-bubble">
+          <strong>면접관 질문 2 (Why 2):</strong><br>
+          "단기 알바나 생산 인력을 수십 명 투입해 육안 전수 검사를 돌리는 방식(B1)이나, 최신 딥러닝(CNN/YOLO 등) AI 모델을 학습시켜 검출하는 방식(B2)도 있었을 텐데, <strong>왜 수학적 모폴로지 기반의 '1×7 수직 Bridge Kernel 알고리즘(A)'을 직접 설계·선택하셨습니까?</strong><br>
+          검사 속도(Tact time), 정확도(미검률), 모델 학습 시간 사이에서 무엇을 포기하고 무엇을 최우선으로 취한 결정이었나요?"
+        </div>
+        <div class="chat-bubble a-bubble" id="ans-bridge-2">
+          <div class="a-box-item">
+            <strong>👤 호준님 답변 2 (트레이드오프 & 대안 선택):</strong><br>
+            "인력 육안 검사는 72시간 내 100만 장 처리가 물리적으로 불가능했고, 딥러닝 AI 모델은 라벨링과 학습에 며칠이 소요되며 추론 속도(장당 50ms 이상)가 느려 납기를 맞출 수 없었습니다. 따라서 무거운 AI 학습을 과감히 포기하고, 결함이 세로로 뻗는다는 도메인 특성을 살려 연산 비용이 극도로 가벼운 <strong>'1×7 수직 Bridge Kernel'</strong>을 설계했습니다. 그 결과 단순 행렬 연산만으로 <strong>장당 5ms라는 압도적 속도를 달성해 미검률 0%와 72시간 내 납기 방어를 완벽히 양립</strong>시켰습니다."
+          </div>
+          <div class="example-box">
+            <strong>💡 질문 2 예시 답변 (참고용):</strong><br>
+            "인력 육안 검사(B1)는 72시간 내 100만 장을 물리적으로 소화할 수 없었고 피로도로 인한 미검 위험이 컸습니다. 딥러닝 모델(B2)은 정확도는 높을지 몰라도 학습 데이터 라벨링과 모델 튜닝에만 며칠이 소요되며, GPU 연산 지연으로 장당 50~100ms가 걸려 72시간 납기를 맞출 수 없었습니다. 저는 복잡한 AI 학습 시간을 과감히 포기하고, 'Burr가 세로 방향으로 발생한다'는 현장 도메인 특성을 살려 연산 비용이 극도로 가벼운 '1×7 수직 Bridge Kernel'을 설계했습니다. 그 결과 무거운 AI 대신 단순 행렬 연산만으로 장당 5ms라는 압도적 속도를 뽑아내어 '미검률 0%'와 '72시간 내 100만 장 선별 완수'를 동시에 쟁취했습니다."
+          </div>
+        </div>
+      </div>
+
+      <!-- Q3 / A3 -->
+      <div class="step-card" id="card-bridge-q3">
+        <div class="step-header">
+          <span class="tag tag-why">Why 3 (엔지니어링 철학 & 기준)</span>
+          <span>공식: 왜 그 판단 기준이 나에게 중요했나?</span>
+        </div>
+        <div class="chat-bubble q-bubble">
+          <strong>면접관 질문 3 (Why 3):</strong><br>
+          "컴퓨터가 점선처럼 끊겨 찍힌 불량을 단순 먼지 노이즈로 착각할 때, '도메인 특성(세로 방향성)을 활용해 끊어진 점 사이에 다리(Bridge)를 놓아 결함의 연속성을 복원하겠다'는 창의적인 엔지니어링 돌파구를 찾아냈습니다. <strong>'어려운 문제일수록 화려한 최신 기술보다 문제의 물리적 본질과 도메인 특성에 집중해 가장 확실하고 빠른 해법을 찾는다'는 이 판단 기준은 호준님에게 왜 그토록 중요했습니까?</strong><br>
+          SK하이닉스 양산 현장에서 발생할 미세 결함 해결에 이 철학이 어떻게 기여할 수 있습니까?"
+        </div>
+        <div class="chat-bubble a-bubble" id="ans-bridge-3">
+          <div class="a-box-item">
+            <strong>👤 호준님 답변 3 (핵심 엔지니어링 철학):</strong><br>
+            "엔지니어링의 본질은 기술의 화려함이 아니라, <strong>'고객과의 약속된 납기 내에 품질 리스크를 가장 확실하게 해결하는 실전성'</strong>에 있다고 믿기 때문입니다. 아무리 고도화된 기술이라도 납기를 놓치면 무용지물입니다. 결함의 물리적 형상과 현장 도메인을 정확히 꿰뚫고 있다면, 가벼운 알고리즘 하나로도 수억 원짜리 딥러닝보다 훨씬 빠르고 강력하게 현장의 위기를 막아낼 수 있습니다."
+          </div>
+          <div class="example-box">
+            <strong>💡 질문 3 예시 답변 (참고용):</strong><br>
+            "엔지니어링의 위대함은 기술의 복잡성이 아니라 '정해진 납기와 한계 상황에서 문제를 가장 확실하게 끝장내는 실행력'에 있다고 믿기 때문입니다. 아무리 멋진 딥러닝 모델이라도 출하 기한을 넘기면 쓰레기에 불과합니다. 물리적 결함의 형상학적 본질을 정확히 꿰뚫고 있다면, 1×7 커널과 같은 단순한 수학적 필터 하나로도 수억 원짜리 AI보다 훨씬 빠르고 정확하게 현장을 구원할 수 있습니다. 수 나노미터 결함 신호가 쏟아지는 SK하이닉스 팹에서도, 도메인에 기반한 데이터 모델링으로 가장 빠르고 치명적인 리스크 제어 알고리즘을 만들어내겠습니다."
+          </div>
+        </div>
+      </div>
+
+      <!-- 최종 완성 소제목 및 첫 답변 -->
+      <div class="before-after-box" id="final-bridge-box" style="display: block;">
+        <div style="font-weight: 700; color: #34d399; margin-bottom: 12px; font-size: 16px;">
+          🎯 3단계 Why 의사결정 기준으로 완성한 [자소서 소제목 & 두괄식 첫 문단]
+        </div>
+
+        <div style="background: rgba(239, 68, 68, 0.1); border-left: 3px solid #ef4444; padding: 12px 16px; border-radius: 4px; margin-bottom: 14px; font-size: 13.5px;">
+          <strong style="color: #f87171;">🔴 기존 초안 (1차원적 서술 - 단순 알고리즘 나열):</strong><br>
+          "출하를 앞두고 '실오라기 형태의 Burr' 이슈가 발생하여 출하가 지연되었고, 100만 장 불량 선별이 필요했습니다. 실오라기 Burr가 점선처럼 끊겨 노이즈로 오인되는 문제를 해결하기 위해 1×7 수직 Bridge Kernel을 적용하여 72시간 내 선별을 완수했습니다."
+        </div>
+
+        <div style="background: rgba(16, 185, 129, 0.12); border-left: 3px solid #10b981; padding: 16px 20px; border-radius: 6px; font-size: 14.5px; line-height: 1.75; color: #f1f5f9;">
+          <strong style="color: #34d399; font-size: 15.5px;">🟢 고득점 완성본 (자소서 소제목 & 두괄식 첫 문단):</strong><br>
+          <div style="font-weight: bold; font-size: 16px; color: #38bdf8; margin: 8px 0 12px 0;">
+            [납기와 품질을 지키는 실전성: 1×7 수직 Bridge Kernel로 72시간 만에 100만 장을 구원하다]
+          </div>
+          저는 <strong>"엔지니어링의 위대함은 화려한 기술이 아닌, 약속된 납기 내에 품질 리스크를 가장 확실하게 해결하는 실전성에서 나온다"</strong>고 믿습니다. 
+          고객사(T사) 출하 직전 배터리 분리막 손상을 유발할 수 있는 '실오라기 Burr' 결함으로 72시간 내 100만 장 전수 선별이라는 절체절명의 위기가 발생했습니다. 
+          학습과 추론 속도가 느린 무거운 딥러닝 대신, <strong>'Burr가 세로 방향으로 뻗는다'는 현장 도메인 특성에 집중해 연산 비용이 극도로 가벼운 '1×7 수직 Bridge Kernel'을 자체 설계</strong>했습니다. 
+          점선처럼 끊겨 찍힌 미세 결함의 연속성을 초경량 행렬 연산으로 복원해 <strong>장당 5ms라는 압도적 속도로 미검률 0%와 72시간 내 100만 장 전수 선별을 완수하여 납기 지연을 방어</strong>했습니다.
+        </div>
+      </div>
+    </div>
+  </div>
+</body>
+</html>
