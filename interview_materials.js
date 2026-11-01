@@ -1348,9 +1348,9 @@ const INTERVIEW_MATERIALS = [
     "category_key": "notes",
     "question": "공핍층의 정의와 에너지 밴드 다이어그램에서의 전위 장벽 형성을 설명해보세요.",
     "answer": "📌 기초 메모 : 공핍층(Depletion layer) 이란 캐리어(정공)가 싹 비워지고(Depleted), 붕소 음이온만 남아 (-) 성질을 띠게 된 층.",
-    "audio_q": "",
+    "audio_q": "voices/questions/note_10.mp3",
     "audio_a": "",
-    "q_ready": false,
+    "q_ready": true,
     "a_ready": false
   },
   {
@@ -1359,10 +1359,10 @@ const INTERVIEW_MATERIALS = [
     "category_key": "notes",
     "question": "드레인 유기 장벽 저하인 디이블의 원리와 개선 대책을 설명해보세요.",
     "answer": "DIBL (Drain-Induced Barrier Lowering) 원리 및 5대 개선방법 DIBL",
-    "audio_q": "",
-    "audio_a": "",
-    "q_ready": false,
-    "a_ready": false
+    "audio_q": "voices/questions/note_11.mp3",
+    "audio_a": "voices/lectures/note_11.mp3",
+    "q_ready": true,
+    "a_ready": true
   },
   {
     "id": "note_12",
