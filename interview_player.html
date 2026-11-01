@@ -289,10 +289,9 @@
     </div>
     <div class="filter-bar" id="filterBar">
       <div class="chip active" data-cat="all">전체보기</div>
-      <div class="chip active" data-cat="experience">내경험기반 (20)</div>
-      <div class="chip active" data-cat="tech">AISK직무 (36)</div>
-      <div class="chip active" data-cat="personality">AISK인성 (50)</div>
-      <div class="chip active" data-cat="notes">손글씨노트 (44)</div>
+      <div class="chip active" data-cat="experience">내경험기반</div>
+      <div class="chip active" data-cat="tech">AISK직무</div>
+      <div class="chip active" data-cat="personality">AISK인성</div>
     </div>
   </header>
 
@@ -334,7 +333,7 @@
     }
 
     // App State
-    let activeCategories = new Set(['experience', 'tech', 'personality', 'notes']);
+    let activeCategories = new Set(['experience', 'tech', 'personality']);
     let filteredList = [];
     let currentIndex = 0;
     let isPlaying = false;
@@ -499,19 +498,44 @@
       }, 1000);
     }
 
+    // 전역 싱글톤 오디오 객체 (모바일 브라우저 권한 및 백그라운드 끊김 방지)
+    const globalAudioEl = new Audio();
+    globalAudioEl.preload = 'auto';
+
     function playAudioPromise(src) {
       return new Promise(resolve => {
-        const audio = new Audio(src);
-        currentAudio = audio;
-        audio.preload = 'auto';
-        audio.onended = () => { resolve(); };
-        audio.onerror = () => {
-          console.warn('Audio not found or failed:', src);
-          resolve(); // gracefully proceed
+        if (!src) {
+          resolve();
+          return;
+        }
+        stopCurrentAudio();
+        currentAudio = globalAudioEl;
+        
+        let settled = false;
+        const cleanupAndResolve = () => {
+          if (settled) return;
+          settled = true;
+          globalAudioEl.onended = null;
+          globalAudioEl.onerror = null;
+          resolve();
         };
-        const p = audio.play();
+
+        globalAudioEl.onended = cleanupAndResolve;
+        globalAudioEl.onerror = (e) => {
+          console.warn('Audio play error for:', src, e);
+          cleanupAndResolve();
+        };
+
+        // Cache-busting 및 경로 명확화
+        globalAudioEl.src = src;
+        globalAudioEl.currentTime = 0;
+
+        const p = globalAudioEl.play();
         if (p && typeof p.catch === 'function') {
-          p.catch(() => { resolve(); });
+          p.catch(err => {
+            console.warn('play() exception:', err);
+            cleanupAndResolve();
+          });
         }
       });
     }
