@@ -1524,10 +1524,10 @@ const INTERVIEW_MATERIALS = [
     "category_key": "notes",
     "question": "포지티브 피알의 감광 메커니즘과 미세 패턴 구현 시의 장점을 설명해보세요.",
     "answer": "Positive vs Negative PR 비교 : Positive (P) : 빛을 받은 부분이 제거됨. Resolution(해상도)이 우수 하고 현상 시 잔류 감광막인 Scum이 적으며 , Step coverage와 열적 안정성이 우수하여 양산에 주로 사용 (단, 비용 높음). Negative (N) : 빛을 받지 않은 부분이 제거됨. 산화막에 대한 접착도는 우수하지만 Scum 형성이 심하고 Develop 시 Swelling(부풂) 현상이 발생함. Low-k₁ (해상도 향상) 기술 : 광원 : Off-axis Illumination (사입사 조명) 마스크 : OPC 기술 , PSM (위상반전마스크 — 180° 위상차를 이용해 회절 상쇄) 반사 방지 및 공정 : BARC (하부 박막에서 반사되는 빛 억제 위해 SiON이나 Nitride 코팅) 와 Resist Reflow ArF-Immersion (액침 노광) : 물을 매질로 굴절률을 크게 해 해상도(R) 향상. EUV 광학계가 미러...",
-    "audio_q": "",
-    "audio_a": "",
-    "q_ready": false,
-    "a_ready": false
+    "audio_q": "voices/questions/note_26.mp3",
+    "audio_a": "voices/lectures/note_26.mp3",
+    "q_ready": true,
+    "a_ready": true
   },
   {
     "id": "note_27",
