@@ -1601,10 +1601,10 @@ const INTERVIEW_MATERIALS = [
     "category_key": "notes",
     "question": "원자층 증착 에이엘디의 자기포화 반응 메커니즘을 설명해보세요.",
     "answer": "ALD (Atomic Layer Deposition, 원자층 증착) 메커니즘 및 파라미터 ALD",
-    "audio_q": "",
-    "audio_a": "",
-    "q_ready": false,
-    "a_ready": false
+    "audio_q": "voices/questions/note_33.mp3",
+    "audio_a": "voices/lectures/note_33.mp3",
+    "q_ready": true,
+    "a_ready": true
   },
   {
     "id": "note_34",
