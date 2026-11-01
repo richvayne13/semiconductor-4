@@ -1106,10 +1106,10 @@ const INTERVIEW_MATERIALS = [
     "category_key": "experience",
     "question": "dynamic threshold가 뭐에요?",
     "answer": "C Dynamic threshold는 고정된 스펙(USL/LSL)으로 잡은 것이 아니라, 유동적으로 불량을 판정하는 것인데요\nO 로딩이 산포가 있기 때문에 고정공차를 적용하면 국부적인 저하를 센싱할 수 없어 도입했습니다.\nR 이동평균선 대비 일정 이상의 편차가 발생할 때만 트리거되는 Dynamic threshold 로직을 적용했습니다.\nE 이로서 국부적인 저하를 센싱할 수 있게 되었습니다.\nSPC측면에서 공정편차를 시그마수준으로 관리를 해야 품질이 좋아지는데 이 부분에 기여할 수 있다.",
-    "audio_q": "",
-    "audio_a": "",
-    "q_ready": false,
-    "a_ready": false
+    "audio_q": "voices/questions/exp_08.mp3",
+    "audio_a": "voices/lectures/exp_08.mp3",
+    "q_ready": true,
+    "a_ready": true
   },
   {
     "id": "exp_09",
