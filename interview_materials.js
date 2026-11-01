@@ -854,9 +854,9 @@ const INTERVIEW_MATERIALS = [
     "question": "실리콘 질화막(Si3N4)의 고유 물성과 식각 저지막(Etch Stop Layer) 및 하드마스크 적용 이유",
     "answer": "질화막의 핵심 물성과 주요 양산 적용처는 세 가지입니다. 첫째, '산화막 대비 탁월한 식각 선택비와 식각 저지막(ESL) 역할'입니다. 불소계 가스로 산화막을 식각할 때 질화막은 거의 깎이지 않는 우수한 식각 저항성을 나타냅니다. 따라서 다층 배선이나 트렌치 식각 시 바닥에 질화막을 얇게 깔아두면 하부 구조를 조금도 깎지 않고 정확히 식각을 멈추게 하는 스토퍼(Etch Stop Layer) 역할을 완벽히 수행합니다. 둘째, '초미세 패터닝을 위한 하드마스크(Hardmask) 적용'입니다. 셋째, '수분 및 오염 이온 확산 방지막과 패시베이션'입니다. 산화막은 나트륨이나 수분이 미세하게 통과할 수 있지만, Si3N4는 원자 간 결합이 극도로 조밀하여 외부 습기와 불순물 이동을 원천 차단하므로 칩의 최상단 보호막(Passivation)으로 필수 적용됩니다.",
     "audio_q": "voices/questions/t_d13_new.mp3",
-    "audio_a": "",
+    "audio_a": "voices/lectures/t_d13_new.mp3",
     "q_ready": true,
-    "a_ready": false
+    "a_ready": true
   },
   {
     "id": "t_i01",
