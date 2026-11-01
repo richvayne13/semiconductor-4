@@ -1458,10 +1458,10 @@ const INTERVIEW_MATERIALS = [
     "category_key": "notes",
     "question": "에스오아이 구조의 매립 산화막과 접합 정전용량 감소 효과를 설명해보세요.",
     "answer": "SOI (Silicon On Insulator) 도입 이유 및 Cap 특성 : 웨이퍼에 절연 산화막( BOX )을 배치하고 그 위로 TR을 구성하는 기술. 하단에 두꺼운 저유전율 매립 산화막( BOX )이 존재하여 초박막 채널의 완전 공핍층 커패시턴스와 직렬 연결됨 → 실효 공핍 커패시턴스가 극소화되어 Body factor m = 1 + C_dep_eff / C_ox ≈ 1 에 수렴, 이상적인 서브스레숄드 스윙( SS ≈ 60mV/dec ) 달성 및 기판 하부 펀치스루 원천 차단. PD-SOI vs FD-SOI 차이 및 소자 영향 : PD-SOI (Partially Depleted) : BOX 위의 Body가 두꺼워 부분 공핍됨. 공핍영역 내에서 Impact Ionization으로 생성된 전자는 Drain으로 가지만, 정공(Hole)은 기판 단자로 빠지지 못하고 채널 아래 p-Si에 쌓여서(Floating) 양전하 영향으로 V_T 를 낮추면서 갑자기 더 많은 전류를 흐르게 함 → C...",
-    "audio_q": "",
-    "audio_a": "",
-    "q_ready": false,
-    "a_ready": false
+    "audio_q": "voices/questions/note_20.mp3",
+    "audio_a": "voices/lectures/note_20.mp3",
+    "q_ready": true,
+    "a_ready": true
   },
   {
     "id": "note_21",
