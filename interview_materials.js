@@ -1546,9 +1546,9 @@ const INTERVIEW_MATERIALS = [
     "category_key": "notes",
     "question": "씨씨피와 아이씨피 플라즈마 식각 방식 및 라디칼과 이온의 역할을 설명해보세요.",
     "answer": "📌 우측 상단 메모 : CCP는 RIE, Etchant = Radical",
-    "audio_q": "",
+    "audio_q": "voices/questions/note_28.mp3",
     "audio_a": "",
-    "q_ready": false,
+    "q_ready": true,
     "a_ready": false
   },
   {
@@ -1557,10 +1557,10 @@ const INTERVIEW_MATERIALS = [
     "category_key": "notes",
     "question": "종횡비와 스텝 커버리지, 박막 스트레스의 상관관계를 설명해보세요.",
     "answer": "Aspect Ratio · Step Coverage · Sticking Coefficient · 박막 Stress 제어 박막 품질 지표",
-    "audio_q": "",
-    "audio_a": "",
-    "q_ready": false,
-    "a_ready": false
+    "audio_q": "voices/questions/note_29.mp3",
+    "audio_a": "voices/lectures/note_29.mp3",
+    "q_ready": true,
+    "a_ready": true
   },
   {
     "id": "note_30",
