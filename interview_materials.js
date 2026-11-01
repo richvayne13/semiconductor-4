@@ -1436,10 +1436,10 @@ const INTERVIEW_MATERIALS = [
     "category_key": "notes",
     "question": "게이트 산화막 박막화에 따른 양자역학적 직접 터널링 누설전류 한계를 설명해보세요.",
     "answer": "Gate Oxide Thickness가 얇아져야 하는 이유 : L ↓ 에 따라 상대적으로 C_dep ↑ → 게이트 전압 결정권( C_ox 가 이기길 바라는 바) 확보를 위해 C_ox ↑ 시키려면 t_ox 를 작게 해야 함. 한계 : t_ox 가 2nm 이하로 얇아지면서 양자역학적 게이트 직접 터널링 누설전류(Gate Direct Tunneling Leakage, I_G) 가 기하급수적으로 증가하고, 게이트-드레인 오버랩 영역의 고전계로 인한 GIDL(Band-to-Band Tunneling) 누설전류가 심화됨. 해결 : 물리적 두께를 유지하면서 유효 산화막 두께(EOT)를 줄이는 High-k Metal Gate(HKMG) 도입 + 드레인 전계 완화를 위한 LDD/Spacer + FD-SOI 및 3D 게이트(FinFET/GAA) 구조 도입. Body Thickness ↓ 이유와 한계 : 이유 : SCE 억제. UTB FET에서 7nm → 3nm 일 때 Off current가 1,000...",
-    "audio_q": "",
-    "audio_a": "",
-    "q_ready": false,
-    "a_ready": false
+    "audio_q": "voices/questions/note_18.mp3",
+    "audio_a": "voices/lectures/note_18.mp3",
+    "q_ready": true,
+    "a_ready": true
   },
   {
     "id": "note_19",
