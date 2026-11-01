@@ -1469,10 +1469,10 @@ const INTERVIEW_MATERIALS = [
     "category_key": "notes",
     "question": "핀치오프 현상과 하이케이 메탈 게이트 도입 메커니즘을 설명해보세요.",
     "answer": "Pinch-off · V_T Modulation · High-k & HKMG (Metal Gate) HKMG & 물리",
-    "audio_q": "",
-    "audio_a": "",
-    "q_ready": false,
-    "a_ready": false
+    "audio_q": "voices/questions/note_21.mp3",
+    "audio_a": "voices/lectures/note_21.mp3",
+    "q_ready": true,
+    "a_ready": true
   },
   {
     "id": "note_22",
