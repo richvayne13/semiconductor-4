@@ -1568,10 +1568,10 @@ const INTERVIEW_MATERIALS = [
     "category_key": "notes",
     "question": "미세 패턴 매립을 위한 스텝 커버리지 개선과 오버행 방지 대책을 설명해보세요.",
     "answer": "Aspect Ratio (종횡비) : 박막 패턴에서 밑변과 높이의 비율. Step Coverage (피복성) : 위치에 따른 박막 두께의 비율 (상부 대 측벽 비율은 Side, 상부 대 하부 비율은 Bottom). Step Coverage 인자 & Sticking Coefficient & 압력 관계 : 인자 : 압력, Sticking coefficient 함수, 입자 방향성. Sticking Coefficient (부착 계수) : 반응 가스가 표면에 잘 붙어있는지 나타내는 지표. 높으면 표면에 먼저 증착되어 하부에 Void가 생김 . 낮으면 잘 Migration 되어 Step Coverage ↑ . 압력 관계 : 압력이 낮을수록 MFP(평균자유이동거리)가 길어져 높은 A/R의 하부 Gap까지 입자가 충분히 도달해 Step Coverage 향상. 박막의 Stress와 제어해야 하는 이유 : Wafer와 Film 간 재료의 기계적·물성 불일치에 의해 발생. 박막 성장 과정에서 발생하는 ...",
-    "audio_q": "",
-    "audio_a": "",
-    "q_ready": false,
-    "a_ready": false
+    "audio_q": "voices/questions/note_30.mp3",
+    "audio_a": "voices/lectures/note_30.mp3",
+    "q_ready": true,
+    "a_ready": true
   },
   {
     "id": "note_31",
