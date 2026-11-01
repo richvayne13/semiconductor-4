@@ -1,4 +1,4 @@
-// Complete Interview Materials for Car Practice (AISK직무 10문항 신규 추가 반영)
+// Complete Interview Materials for Car Practice (AISK인성 50문항 제외 완료)
 const INTERVIEW_MATERIALS = [
   {
     "id": "p_g07",
