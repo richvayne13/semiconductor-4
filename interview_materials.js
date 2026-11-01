@@ -61,10 +61,10 @@ const INTERVIEW_MATERIALS = [
     "category_key": "personality",
     "question": "선배들이 쌓아 놓은 지식과 본인의 결과가 상충한다면 어떻게 하겠습니까?",
     "answer": "선배들의 기존 지식을 섣불리 부정하지도, 제 데이터 결과를 무작정 포기하지도 않겠습니다.\n\n우선 제 실험 조건, 계측 설비, 원천 데이터에 노이즈나 휴먼 에러가 없었는지 2차, 3차 교차 검증(Cross-check)을 철저히 진행하겠습니다.\n\n제 결과에 이상이 없다면, 과거 선배들이 정립했던 지식의 '공정 조건(레시피, 챔버 환경, 선폭 스케일)'과 현재 제 실험 조건 간의 차이점(Delta)을 꼼꼼히 비교 분석하겠습니다.\n\n이후 분석된 데이터를 바탕으로 선배님께 찾아가 '과거 노드와 비교해 신규 노드에서 이런 새로운 인자(Factor)가 작용한 것 같습니다'라며 자문을 구하고, 기존 지식을 한 단계 업그레이드하는 계기로 발전시키겠습니다.",
-    "audio_q": "",
-    "audio_a": "",
-    "q_ready": false,
-    "a_ready": false
+    "audio_q": "voices/questions/p_g12.mp3",
+    "audio_a": "voices/lectures/p_g12.mp3",
+    "q_ready": true,
+    "a_ready": true
   },
   {
     "id": "p_g13",
