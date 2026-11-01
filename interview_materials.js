@@ -1700,10 +1700,10 @@ const INTERVIEW_MATERIALS = [
     "category_key": "notes",
     "question": "물리 기상 증착 피브이디에서 아르곤 이온 충돌을 이용한 스퍼터링 증착을 설명해보세요.",
     "answer": "진공이란 & 만드는 원리 : 챔버 내부 공기를 제거하여 대기압보다 낮은 압력 상태. PVD 공정에서는 금속 입자가 Wafer 표면으로 이동하며 기체 입자와 충돌·산란할 수 있어 고진공(긴 MFP) 이 요구됨. Backside에서 Rotary Oil Pump (저진공)가 먼저 구동되고, 고진공은 ① Cryo Pump (극저온 냉각 압축 He을 이용해 가스를 얼어붙게 해 고진공 형성), ② TMP (Turbo Molecular Pump) (Blade가 초고속 회전하여 불순물을 외부로 뽑음), ③ Diffusion Oil Pump (오일 증기가 확산되었다가 액화되면서 입자들을 끌어냄)로 형성. 플라즈마(Plasma)와 Sheath 영역 : 플라즈마 : 이온화된 기체로서 양이온, 전자, 라디칼로 구성된 전기적 준중성 상태. 양이온 은 바이어스로 운동 방향 제어 가능(Dry etch, Sputtering), Radical 은 중성 활성기체로 반응성이 매우 높고 Diffusion으로 제어(PE...",
-    "audio_q": "",
-    "audio_a": "",
-    "q_ready": false,
-    "a_ready": false
+    "audio_q": "voices/questions/note_42.mp3",
+    "audio_a": "voices/lectures/note_42.mp3",
+    "q_ready": true,
+    "a_ready": true
   },
   {
     "id": "note_43",
