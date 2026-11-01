@@ -1,0 +1,591 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
+  <title>🚗 차 안에서 듣는 모의면접 (내 목소리 전용 플레이어)</title>
+  <style>
+    :root {
+      --bg: #090d16;
+      --card-bg: #131c2e;
+      --card-active: #1d2a45;
+      --accent: #38bdf8;
+      --accent-rgb: 56, 189, 248;
+      --text: #f8fafc;
+      --text-muted: #94a3b8;
+      --border: #23334d;
+      --q-color: #a5b4fc;
+      --a-color: #34d399;
+      --dock-bg: rgba(15, 23, 42, 0.95);
+    }
+    * { box-sizing: border-box; margin: 0; padding: 0; -webkit-tap-highlight-color: transparent; }
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Pretendard", sans-serif;
+      background: var(--bg);
+      color: var(--text);
+      line-height: 1.6;
+      padding-bottom: 240px;
+      overflow-x: hidden;
+    }
+    header {
+      position: sticky;
+      top: 0;
+      z-index: 50;
+      background: rgba(9, 13, 22, 0.92);
+      backdrop-filter: blur(12px);
+      border-bottom: 1px solid var(--border);
+      padding: 14px 18px;
+    }
+    .header-top {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+    .header-title {
+      font-size: 17px;
+      font-weight: 700;
+      color: var(--text);
+      display: flex;
+      align-items: center;
+      gap: 6px;
+    }
+    .badge-car {
+      background: rgba(56, 189, 248, 0.15);
+      color: var(--accent);
+      border: 1px solid var(--accent);
+      padding: 2px 7px;
+      border-radius: 6px;
+      font-size: 11px;
+      font-weight: 700;
+    }
+    .stats-pill {
+      font-size: 12px;
+      color: var(--text-muted);
+      background: rgba(255,255,255,0.06);
+      padding: 4px 10px;
+      border-radius: 20px;
+    }
+    
+    /* Category Filter Chips */
+    .filter-bar {
+      display: flex;
+      gap: 8px;
+      margin-top: 12px;
+      overflow-x: auto;
+      padding-bottom: 4px;
+      scrollbar-width: none;
+    }
+    .filter-bar::-webkit-scrollbar { display: none; }
+    .chip {
+      background: #1e293b;
+      color: var(--text-muted);
+      border: 1px solid var(--border);
+      padding: 6px 14px;
+      border-radius: 20px;
+      font-size: 13px;
+      font-weight: 600;
+      white-space: nowrap;
+      cursor: pointer;
+      transition: all 0.2s;
+    }
+    .chip.active {
+      background: var(--accent);
+      color: #04101e;
+      border-color: var(--accent);
+      box-shadow: 0 0 14px rgba(56, 189, 248, 0.4);
+    }
+
+    /* Cards Stream */
+    .card-list {
+      max-width: 860px;
+      margin: 16px auto;
+      padding: 0 16px;
+      display: flex;
+      flex-direction: column;
+      gap: 16px;
+    }
+    .item-card {
+      background: var(--card-bg);
+      border: 1px solid var(--border);
+      border-radius: 14px;
+      padding: 18px 20px;
+      transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+      cursor: pointer;
+      position: relative;
+    }
+    .item-card.active {
+      border-color: var(--accent);
+      background: var(--card-active);
+      box-shadow: 0 0 24px rgba(56, 189, 248, 0.25);
+      transform: scale(1.015);
+    }
+    .card-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 8px;
+    }
+    .card-cat {
+      font-size: 11px;
+      font-weight: 700;
+      padding: 2px 8px;
+      border-radius: 4px;
+      text-transform: uppercase;
+    }
+    .cat-exp { background: rgba(245, 158, 11, 0.15); color: #fbbf24; border: 1px solid #f59e0b; }
+    .cat-tech { background: rgba(56, 189, 248, 0.15); color: #38bdf8; border: 1px solid #38bdf8; }
+    .cat-pers { background: rgba(168, 85, 247, 0.15); color: #c084fc; border: 1px solid #a855f7; }
+    .cat-note { background: rgba(16, 185, 129, 0.15); color: #34d399; border: 1px solid #10b981; }
+    
+    .card-q {
+      font-size: 16px;
+      font-weight: 700;
+      color: #ffffff;
+      margin-bottom: 10px;
+      line-height: 1.5;
+    }
+    .card-a {
+      font-size: 14px;
+      color: #cbd5e1;
+      line-height: 1.65;
+      background: rgba(0,0,0,0.25);
+      padding: 12px 14px;
+      border-radius: 8px;
+      border-left: 3px solid var(--a-color);
+      display: none;
+    }
+    .item-card.show-ans .card-a { display: block; }
+    .item-card.speaking-q .card-q { color: var(--accent); }
+    .item-card.speaking-a .card-a { border-left-color: var(--accent); background: rgba(56, 189, 248, 0.1); }
+
+    /* Bottom Car-Mode Player Dock */
+    .car-dock {
+      position: fixed;
+      bottom: 0;
+      left: 0;
+      right: 0;
+      background: var(--dock-bg);
+      backdrop-filter: blur(18px);
+      border-top: 1px solid var(--border);
+      padding: 14px 20px 24px;
+      z-index: 100;
+      box-shadow: 0 -8px 32px rgba(0,0,0,0.5);
+    }
+    .dock-container {
+      max-width: 860px;
+      margin: 0 auto;
+    }
+    .status-banner {
+      font-size: 13px;
+      font-weight: 600;
+      color: var(--accent);
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      margin-bottom: 10px;
+    }
+    .timer-badge {
+      background: rgba(239, 68, 68, 0.2);
+      color: #f87171;
+      border: 1px solid #ef4444;
+      padding: 2px 8px;
+      border-radius: 12px;
+      font-size: 12px;
+      font-weight: 700;
+      display: none;
+    }
+    .progress-bar-wrap {
+      width: 100%;
+      height: 4px;
+      background: rgba(255,255,255,0.1);
+      border-radius: 2px;
+      margin-bottom: 14px;
+      overflow: hidden;
+    }
+    .progress-bar-fill {
+      width: 0%;
+      height: 100%;
+      background: var(--accent);
+      transition: width 0.1s linear;
+    }
+    
+    /* Controls */
+    .controls-row {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 12px;
+    }
+    .btn-circle {
+      width: 54px;
+      height: 54px;
+      border-radius: 50%;
+      background: #1e293b;
+      color: var(--text);
+      border: 1px solid var(--border);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 20px;
+      cursor: pointer;
+      transition: all 0.15s;
+    }
+    .btn-circle:active { transform: scale(0.92); }
+    .btn-play-big {
+      width: 68px;
+      height: 68px;
+      background: var(--accent);
+      color: #090d16;
+      border: none;
+      font-size: 26px;
+      box-shadow: 0 0 20px rgba(56, 189, 248, 0.4);
+    }
+    
+    /* Config bar */
+    .config-row {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      margin-top: 14px;
+      font-size: 12.5px;
+      color: var(--text-muted);
+    }
+    .delay-slider-wrap {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+    input[type=range] {
+      accent-color: var(--accent);
+      width: 110px;
+      cursor: pointer;
+    }
+    .toggle-btn {
+      background: #1e293b;
+      border: 1px solid var(--border);
+      color: var(--text-muted);
+      padding: 5px 10px;
+      border-radius: 6px;
+      cursor: pointer;
+      font-size: 11.5px;
+      font-weight: 600;
+    }
+    .toggle-btn.active {
+      color: var(--accent);
+      border-color: var(--accent);
+      background: rgba(56, 189, 248, 0.12);
+    }
+  </style>
+</head>
+<body>
+  <!-- Header -->
+  <header>
+    <div class="header-top">
+      <div class="header-title">
+        <span>🚗 차 안 모의면접</span>
+        <span class="badge-car">내 목소리 전용</span>
+      </div>
+      <div class="stats-pill" id="statsPill">0 / 0 문항</div>
+    </div>
+    <div class="filter-bar" id="filterBar">
+      <div class="chip active" data-cat="all">전체보기</div>
+      <div class="chip active" data-cat="experience">내경험기반 (20)</div>
+      <div class="chip active" data-cat="tech">AISK직무 (36)</div>
+      <div class="chip active" data-cat="personality">AISK인성 (50)</div>
+      <div class="chip active" data-cat="notes">손글씨노트 (44)</div>
+    </div>
+  </header>
+
+  <!-- Items Stream -->
+  <main class="card-list" id="cardList"></main>
+
+  <!-- Bottom Car Player Dock -->
+  <footer class="car-dock">
+    <div class="dock-container">
+      <div class="status-banner">
+        <span id="dockStatus">준비 완료 — 재생 버튼을 누르세요</span>
+        <span class="timer-badge" id="timerBadge">생각 시간: 10s</span>
+      </div>
+      <div class="progress-bar-wrap">
+        <div class="progress-bar-fill" id="progressFill"></div>
+      </div>
+      <div class="controls-row">
+        <button class="btn-circle" id="btnPrev" title="이전 질문">⏮️</button>
+        <button class="btn-circle" id="btnShuffle" title="랜덤 재생 토글">🔀</button>
+        <button class="btn-circle btn-play-big" id="btnPlayMain" title="재생/일시정지">▶</button>
+        <button class="btn-circle" id="btnShowAnsToggle" title="답변 텍스트 항상 열기">👁️</button>
+        <button class="btn-circle" id="btnNext" title="다음 질문">⏭️</button>
+      </div>
+      <div class="config-row">
+        <div class="delay-slider-wrap">
+          <span>생각 시간: <strong id="delayVal" style="color:var(--accent);">10</strong>초</span>
+          <input type="range" id="delaySlider" min="0" max="60" step="5" value="10">
+        </div>
+        <button class="toggle-btn active" id="btnAutoScroll">📜 자동스크롤 ON</button>
+      </div>
+    </div>
+  </footer>
+
+  <script src="interview_materials.js"></script>
+  <script>
+    // 🚫 브라우저 기본 여성 아나운서 TTS 완전 원천 무력화
+    if (typeof window !== 'undefined' && 'speechSynthesis' in window) {
+      window.speechSynthesis.speak = function() { console.warn('Browser TTS permanently disabled'); };
+    }
+
+    // App State
+    let activeCategories = new Set(['experience', 'tech', 'personality', 'notes']);
+    let filteredList = [];
+    let currentIndex = 0;
+    let isPlaying = false;
+    let isShuffle = true;
+    let delaySeconds = 10;
+    let autoScroll = true;
+    let alwaysShowAnswer = false;
+    let timerCountdown = null;
+    let currentAudio = null;
+
+    const cardListEl = document.getElementById('cardList');
+    const dockStatusEl = document.getElementById('dockStatus');
+    const timerBadgeEl = document.getElementById('timerBadge');
+    const progressFillEl = document.getElementById('progressFill');
+    const btnPlayMain = document.getElementById('btnPlayMain');
+    const btnShuffle = document.getElementById('btnShuffle');
+    const btnPrev = document.getElementById('btnPrev');
+    const btnNext = document.getElementById('btnNext');
+    const btnAutoScroll = document.getElementById('btnAutoScroll');
+    const btnShowAnsToggle = document.getElementById('btnShowAnsToggle');
+    const delaySlider = document.getElementById('delaySlider');
+    const delayVal = document.getElementById('delayVal');
+    const statsPill = document.getElementById('statsPill');
+
+    // 1. Filter logic
+    function applyFilter() {
+      filteredList = INTERVIEW_MATERIALS.filter(item => activeCategories.has(item.category_key));
+      if (isShuffle) {
+        filteredList.sort(() => Math.random() - 0.5);
+      }
+      currentIndex = 0;
+      statsPill.innerText = `총 ${filteredList.length}문항`;
+      renderCards();
+    }
+
+    function renderCards() {
+      cardListEl.innerHTML = '';
+      filteredList.forEach((item, idx) => {
+        const card = document.createElement('div');
+        card.className = `item-card ${alwaysShowAnswer ? 'show-ans' : ''}`;
+        card.id = `card-${item.id}`;
+        
+        let catClass = 'cat-tech';
+        if (item.category_key === 'experience') catClass = 'cat-exp';
+        else if (item.category_key === 'personality') catClass = 'cat-pers';
+        else if (item.category_key === 'notes') catClass = 'cat-note';
+
+        card.innerHTML = `
+          <div class="card-header">
+            <span class="card-cat ${catClass}">#${idx+1} ${item.category}</span>
+            <span style="font-size:11px; color:#64748b;">${item.id}</span>
+          </div>
+          <div class="card-q">${item.question}</div>
+          <div class="card-a">${item.answer}</div>
+        `;
+
+        card.onclick = () => {
+          currentIndex = idx;
+          startItemPlayback();
+        };
+
+        cardListEl.appendChild(card);
+      });
+      updateActiveCard();
+    }
+
+    function updateActiveCard() {
+      document.querySelectorAll('.item-card').forEach((c, idx) => {
+        c.classList.remove('active', 'speaking-q', 'speaking-a');
+        if (idx === currentIndex) {
+          c.classList.add('active');
+          if (autoScroll) {
+            c.scrollIntoView({ behavior: 'smooth', block: 'center' });
+          }
+        }
+      });
+    }
+
+    // 2. Audio playback engine
+    function stopCurrentAudio() {
+      if (timerCountdown) {
+        clearInterval(timerCountdown);
+        timerCountdown = null;
+      }
+      if (currentAudio) {
+        currentAudio.pause();
+        currentAudio.onended = null;
+        currentAudio.onerror = null;
+        currentAudio = null;
+      }
+      timerBadgeEl.style.display = 'none';
+      progressFillEl.style.width = '0%';
+    }
+
+    async function startItemPlayback() {
+      stopCurrentAudio();
+      if (!isPlaying || currentIndex >= filteredList.length) {
+        dockStatusEl.innerText = '재생이 정지되었습니다.';
+        btnPlayMain.innerHTML = '▶';
+        return;
+      }
+
+      const item = filteredList[currentIndex];
+      updateActiveCard();
+      const currentCardEl = document.getElementById(`card-${item.id}`);
+
+      // Step A: Question Speech
+      dockStatusEl.innerText = `🎙️ [질문] ${item.question.slice(0, 32)}...`;
+      if (currentCardEl) currentCardEl.classList.add('speaking-q');
+
+      await playAudioPromise(item.audio_q);
+
+      if (!isPlaying) return;
+      if (currentCardEl) currentCardEl.classList.remove('speaking-q');
+
+      // Step B: Wait / Think Timer (0s ~ 60s)
+      if (delaySeconds > 0) {
+        timerBadgeEl.style.display = 'inline-block';
+        let remain = delaySeconds;
+        dockStatusEl.innerText = `⏳ 답변 준비 시간 (${remain}초 남음)...`;
+        timerBadgeEl.innerText = `생각 시간: ${remain}s`;
+
+        await new Promise(resolve => {
+          timerCountdown = setInterval(() => {
+            remain--;
+            const pct = ((delaySeconds - remain) / delaySeconds) * 100;
+            progressFillEl.style.width = `${pct}%`;
+            timerBadgeEl.innerText = `생각 시간: ${remain}s`;
+            if (remain <= 0 || !isPlaying) {
+              clearInterval(timerCountdown);
+              timerCountdown = null;
+              timerBadgeEl.style.display = 'none';
+              progressFillEl.style.width = '0%';
+              resolve();
+            }
+          }, 1000);
+        });
+      }
+
+      if (!isPlaying) return;
+
+      // Step C: Answer Speech
+      if (currentCardEl) {
+        currentCardEl.classList.add('show-ans', 'speaking-a');
+      }
+      dockStatusEl.innerText = `📘 [모범답안] 내 목소리로 답변을 재생합니다...`;
+
+      if (item.audio_a) {
+        await playAudioPromise(item.audio_a);
+      } else {
+        // Audio not yet ready for this specific lecture item -> wait 3s gracefully
+        await new Promise(r => setTimeout(r, 2500));
+      }
+
+      if (!isPlaying) return;
+      if (currentCardEl) currentCardEl.classList.remove('speaking-a');
+
+      // Step D: Next item
+      currentIndex = (currentIndex + 1) % filteredList.length;
+      setTimeout(() => {
+        if (isPlaying) startItemPlayback();
+      }, 1000);
+    }
+
+    function playAudioPromise(src) {
+      return new Promise(resolve => {
+        const audio = new Audio(src);
+        currentAudio = audio;
+        audio.preload = 'auto';
+        audio.onended = () => { resolve(); };
+        audio.onerror = () => {
+          console.warn('Audio not found or failed:', src);
+          resolve(); // gracefully proceed
+        };
+        const p = audio.play();
+        if (p && typeof p.catch === 'function') {
+          p.catch(() => { resolve(); });
+        }
+      });
+    }
+
+    // Controls
+    btnPlayMain.onclick = () => {
+      isPlaying = !isPlaying;
+      if (isPlaying) {
+        btnPlayMain.innerHTML = '⏸';
+        startItemPlayback();
+      } else {
+        btnPlayMain.innerHTML = '▶';
+        stopCurrentAudio();
+        dockStatusEl.innerText = '일시 정지됨';
+      }
+    };
+
+    btnNext.onclick = () => {
+      currentIndex = (currentIndex + 1) % filteredList.length;
+      if (isPlaying) startItemPlayback();
+      else updateActiveCard();
+    };
+
+    btnPrev.onclick = () => {
+      currentIndex = (currentIndex - 1 + filteredList.length) % filteredList.length;
+      if (isPlaying) startItemPlayback();
+      else updateActiveCard();
+    };
+
+    btnShuffle.onclick = () => {
+      isShuffle = !isShuffle;
+      btnShuffle.style.borderColor = isShuffle ? 'var(--accent)' : 'var(--border)';
+      btnShuffle.style.color = isShuffle ? 'var(--accent)' : 'var(--text)';
+      applyFilter();
+    };
+
+    btnAutoScroll.onclick = () => {
+      autoScroll = !autoScroll;
+      btnAutoScroll.classList.toggle('active', autoScroll);
+      btnAutoScroll.innerText = `📜 자동스크롤 ${autoScroll ? 'ON' : 'OFF'}`;
+    };
+
+    btnShowAnsToggle.onclick = () => {
+      alwaysShowAnswer = !alwaysShowAnswer;
+      btnShowAnsToggle.style.color = alwaysShowAnswer ? 'var(--a-color)' : 'var(--text)';
+      document.querySelectorAll('.item-card').forEach(c => c.classList.toggle('show-ans', alwaysShowAnswer));
+    };
+
+    delaySlider.oninput = (e) => {
+      delaySeconds = parseInt(e.target.value, 10);
+      delayVal.innerText = delaySeconds;
+    };
+
+    // Filter chip clicks
+    document.querySelectorAll('.chip').forEach(chip => {
+      chip.onclick = () => {
+        const cat = chip.dataset.cat;
+        if (cat === 'all') {
+          if (activeCategories.size === 4) activeCategories.clear();
+          else activeCategories = new Set(['experience', 'tech', 'personality', 'notes']);
+        } else {
+          if (activeCategories.has(cat)) activeCategories.delete(cat);
+          else activeCategories.add(cat);
+        }
+        document.querySelectorAll('.chip').forEach(c => {
+          if (c.dataset.cat === 'all') c.classList.toggle('active', activeCategories.size === 4);
+          else c.classList.toggle('active', activeCategories.has(c.dataset.cat));
+        });
+        applyFilter();
+      };
+    });
+
+    // Init
+    applyFilter();
+  </script>
+</body>
+</html>
