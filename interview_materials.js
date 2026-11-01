@@ -1008,9 +1008,9 @@ const INTERVIEW_MATERIALS = [
     "question": "단채널 효과(SCE)의 4대 핵심 현상(V_th Roll-off, DIBL, Punch-through, GIDL)의 물리적 차이와 공정적 극복 방안",
     "answer": "단채널 효과의 4대 현상은 평면(Planar) MOSFET에서는 도핑 기술(Halo, LDD, Retrograde Well)과 접합 엔지니어링(USJ)의 조합으로 방어해 왔으나, 미세화가 10nm 이하로 진입하면서 도핑의 물리적 한계에 봉착했습니다. 이에 따라 소자 패러다임은 채널의 3면을 감싸는 FinFET을 거쳐, 채널의 4면 전체를 절연막과 게이트가 완전히 둘러싸 정전기적 전위 장벽을 원천 지배하는 GAA(Gate-All-Around) MBCFET 구조로 전면 전환되었습니다.",
     "audio_q": "voices/questions/t_dev09_new.mp3",
-    "audio_a": "",
+    "audio_a": "voices/lectures/t_dev09_new.mp3",
     "q_ready": true,
-    "a_ready": false
+    "a_ready": true
   },
   {
     "id": "t_dev10_new",
