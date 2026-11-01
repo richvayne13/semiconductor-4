@@ -1513,10 +1513,10 @@ const INTERVIEW_MATERIALS = [
     "category_key": "notes",
     "question": "포지티브 피알과 네거티브 피알의 비교 및 이유브이 미러 광학계를 설명해보세요.",
     "answer": "Positive PR vs Negative PR · Low-k₁ 해상도 향상 기술 · EUV 미러 광학계 심화 노광 기술",
-    "audio_q": "",
-    "audio_a": "",
-    "q_ready": false,
-    "a_ready": false
+    "audio_q": "voices/questions/note_25.mp3",
+    "audio_a": "voices/lectures/note_25.mp3",
+    "q_ready": true,
+    "a_ready": true
   },
   {
     "id": "note_26",
