@@ -1271,10 +1271,10 @@ const INTERVIEW_MATERIALS = [
     "category_key": "notes",
     "question": "디램 원 티 원 씨의 쓰기 및 읽기 회로 동작 원리를 설명해보세요.",
     "answer": "DRAM 1T-1C 동작 원리 ('1' 쓰기 / '0' 쓰기 / '1' 읽기 / '0' 읽기) 회로 동작",
-    "audio_q": "",
-    "audio_a": "",
-    "q_ready": false,
-    "a_ready": false
+    "audio_q": "voices/questions/note_03.mp3",
+    "audio_a": "voices/lectures/note_03.mp3",
+    "q_ready": true,
+    "a_ready": true
   },
   {
     "id": "note_04",
