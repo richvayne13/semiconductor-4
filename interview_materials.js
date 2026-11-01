@@ -896,9 +896,9 @@ const INTERVIEW_MATERIALS = [
     "category": "손글씨노트",
     "category_key": "notes",
     "question": "에스오아이 기술 도입 이유와 피디 에스오아이 및 에프디 에스오아이의 차이를 설명해보세요.",
-    "answer": "SOI 기술 도입 이유 · PD-SOI vs FD-SOI · Current Kink Effect SOI MOSFET",
+    "answer": "에스오아이 기술은 기판 하부에 매립 산화막을 형성하여 접합 정전용량을 대폭 낮추고 소자의 동작 속도와 누설 전류를 개선하기 위해 도입되었습니다. 피디 에스오아이는 바디가 부분 공핍되어 플로팅 바디 효과가 발생할 수 있는 반면, 에프디 에스오아이는 얇은 바디가 완전 공핍되어 이상적인 게이트 제어력과 스위칭 속도를 확보합니다.",
     "audio_q": "voices/questions/note_19.mp3",
-    "audio_a": "",
+    "audio_a": "voices/lectures/note_19.mp3",
     "q_ready": true,
     "a_ready": true
   },
