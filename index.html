@@ -4913,7 +4913,7 @@
   }
 ];
 
-    const STORAGE_KEY = 'aisk_master_topics_custom_v39_50_personality';
+    const STORAGE_KEY = 'aisk_master_topics_custom_v40_gichul_personality';
     // 🎙️ 내 복제 음성(Qwen3-TTS)으로 제작된 심화해설 MP3 보유 문항 목록 (voices/lectures/${id}.mp3)
     const CLONED_LECTURE_VOICE_IDS = new Set([
       't_com01', 't_com02', 't_com03', 't_com04',
@@ -4924,11 +4924,12 @@
     // 1. 초기 데이터 로드 (localStorage 우선 및 구버전 마이그레이션)
         function loadTopics() {
       localStorage.setItem('aisk_model_user_voice_clean_v2', 'done');
-      const prevKey = 'aisk_master_topics_custom_v29_proofread';
-      let prevSaved = null;
+
+      const prevV39Key = 'aisk_master_topics_custom_v39_50_personality';
+      let prevV39Saved = null;
       try {
-        const p = localStorage.getItem(prevKey);
-        if (p) prevSaved = JSON.parse(p);
+        const v39 = localStorage.getItem(prevV39Key);
+        if (v39) prevV39Saved = JSON.parse(v39);
       } catch (e) {}
 
       const prevV37Key = 'aisk_master_topics_custom_v37_oct28_user_backup';
@@ -4945,6 +4946,20 @@
         } catch (e) {
           currentTopics = JSON.parse(JSON.stringify(DEFAULT_TOPICS));
         }
+      } else if (prevV39Saved && Array.isArray(prevV39Saved)) {
+        // v39로부터 마이그레이션 (기본 topics 위에 기존 편집 내용 병합)
+        currentTopics = JSON.parse(JSON.stringify(DEFAULT_TOPICS));
+        const prevMap = new Map(prevV39Saved.map(item => [item.id, item]));
+        currentTopics.forEach(cur => {
+          const old = prevMap.get(cur.id);
+          if (old) {
+            if (old.speech_1m30s) cur.speech_1m30s = old.speech_1m30s;
+            if (old.speech_alt) cur.speech_alt = old.speech_alt;
+            if (old.my_model_script) cur.my_model_script = old.my_model_script;
+            if (old.core_keyword) cur.core_keyword = old.core_keyword;
+          }
+        });
+        localStorage.setItem(STORAGE_KEY, JSON.stringify(currentTopics));
       } else if (prevV37Saved && Array.isArray(prevV37Saved)) {
         // v37 데이터로부터 마이그레이션 (오염된 태그 cleanSpeechText로 완전 세척)
         currentTopics = JSON.parse(JSON.stringify(DEFAULT_TOPICS));
@@ -4958,20 +4973,20 @@
             if (old.core_keyword) cur.core_keyword = old.core_keyword;
           }
         });
-      } else if (prevSaved && Array.isArray(prevSaved)) {
-        // 구버전에서 사용자 맞춤 편집(speech, speech_alt, keywords)만 마이그레이션
-        currentTopics = JSON.parse(JSON.stringify(DEFAULT_TOPICS));
-        const prevMap = new Map(prevSaved.map(item => [item.id, item]));
-        currentTopics.forEach(cur => {
-          const old = prevMap.get(cur.id);
-          if (old) {
-            if (old.speech_1m30s) cur.speech_1m30s = cleanSpeechText(old.speech_1m30s);
-            if (old.speech_alt) cur.speech_alt = cleanSpeechText(old.speech_alt);
-            if (old.my_model_script) cur.my_model_script = cleanSpeechText(old.my_model_script);
-          }
-        });
+        localStorage.setItem(STORAGE_KEY, JSON.stringify(currentTopics));
       } else {
         currentTopics = JSON.parse(JSON.stringify(DEFAULT_TOPICS));
+        localStorage.setItem(STORAGE_KEY, JSON.stringify(currentTopics));
+      }
+
+      // 혹시 로드된 currentTopics에 DEFAULT_TOPICS의 신규 항목(기출 p_g07~ 등)이 누락되어 있다면 자동 보충
+      const currentIdSet = new Set(currentTopics.map(t => t.id));
+      const missingDefaults = DEFAULT_TOPICS.filter(dt => !currentIdSet.has(dt.id));
+      if (missingDefaults.length > 0) {
+        const gichulItems = missingDefaults.filter(t => t.is_gichul && t.category === 'personality');
+        const otherItems = missingDefaults.filter(t => !(t.is_gichul && t.category === 'personality'));
+        currentTopics = [...gichulItems, ...currentTopics, ...otherItems];
+        localStorage.setItem(STORAGE_KEY, JSON.stringify(currentTopics));
       }
 
       // 항상 DEFAULT_TOPICS에 존재하는 ID만 유지 (삭제된 포토공정 4, 7~15 완전 제거)
