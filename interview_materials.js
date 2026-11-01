@@ -1084,10 +1084,10 @@ const INTERVIEW_MATERIALS = [
     "category_key": "experience",
     "question": "\"입사 후 공정과 AI 두 가지 방면으로 기여하겠다고 하셨는데, SK하이닉스 양산기술 엔지니어로 배치받으시면 구체적으로 어떤 업무에 그 AI 프로토콜을 가장",
     "answer": "먼저 적용해 보고 싶으신가요?\"\n• 🎯 방어 포인트:\n• 단기(공정 적응 & 반복 업무 자동화): 설비나 검사기 데이터 트렌드를 모니터링할 수 있는 시스템을 구축하고 싶은데요,  FDC 알람 로그, 챔버 간 산포 비교나 이상 발생 시 다수의 로그 파일을 취합해 원인을 층별화하는 정형화된 엔지니어링 데이터 전처리와 시각화 파이프라인을 표준화하고 싶습니다.\n• 중장기로는 나노 공정의 미세 산포와 후속 계측/수율 데이터를 매칭하여, 설비 PM 전후 조건 변화나 미세 드리프트를 조기에 잡아내는 예지보전·산포 제어 어시스턴스를 만들어보고 싶습니다.",
-    "audio_q": "",
-    "audio_a": "",
-    "q_ready": false,
-    "a_ready": false
+    "audio_q": "voices/questions/exp_06.mp3",
+    "audio_a": "voices/lectures/exp_06.mp3",
+    "q_ready": true,
+    "a_ready": true
   },
   {
     "id": "exp_07",
