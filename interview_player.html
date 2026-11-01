@@ -238,6 +238,12 @@
       transition: all 0.15s;
     }
     .btn-circle:active { transform: scale(0.92); }
+    .btn-circle.active {
+      border-color: var(--accent) !important;
+      color: var(--accent) !important;
+      background: rgba(56, 189, 248, 0.22) !important;
+      box-shadow: 0 0 14px rgba(56, 189, 248, 0.4) !important;
+    }
     .btn-play-big {
       width: 68px;
       height: 68px;
@@ -1718,6 +1724,8 @@ filteredList.forEach((item, idx) => {
         `;
         card.onclick = () => {
           currentIndex = idx;
+          isPlaying = true;
+          btnPlayMain.innerHTML = '⏸';
           startItemPlayback();
         };
         cardListEl.appendChild(card);
@@ -1738,23 +1746,31 @@ filteredList.forEach((item, idx) => {
     }
 
     // 2. Audio playback engine
+    let currentPlaybackToken = 0;
+    const globalAudioEl = new Audio();
+    globalAudioEl.preload = 'auto';
+
     function stopCurrentAudio() {
+      currentPlaybackToken++; // Cancel any pending step in current playback
       if (timerCountdown) {
         clearInterval(timerCountdown);
         timerCountdown = null;
       }
-      if (currentAudio) {
-        currentAudio.pause();
-        currentAudio.onended = null;
-        currentAudio.onerror = null;
-        currentAudio = null;
+      if (globalAudioEl) {
+        globalAudioEl.pause();
+        globalAudioEl.currentTime = 0;
+        globalAudioEl.onended = null;
+        globalAudioEl.onerror = null;
       }
+      currentAudio = null;
       timerBadgeEl.style.display = 'none';
       progressFillEl.style.width = '0%';
     }
 
     async function startItemPlayback() {
       stopCurrentAudio();
+      const myToken = currentPlaybackToken;
+
       if (!isPlaying || currentIndex >= filteredList.length) {
         dockStatusEl.innerText = '재생이 정지되었습니다.';
         btnPlayMain.innerHTML = '▶';
@@ -1771,7 +1787,7 @@ filteredList.forEach((item, idx) => {
 
       await playAudioPromise(item.audio_q);
 
-      if (!isPlaying) return;
+      if (myToken !== currentPlaybackToken || !isPlaying) return;
       if (currentCardEl) currentCardEl.classList.remove('speaking-q');
 
       // Step B: Wait / Think Timer (0s ~ 60s)
@@ -1783,11 +1799,19 @@ filteredList.forEach((item, idx) => {
 
         await new Promise(resolve => {
           timerCountdown = setInterval(() => {
+            if (myToken !== currentPlaybackToken || !isPlaying) {
+              clearInterval(timerCountdown);
+              timerCountdown = null;
+              timerBadgeEl.style.display = 'none';
+              progressFillEl.style.width = '0%';
+              resolve();
+              return;
+            }
             remain--;
             const pct = ((delaySeconds - remain) / delaySeconds) * 100;
             progressFillEl.style.width = `${pct}%`;
             timerBadgeEl.innerText = `생각 시간: ${remain}s`;
-            if (remain <= 0 || !isPlaying) {
+            if (remain <= 0) {
               clearInterval(timerCountdown);
               timerCountdown = null;
               timerBadgeEl.style.display = 'none';
@@ -1798,9 +1822,9 @@ filteredList.forEach((item, idx) => {
         });
       }
 
-      if (!isPlaying) return;
+      if (myToken !== currentPlaybackToken || !isPlaying) return;
 
-// Step C: Answer Speech
+      // Step C: Answer Speech
       if (currentCardEl) {
         currentCardEl.classList.add('show-ans', 'speaking-a');
       }
@@ -1813,19 +1837,26 @@ filteredList.forEach((item, idx) => {
         await new Promise(r => setTimeout(r, 3500));
       }
 
-      if (!isPlaying) return;
+      if (myToken !== currentPlaybackToken || !isPlaying) return;
       if (currentCardEl) currentCardEl.classList.remove('speaking-a');
 
-      // Step D: Next item
-      currentIndex = (currentIndex + 1) % filteredList.length;
+      // Step D: Next item (Shuffle vs Sequential)
+      if (isShuffle && filteredList.length > 1) {
+        let nextIdx;
+        do {
+          nextIdx = Math.floor(Math.random() * filteredList.length);
+        } while (nextIdx === currentIndex);
+        currentIndex = nextIdx;
+      } else {
+        currentIndex = (currentIndex + 1) % filteredList.length;
+      }
+
       setTimeout(() => {
-        if (isPlaying) startItemPlayback();
+        if (myToken === currentPlaybackToken && isPlaying) {
+          startItemPlayback();
+        }
       }, 1000);
     }
-
-    // 전역 싱글톤 오디오 객체 (모바일 브라우저 권한 및 백그라운드 끊김 방지)
-    const globalAudioEl = new Audio();
-    globalAudioEl.preload = 'auto';
 
     function playAudioPromise(src) {
       return new Promise(resolve => {
@@ -1833,7 +1864,6 @@ filteredList.forEach((item, idx) => {
           resolve();
           return;
         }
-        stopCurrentAudio();
         currentAudio = globalAudioEl;
         
         let settled = false;
@@ -1851,7 +1881,6 @@ filteredList.forEach((item, idx) => {
           cleanupAndResolve();
         };
 
-        // Cache-busting 및 경로 명확화
         globalAudioEl.src = src;
         globalAudioEl.currentTime = 0;
 
@@ -1879,22 +1908,48 @@ filteredList.forEach((item, idx) => {
     };
 
     btnNext.onclick = () => {
-      currentIndex = (currentIndex + 1) % filteredList.length;
-      if (isPlaying) startItemPlayback();
-      else updateActiveCard();
+      if (isShuffle && filteredList.length > 1) {
+        let nextIdx;
+        do {
+          nextIdx = Math.floor(Math.random() * filteredList.length);
+        } while (nextIdx === currentIndex);
+        currentIndex = nextIdx;
+      } else {
+        currentIndex = (currentIndex + 1) % filteredList.length;
+      }
+      if (isPlaying) {
+        startItemPlayback();
+      } else {
+        updateActiveCard();
+      }
     };
 
     btnPrev.onclick = () => {
       currentIndex = (currentIndex - 1 + filteredList.length) % filteredList.length;
-      if (isPlaying) startItemPlayback();
-      else updateActiveCard();
+      if (isPlaying) {
+        startItemPlayback();
+      } else {
+        updateActiveCard();
+      }
     };
 
+    // 🔀 랜덤 버튼: 누르면 무작위 문항을 즉시 선택하고 새 질문부터 음성을 즉시 재생!
     btnShuffle.onclick = () => {
-      isShuffle = !isShuffle;
-      btnShuffle.style.borderColor = isShuffle ? 'var(--accent)' : 'var(--border)';
-      btnShuffle.style.color = isShuffle ? 'var(--accent)' : 'var(--text)';
-      applyFilter();
+      isShuffle = true;
+      btnShuffle.classList.add('active');
+
+      if (filteredList.length > 1) {
+        let randIdx;
+        do {
+          randIdx = Math.floor(Math.random() * filteredList.length);
+        } while (randIdx === currentIndex);
+        currentIndex = randIdx;
+      }
+
+      isPlaying = true;
+      btnPlayMain.innerHTML = '⏸';
+      dockStatusEl.innerText = '🔀 랜덤 문제로 즉시 음성 재생합니다...';
+      startItemPlayback();
     };
 
     btnAutoScroll.onclick = () => {
@@ -1935,6 +1990,7 @@ filteredList.forEach((item, idx) => {
 
     // Init
     applyFilter();
+    btnShuffle.classList.add('active');
   </script>
 </body>
 </html>
