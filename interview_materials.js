@@ -1535,10 +1535,10 @@ const INTERVIEW_MATERIALS = [
     "category_key": "notes",
     "question": "식각 공정의 주요 지표인 선택비와 로딩 효과를 설명해보세요.",
     "answer": "식각 지표(선택비·Loading Effect) · Wet Etch · Ion Milling · Plasma Etching(RIE) 식각 메커니즘",
-    "audio_q": "",
-    "audio_a": "",
-    "q_ready": false,
-    "a_ready": false
+    "audio_q": "voices/questions/note_27.mp3",
+    "audio_a": "voices/lectures/note_27.mp3",
+    "q_ready": true,
+    "a_ready": true
   },
   {
     "id": "note_28",
