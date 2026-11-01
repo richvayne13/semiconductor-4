@@ -1678,10 +1678,10 @@ const INTERVIEW_MATERIALS = [
     "category_key": "notes",
     "question": "콘택트 저항 저감을 위한 실리사이드 형성 및 배리어 메탈 적용을 설명해보세요.",
     "answer": "Metallization 개요 : 금속 Plug나 Interconnect를 형성하는 공정 (전원 공급, 신호 전달, 패키징 연결). 보통 배선은 PVD를 통해 증착하고, Contact/Via hole 및 Barrier metal은 CVD로 Step coverage 확보. Schottky Contact vs Ohmic Contact : Ohmic Contact : 옴의 법칙을 따르는 접합으로 I-V 가 Linear한 접합(소자가 원하는 접합). 금속↔실리콘 양방향 전류 이동 용이. Schottky Contact : 물질 간 Work function 차이로 인해 Interface에서 쇼트키 Barrier가 형성되어 Carrier가 에너지 장벽을 느껴 특정 전압 이상에서만 전류가 흐름. Silicide (실리사이드) 공정 : Metal과 Silicon 접합에서 쇼트키 컨택 대신 오믹 컨택을 형성해 주는 공정 . G/S/D에 금속을 증착하고 Diffusion 열처리하여 Silicide (C...",
-    "audio_q": "",
-    "audio_a": "",
-    "q_ready": false,
-    "a_ready": false
+    "audio_q": "voices/questions/note_40.mp3",
+    "audio_a": "voices/lectures/note_40.mp3",
+    "q_ready": true,
+    "a_ready": true
   },
   {
     "id": "note_41",
