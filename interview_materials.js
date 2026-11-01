@@ -1128,10 +1128,10 @@ const INTERVIEW_MATERIALS = [
     "category_key": "experience",
     "question": "1.04의 근거?",
     "answer": "3시그마 관리한계선을 설정한거다.\n슈하트의 spc이론에 따르면 데이터가 정규분포를 따를 때 플마 3시그마 구간내에 데이터가 존재할 확률은 99.73%입니다.",
-    "audio_q": "",
-    "audio_a": "",
-    "q_ready": false,
-    "a_ready": false
+    "audio_q": "voices/questions/exp_10.mp3",
+    "audio_a": "voices/lectures/exp_10.mp3",
+    "q_ready": true,
+    "a_ready": true
   },
   {
     "id": "exp_11",
