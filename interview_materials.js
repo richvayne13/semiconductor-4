@@ -1073,10 +1073,10 @@ const INTERVIEW_MATERIALS = [
     "category_key": "experience",
     "question": "\"AI로 산출물의 신뢰성을 어떻게 검증하셨나요?\"",
     "answer": "먼저 P R D 로 승인게이트를 만들어 프로그램제작전에 제품정의요구서를 쭉 읽어본다\n그리고 결과가 나오면 예시를 하나들어 그래프를 그려보고, A I 가 내린결정에 대한 신뢰도 점수를 표시하게해서 낮은 점수에 대한 근거를 위주로 살펴본다\n모델에 일부로 다방면에서 노이즈를 넣어 오차가 생기는지 테스트해본다.",
-    "audio_q": "",
-    "audio_a": "",
-    "q_ready": false,
-    "a_ready": false
+    "audio_q": "voices/questions/exp_05.mp3",
+    "audio_a": "voices/lectures/exp_05.mp3",
+    "q_ready": true,
+    "a_ready": true
   },
   {
     "id": "exp_06",
