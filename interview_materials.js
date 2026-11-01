@@ -1579,10 +1579,10 @@ const INTERVIEW_MATERIALS = [
     "category_key": "notes",
     "question": "씨브이디 박막 증착 메커니즘과 공정 방식별 특징을 설명해보세요.",
     "answer": "CVD 메커니즘 · 종류 비교 (APCVD / LPCVD / PECVD / HDPCVD / MOCVD) · CCP vs ICP CVD",
-    "audio_q": "",
-    "audio_a": "",
-    "q_ready": false,
-    "a_ready": false
+    "audio_q": "voices/questions/note_31.mp3",
+    "audio_a": "voices/lectures/note_31.mp3",
+    "q_ready": true,
+    "a_ready": true
   },
   {
     "id": "note_32",
