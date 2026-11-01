@@ -1337,10 +1337,10 @@ const INTERVIEW_MATERIALS = [
     "category_key": "notes",
     "question": "문턱전압 롤오프 메커니즘과 문턱전압 감소의 양면성에 대해 설명해보세요.",
     "answer": "V_T Roll-off 메커니즘과 문턱전압(V_T) 감소의 양면성 V_T Roll-off",
-    "audio_q": "",
-    "audio_a": "",
-    "q_ready": false,
-    "a_ready": false
+    "audio_q": "voices/questions/note_09.mp3",
+    "audio_a": "voices/lectures/note_09.mp3",
+    "q_ready": true,
+    "a_ready": true
   },
   {
     "id": "note_10",
