@@ -1645,10 +1645,10 @@ const INTERVIEW_MATERIALS = [
     "category_key": "notes",
     "question": "이온 채널링 현상과 섀도잉 효과 및 열처리 어닐링 공정을 설명해보세요.",
     "answer": "Ion Channeling · Shadowing Effect · Annealing (RTA / Laser) · 4-Point Probe & SIMS 채널링 & 열처리",
-    "audio_q": "",
-    "audio_a": "",
-    "q_ready": false,
-    "a_ready": false
+    "audio_q": "voices/questions/note_37.mp3",
+    "audio_a": "voices/lectures/note_37.mp3",
+    "q_ready": true,
+    "a_ready": true
   },
   {
     "id": "note_38",
