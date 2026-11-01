@@ -1689,10 +1689,10 @@ const INTERVIEW_MATERIALS = [
     "category_key": "notes",
     "question": "진공 환경 형성 원리와 플라즈마 시스 영역 및 스퍼터링 메커니즘을 설명해보세요.",
     "answer": "진공(Vacuum) 원리 · 플라즈마 & Sheath 영역 · DC/RF Sputtering 메커니즘 PVD & 플라즈마",
-    "audio_q": "",
-    "audio_a": "",
-    "q_ready": false,
-    "a_ready": false
+    "audio_q": "voices/questions/note_41.mp3",
+    "audio_a": "voices/lectures/note_41.mp3",
+    "q_ready": true,
+    "a_ready": true
   },
   {
     "id": "note_42",
