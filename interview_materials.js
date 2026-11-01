@@ -1161,10 +1161,10 @@ const INTERVIEW_MATERIALS = [
     "category_key": "experience",
     "question": "Q4. 반도체에서는 웜기어 못쓰는데 어떻게 도움이 될 수 있을까요?",
     "answer": "1압전소자인 피에조 엑추에이터 : 전압을 걸면 격자가 나노단위로 수축팽창하는 원리\n2리니어모터나 VCM : 자석과 코일 사이의 자기장으로 비접촉으로 밈\n3자기부상(마그네틱) :자기장으로 웨이퍼스테이지를 둥둥 띄워놓음",
-    "audio_q": "",
-    "audio_a": "",
-    "q_ready": false,
-    "a_ready": false
+    "audio_q": "voices/questions/exp_13.mp3",
+    "audio_a": "voices/lectures/exp_13.mp3",
+    "q_ready": true,
+    "a_ready": true
   },
   {
     "id": "exp_14",
