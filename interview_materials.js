@@ -1293,10 +1293,10 @@ const INTERVIEW_MATERIALS = [
     "category_key": "notes",
     "question": "디램 피처 사이즈 축소 변천 과정과 주변 페리 회로 집적화 기술을 설명해보세요.",
     "answer": "DRAM Feature Size 변천 (8F² → 6F² → 4F²) 및 주변회로(Peri) 구조 집적화 & 패키징",
-    "audio_q": "",
-    "audio_a": "",
-    "q_ready": false,
-    "a_ready": false
+    "audio_q": "voices/questions/note_05.mp3",
+    "audio_a": "voices/lectures/note_05.mp3",
+    "q_ready": true,
+    "a_ready": true
   },
   {
     "id": "note_06",
