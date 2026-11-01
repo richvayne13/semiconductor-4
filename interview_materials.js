@@ -1019,9 +1019,9 @@ const INTERVIEW_MATERIALS = [
     "question": "SOI 구조의 원리와 PD SOI의 플로팅바디효과 및 FD SOI의 해결 메커니즘",
     "answer": "FD-SOI는 FinFET 대비 제조 공정이 평면(Planar) 공정과 유사하여 마스크 수가 적고 원가 경쟁력이 우수하며, BOX 산화막 하부 기판에 전압을 인가하는 백 바이어스(Back Biasing) 기술을 통해 동작 상황에 따라 고속 모드(V_th 강하)와 저전력 슬립 모드(V_th 상승)를 동적으로 실시간 제어할 수 있는 독보적인 장점을 가집니다. 차량용 반도체, 저전력 IoT, 5G RF 칩 분야에서 FinFET의 강력한 대안으로 널리 양산 적용되고 있습니다.",
     "audio_q": "voices/questions/t_dev10_new.mp3",
-    "audio_a": "",
+    "audio_a": "voices/lectures/t_dev10_new.mp3",
     "q_ready": true,
-    "a_ready": false
+    "a_ready": true
   },
   {
     "id": "exp_01",
