@@ -1667,10 +1667,10 @@ const INTERVIEW_MATERIALS = [
     "category_key": "notes",
     "question": "금속 배선 공정의 개요와 쇼트키 및 오믹 콘택트의 차이를 설명해보세요.",
     "answer": "Metallization 개요 · Schottky vs Ohmic Contact · Silicide · TiN Barrier 금속 접합",
-    "audio_q": "",
-    "audio_a": "",
-    "q_ready": false,
-    "a_ready": false
+    "audio_q": "voices/questions/note_39.mp3",
+    "audio_a": "voices/lectures/note_39.mp3",
+    "q_ready": true,
+    "a_ready": true
   },
   {
     "id": "note_40",
